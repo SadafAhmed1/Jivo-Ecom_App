@@ -111,6 +111,7 @@ export function PlatformPOForm() {
   const addLineItem = () => {
     const newItem: LineItem = {
       tempId: `temp-${Date.now()}`,
+      po_id: 0, // Temporary value, will be set by backend
       item_name: "",
       quantity: 0,
       sap_code: "",

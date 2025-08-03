@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { Sidebar } from "@/components/layout/sidebar";
 import Dashboard from "@/pages/dashboard";
 import PlatformPO from "@/pages/platform-po";
+import POList from "@/pages/po-list";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -16,6 +17,7 @@ function Router() {
         <Switch>
           <Route path="/" component={Dashboard} />
           <Route path="/platform-po" component={PlatformPO} />
+          <Route path="/platform-po/list" component={POList} />
           <Route component={NotFound} />
         </Switch>
       </div>

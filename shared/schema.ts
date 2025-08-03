@@ -111,7 +111,7 @@ export const insertSapItemMstSchema = createInsertSchema(sapItemMst).omit({ id: 
 export const insertPfMstSchema = createInsertSchema(pfMst).omit({ id: true });
 export const insertPfItemMstSchema = createInsertSchema(pfItemMst).omit({ id: true });
 export const insertPfPoSchema = createInsertSchema(pfPo).omit({ id: true, created_at: true, updated_at: true });
-export const insertPfOrderItemsSchema = createInsertSchema(pfOrderItems).omit({ id: true });
+export const insertPfOrderItemsSchema = createInsertSchema(pfOrderItems).omit({ id: true, po_id: true });
 
 // Types
 export type SapItemMst = typeof sapItemMst.$inferSelect;

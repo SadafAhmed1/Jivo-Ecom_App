@@ -117,7 +117,16 @@ export class DatabaseStorage implements IStorage {
       query = query.where(and(...conditions));
     }
 
-    return await query;
+    const results = await query;
+    return results.map(row => ({
+      id: row.id,
+      pf_itemcode: row.pf_itemcode,
+      pf_itemname: row.pf_itemname,
+      pf_id: row.pf_id,
+      sap_id: row.sap_id,
+      sapItem: row.sapItem!,
+      platform: row.platform!
+    }));
   }
 
   async createPlatformItem(item: InsertPfItemMst): Promise<PfItemMst> {
