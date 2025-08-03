@@ -1,0 +1,32 @@
+I want to build a web app for my ecommerce needs. I supply to distributors in Punjab, Delhi, Bangalore, Mumbai, Calcutta and RK World. My current data entry for Purchase Orders (POs)  is manual on Google Sheets. I get POs from RK World (My Distributor for Amazon), Blinkit, Swiggy, Zepto, Flipkart Grocery, Zomato Hyperpure, Citymall and Dealshare. My Distributors from Punjab, Delhi, Bangalore, Mumbai and Calcutta supply to these Platforms and RK world supplies to Amazon. I also need Secondary Data  (Data of their sales to customers)  from these Ecommerce platforms for analysis, sales and inventory planning. I also supply some small orders from my own warehouse which is in Delhi Mayapuri. Distributors also give me POs as per their requirements which I supply from my factory which is in sonipat Haryana. I need to automate all these operations within one webapp. Currently my requirements for these apps are:
+
+1. PO punching form for ecommerce Platforms
+2. PO punching form for Distributors
+3. Secondary Sale(ecommerce Platform to Customer) uploader
+4. Distributor Inventory uploader
+
+I want the data stored in my backend in a proper way and it should be queriable through SQL. 
+
+For now I only want to make a PO punching form for E-Commerce Platforms and it should be editable once I create POs. This form should be linked to the backed via apis and there should be proper database tables. 
+I don't want anything to be hardcoded in the frontend. Every data should come from backend, database tables via apis. 
+
+I want you to make the app in such a way that it has a sidebar which houses modules. For the start we will only create a Platform PO module. 
+
+In the database I want you to create the following tables for now to begin:
+
+1. 'sap_item_mst' (This implies SAP item master. I use SAP B1 Hanna as my company's ERP): To maintain consistency this table will contain item(SKU) level data as it is in SAP. This table should have the following columns: 'id', 'itemcode', 'itemname', 'type', 'itemgroup', 'variety', subgroup', 'brand', 'uom', 'taxrate', 'unitsize', 'is_litre' and 'case_pack'.
+
+2. 'pf_mst' (This implies Platform master): This table will store the names of the E-commerce platforms. When I create a PO, I should be able to select the Platform name from this table. This table should have the following columns: 'id', 'pf_name'.
+
+3. 'pf_item_mst' (This implies Platform item master): This table will store the item level details as they are listed on the E-Commerce Platforms. When I create a PO and enter item details, I should just search for the item and I should be able to select the item as per this table. This table will be linked to the 'sap_item_mst' table and 'pf_mst' table. This table should have the following columns: 'id', 'pf_itemcode', 'pf_itemname', 'pf_id' and 'sap_id'.
+
+4. 'pf_po' (This implies platform po): This table should have the following columns: 'id', 'po_number', 'platform', 'serving_distributor', 'order_date', 'expiry_date', 'appointment_date', 'region', 'state', 'city', 'area', 'status' and 'attachment'.
+
+5. 'pf_order_items' (This implies platform order items): When we enter a PO for E-commerce Platform, the line wise details of the ordered items should be entered in this table. This table should have the following columns: 'id', 'po_id', 'item_name', 'quantity', 'sap_code', 'category', 'subcategory', 'basic_rate', 'gst_rate', 'landing_rate' and 'status'. 
+
+When I create a PO or edit a PO, it should add or edit data in the 'pf_po' table and 'pf_order_items' table. When I create a PO, I will enter PO number, I should be able to select the platform from a drop down, I should be able to select PO date, status of PO (Open, Closed, Cancelled, Expired or Duplicate), I should be able to select expiry date, I should be able to select State, City and Region(North India, South India, East India, West India). Then I will enter the ordered item details. As per the platform I have chosen, I should be able to select platform item name and the rest of the details (SAP Code, Platform item code, GST rate for that item should get automatically filled). Then I should enter the quantity which should automatically fill total litres section. Then I should enter basic rate per unit and it should fill the landing rate (basic rate + GST) field automatically. Then I should be able to select the status of that ordered item ( I should be able to choose the status from the following: Pending, Invoiced, Dispatched, Delivered, Stock Issue, Cancelled, Expired, Price Difference, MOV Issue, Hold, CN, RTV, Case Pack Issue). Similarly I should be able to enter more items if required. Before Submitting the PO I should be able to see the total PO amount without tax and total PO amount including tax. 
+
+---
+
+Understand the business need. Make a plan. Then make the web app. After that I plan to make an SSH connection from replit to cursor and then use cursor and claude code(integrated in cursor) for further development.  
+ I will later push this app to a linux server when it is production ready. 
