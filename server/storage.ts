@@ -1,0 +1,227 @@
+import { 
+  type User, 
+  type InsertUser,
+  type PfMst,
+  type InsertPfMst,
+  type SapItemMst,
+  type InsertSapItemMst,
+  type PfItemMst,
+  type InsertPfItemMst,
+  type PfPo,
+  type InsertPfPo,
+  type PfOrderItems,
+  type InsertPfOrderItems,
+  users,
+  pfMst,
+  sapItemMst,
+  pfItemMst,
+  pfPo,
+  pfOrderItems
+} from "@shared/schema";
+import { db } from "./db";
+import { eq, like, desc, and } from "drizzle-orm";
+
+export interface IStorage {
+  // User methods (legacy)
+  getUser(id: string): Promise<User | undefined>;
+  getUserByUsername(username: string): Promise<User | undefined>;
+  createUser(user: InsertUser): Promise<User>;
+  
+  // Platform methods
+  getAllPlatforms(): Promise<PfMst[]>;
+  createPlatform(platform: InsertPfMst): Promise<PfMst>;
+  
+  // SAP Item methods
+  getAllSapItems(): Promise<SapItemMst[]>;
+  createSapItem(item: InsertSapItemMst): Promise<SapItemMst>;
+  
+  // Platform Item methods
+  getPlatformItems(platformId?: number, search?: string): Promise<(PfItemMst & { sapItem: SapItemMst; platform: PfMst })[]>;
+  createPlatformItem(item: InsertPfItemMst): Promise<PfItemMst>;
+  
+  // PO methods
+  getAllPos(): Promise<(PfPo & { platform: PfMst; orderItems: PfOrderItems[] })[]>;
+  getPoById(id: number): Promise<(PfPo & { platform: PfMst; orderItems: PfOrderItems[] }) | undefined>;
+  createPo(po: InsertPfPo, items: InsertPfOrderItems[]): Promise<PfPo>;
+  updatePo(id: number, po: Partial<InsertPfPo>, items?: InsertPfOrderItems[]): Promise<PfPo>;
+  deletePo(id: number): Promise<void>;
+}
+
+export class DatabaseStorage implements IStorage {
+  // User methods (legacy)
+  async getUser(id: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user || undefined;
+  }
+
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.username, username));
+    return user || undefined;
+  }
+
+  async createUser(insertUser: InsertUser): Promise<User> {
+    const [user] = await db
+      .insert(users)
+      .values(insertUser)
+      .returning();
+    return user;
+  }
+
+  // Platform methods
+  async getAllPlatforms(): Promise<PfMst[]> {
+    return await db.select().from(pfMst);
+  }
+
+  async createPlatform(platform: InsertPfMst): Promise<PfMst> {
+    const [result] = await db.insert(pfMst).values(platform).returning();
+    return result;
+  }
+
+  // SAP Item methods
+  async getAllSapItems(): Promise<SapItemMst[]> {
+    return await db.select().from(sapItemMst);
+  }
+
+  async createSapItem(item: InsertSapItemMst): Promise<SapItemMst> {
+    const [result] = await db.insert(sapItemMst).values(item).returning();
+    return result;
+  }
+
+  // Platform Item methods
+  async getPlatformItems(platformId?: number, search?: string): Promise<(PfItemMst & { sapItem: SapItemMst; platform: PfMst })[]> {
+    let query = db
+      .select({
+        id: pfItemMst.id,
+        pf_itemcode: pfItemMst.pf_itemcode,
+        pf_itemname: pfItemMst.pf_itemname,
+        pf_id: pfItemMst.pf_id,
+        sap_id: pfItemMst.sap_id,
+        sapItem: sapItemMst,
+        platform: pfMst
+      })
+      .from(pfItemMst)
+      .leftJoin(sapItemMst, eq(pfItemMst.sap_id, sapItemMst.id))
+      .leftJoin(pfMst, eq(pfItemMst.pf_id, pfMst.id));
+
+    const conditions = [];
+    
+    if (platformId) {
+      conditions.push(eq(pfItemMst.pf_id, platformId));
+    }
+    
+    if (search) {
+      conditions.push(like(pfItemMst.pf_itemname, `%${search}%`));
+    }
+
+    if (conditions.length > 0) {
+      query = query.where(and(...conditions));
+    }
+
+    return await query;
+  }
+
+  async createPlatformItem(item: InsertPfItemMst): Promise<PfItemMst> {
+    const [result] = await db.insert(pfItemMst).values(item).returning();
+    return result;
+  }
+
+  // PO methods
+  async getAllPos(): Promise<(PfPo & { platform: PfMst; orderItems: PfOrderItems[] })[]> {
+    const pos = await db
+      .select({
+        po: pfPo,
+        platform: pfMst
+      })
+      .from(pfPo)
+      .leftJoin(pfMst, eq(pfPo.platform, pfMst.id))
+      .orderBy(desc(pfPo.created_at));
+
+    const result = [];
+    for (const { po, platform } of pos) {
+      const orderItems = await db
+        .select()
+        .from(pfOrderItems)
+        .where(eq(pfOrderItems.po_id, po.id));
+      
+      result.push({
+        ...po,
+        platform: platform!,
+        orderItems
+      });
+    }
+
+    return result;
+  }
+
+  async getPoById(id: number): Promise<(PfPo & { platform: PfMst; orderItems: PfOrderItems[] }) | undefined> {
+    const [result] = await db
+      .select({
+        po: pfPo,
+        platform: pfMst
+      })
+      .from(pfPo)
+      .leftJoin(pfMst, eq(pfPo.platform, pfMst.id))
+      .where(eq(pfPo.id, id));
+
+    if (!result) return undefined;
+
+    const orderItems = await db
+      .select()
+      .from(pfOrderItems)
+      .where(eq(pfOrderItems.po_id, id));
+
+    return {
+      ...result.po,
+      platform: result.platform!,
+      orderItems
+    };
+  }
+
+  async createPo(po: InsertPfPo, items: InsertPfOrderItems[]): Promise<PfPo> {
+    return await db.transaction(async (tx) => {
+      const [createdPo] = await tx.insert(pfPo).values(po).returning();
+      
+      if (items.length > 0) {
+        const itemsWithPoId = items.map(item => ({
+          ...item,
+          po_id: createdPo.id
+        }));
+        await tx.insert(pfOrderItems).values(itemsWithPoId);
+      }
+      
+      return createdPo;
+    });
+  }
+
+  async updatePo(id: number, po: Partial<InsertPfPo>, items?: InsertPfOrderItems[]): Promise<PfPo> {
+    return await db.transaction(async (tx) => {
+      const [updatedPo] = await tx
+        .update(pfPo)
+        .set({ ...po, updated_at: new Date() })
+        .where(eq(pfPo.id, id))
+        .returning();
+
+      if (items) {
+        // Delete existing items
+        await tx.delete(pfOrderItems).where(eq(pfOrderItems.po_id, id));
+        
+        // Insert new items
+        if (items.length > 0) {
+          const itemsWithPoId = items.map(item => ({
+            ...item,
+            po_id: id
+          }));
+          await tx.insert(pfOrderItems).values(itemsWithPoId);
+        }
+      }
+
+      return updatedPo;
+    });
+  }
+
+  async deletePo(id: number): Promise<void> {
+    await db.delete(pfPo).where(eq(pfPo.id, id));
+  }
+}
+
+export const storage = new DatabaseStorage();
