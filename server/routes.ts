@@ -145,6 +145,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Order Items routes
+  app.get("/api/order-items", async (_req, res) => {
+    try {
+      const orderItems = await storage.getAllOrderItems();
+      res.json(orderItems);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch order items" });
+    }
+  });
+
   // Seed data endpoint (only for development)
   app.post("/api/seed-test-data", async (_req, res) => {
     if (process.env.NODE_ENV === "production") {

@@ -45,6 +45,9 @@ export interface IStorage {
   createPo(po: InsertPfPo, items: InsertPfOrderItems[]): Promise<PfPo>;
   updatePo(id: number, po: Partial<InsertPfPo>, items?: InsertPfOrderItems[]): Promise<PfPo>;
   deletePo(id: number): Promise<void>;
+  
+  // Order Items methods
+  getAllOrderItems(): Promise<(PfOrderItems & { po_number: string; platform_name: string; order_date: Date; expiry_date: Date | null; platform: PfMst })[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -232,6 +235,56 @@ export class DatabaseStorage implements IStorage {
 
   async deletePo(id: number): Promise<void> {
     await db.delete(pfPo).where(eq(pfPo.id, id));
+  }
+
+  async getAllOrderItems(): Promise<(PfOrderItems & { po_number: string; platform_name: string; order_date: Date; expiry_date: Date | null; platform: PfMst })[]> {
+    const results = await db
+      .select({
+        // Order item fields
+        id: pfOrderItems.id,
+        po_id: pfOrderItems.po_id,
+        item_name: pfOrderItems.item_name,
+        quantity: pfOrderItems.quantity,
+        basic_rate: pfOrderItems.basic_rate,
+        gst_rate: pfOrderItems.gst_rate,
+        landing_rate: pfOrderItems.landing_rate,
+        status: pfOrderItems.status,
+        sap_code: pfOrderItems.sap_code,
+        hsn_code: pfOrderItems.hsn_code,
+        created_at: pfOrderItems.created_at,
+        updated_at: pfOrderItems.updated_at,
+        // PO fields
+        po_number: pfPo.po_number,
+        order_date: pfPo.order_date,
+        expiry_date: pfPo.expiry_date,
+        // Platform fields  
+        platform_name: pfMst.pf_name,
+        platform: pfMst
+      })
+      .from(pfOrderItems)
+      .innerJoin(pfPo, eq(pfOrderItems.po_id, pfPo.id))
+      .innerJoin(pfMst, eq(pfPo.platform, pfMst.id))
+      .orderBy(desc(pfOrderItems.created_at));
+
+    return results.map(result => ({
+      id: result.id,
+      po_id: result.po_id,
+      item_name: result.item_name,
+      quantity: result.quantity,
+      basic_rate: result.basic_rate,
+      gst_rate: result.gst_rate,
+      landing_rate: result.landing_rate,
+      status: result.status,
+      sap_code: result.sap_code,
+      hsn_code: result.hsn_code,
+      created_at: result.created_at,
+      updated_at: result.updated_at,
+      po_number: result.po_number,
+      platform_name: result.platform_name,
+      order_date: result.order_date,
+      expiry_date: result.expiry_date,
+      platform: result.platform
+    }));
   }
 }
 

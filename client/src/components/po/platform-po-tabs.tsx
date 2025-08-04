@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PlatformPOForm } from "./platform-po-form";
 import { POListView } from "./po-list-view";
+import { OrderItemsListView } from "./order-items-list-view";
 
 export function PlatformPOTabs() {
   const [activeTab, setActiveTab] = useState("create");
@@ -57,7 +58,6 @@ export function PlatformPOTabs() {
               <TabsTrigger 
                 value="analytics" 
                 className="flex items-center space-x-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-pink-600 data-[state=active]:text-white"
-                disabled
               >
                 <BarChart3 className="h-4 w-4" />
                 <span>View Order Items</span>
@@ -79,14 +79,8 @@ export function PlatformPOTabs() {
             </TabsContent>
 
             <TabsContent value="analytics" className="mt-0">
-              <div className="p-12 text-center">
-                <BarChart3 className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                  Order Items View Coming Soon
-                </h3>
-                <p className="text-gray-600 dark:text-gray-300">
-                  Detailed order items view and management features will be available in the next release.
-                </p>
+              <div className="p-6">
+                <OrderItemsListView />
               </div>
             </TabsContent>
           </CardContent>
