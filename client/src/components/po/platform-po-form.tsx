@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { z } from "zod";
-import { Plus, Save, Check, X, CalendarDays } from "lucide-react";
+import { Plus, Check, CalendarDays } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -191,15 +191,6 @@ export function PlatformPOForm() {
               Create New Purchase Order
             </CardTitle>
             <div className="flex items-center space-x-3">
-              {process.env.NODE_ENV !== 'production' && <SeedButton />}
-              <Button variant="outline" type="button" className="hover:bg-red-50">
-                <X className="mr-2 h-4 w-4" />
-                Cancel
-              </Button>
-              <Button variant="secondary" type="button" className="hover:bg-blue-50">
-                <Save className="mr-2 h-4 w-4" />
-                Save Draft
-              </Button>
               <Button 
                 type="submit" 
                 form="po-form"
@@ -549,12 +540,6 @@ export function PlatformPOForm() {
 
       {/* Action Buttons */}
       <div className="mt-6 flex justify-end space-x-4">
-        <Button variant="outline" type="button">
-          Cancel
-        </Button>
-        <Button variant="secondary" type="button">
-          Save as Draft
-        </Button>
         <Button 
           type="submit" 
           form="po-form"
