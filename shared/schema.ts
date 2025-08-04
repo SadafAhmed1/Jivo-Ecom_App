@@ -67,6 +67,7 @@ export const pfOrderItems = pgTable("pf_order_items", {
   basic_rate: decimal("basic_rate", { precision: 10, scale: 2 }).notNull(),
   gst_rate: decimal("gst_rate", { precision: 5, scale: 2 }).notNull(),
   landing_rate: decimal("landing_rate", { precision: 10, scale: 2 }).notNull(),
+  total_litres: decimal("total_litres", { precision: 10, scale: 3 }),
   status: varchar("status", { length: 50 }).default('Pending')
 });
 

@@ -20,22 +20,35 @@ export async function seedTestData() {
 
     // Create SAP items
     const sapItems: InsertSapItemMst[] = [
-      { itemcode: "SAP001", itemname: "Laptop - Dell Inspiron 15", itemgroup: "Electronics", subgroup: "Computers", taxrate: 18 },
-      { itemcode: "SAP002", itemname: "Mobile - Samsung Galaxy S21", itemgroup: "Electronics", subgroup: "Mobile Phones", taxrate: 18 },
-      { itemcode: "SAP003", itemname: "Headphones - Sony WH-1000XM4", itemgroup: "Electronics", subgroup: "Audio", taxrate: 18 },
-      { itemcode: "SAP004", itemname: "T-Shirt - Cotton Blue", itemgroup: "Apparel", subgroup: "Men's Clothing", taxrate: 5 },
-      { itemcode: "SAP005", itemname: "Running Shoes - Nike Air Max", itemgroup: "Footwear", subgroup: "Sports Shoes", taxrate: 12 },
-      { itemcode: "SAP006", itemname: "Coffee Maker - Nespresso", itemgroup: "Home Appliances", subgroup: "Kitchen", taxrate: 18 },
-      { itemcode: "SAP007", itemname: "Yoga Mat - Premium", itemgroup: "Sports", subgroup: "Fitness", taxrate: 12 },
-      { itemcode: "SAP008", itemname: "Book - Programming Guide", itemgroup: "Books", subgroup: "Technical", taxrate: 0 },
-      { itemcode: "SAP009", itemname: "Watch - Casio Digital", itemgroup: "Accessories", subgroup: "Watches", taxrate: 18 },
-      { itemcode: "SAP010", itemname: "Backpack - Travel 40L", itemgroup: "Bags", subgroup: "Travel", taxrate: 18 }
+      { itemcode: "SAP001", itemname: "Laptop - Dell Inspiron 15", itemgroup: "Electronics", subgroup: "Computers", taxrate: "18" },
+      { itemcode: "SAP002", itemname: "Mobile - Samsung Galaxy S21", itemgroup: "Electronics", subgroup: "Mobile Phones", taxrate: "18" },
+      { itemcode: "SAP003", itemname: "Headphones - Sony WH-1000XM4", itemgroup: "Electronics", subgroup: "Audio", taxrate: "18" },
+      { itemcode: "SAP004", itemname: "T-Shirt - Cotton Blue", itemgroup: "Apparel", subgroup: "Men's Clothing", taxrate: "5" },
+      { itemcode: "SAP005", itemname: "Running Shoes - Nike Air Max", itemgroup: "Footwear", subgroup: "Sports Shoes", taxrate: "12" },
+      { itemcode: "SAP006", itemname: "Coffee Maker - Nespresso", itemgroup: "Home Appliances", subgroup: "Kitchen", taxrate: "18" },
+      { itemcode: "SAP007", itemname: "Yoga Mat - Premium", itemgroup: "Sports", subgroup: "Fitness", taxrate: "12" },
+      { itemcode: "SAP008", itemname: "Book - Programming Guide", itemgroup: "Books", subgroup: "Technical", taxrate: "0" },
+      { itemcode: "SAP009", itemname: "Watch - Casio Digital", itemgroup: "Accessories", subgroup: "Watches", taxrate: "18" },
+      { itemcode: "SAP010", itemname: "Backpack - Travel 40L", itemgroup: "Bags", subgroup: "Travel", taxrate: "18" }
     ];
 
     const createdSapItems = [];
     for (const item of sapItems) {
-      const created = await storage.createSapItem(item);
-      createdSapItems.push(created);
+      try {
+        const created = await storage.createSapItem(item);
+        createdSapItems.push(created);
+      } catch (error: any) {
+        // If item already exists, find and use the existing one
+        if (error.code === '23505') {
+          const existingSapItems = await storage.getAllSapItems();
+          const existing = existingSapItems.find(existing => existing.itemcode === item.itemcode);
+          if (existing) {
+            createdSapItems.push(existing);
+          }
+        } else {
+          throw error;
+        }
+      }
     }
 
     // Create platform items (linking platforms to SAP items)
