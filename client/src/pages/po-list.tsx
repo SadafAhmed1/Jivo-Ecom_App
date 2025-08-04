@@ -89,7 +89,7 @@ export default function POList() {
     });
 
     // Prepare detailed order items data
-    const orderItemsData = [];
+    const orderItemsData: any[] = [];
     filteredPOs.forEach(po => {
       po.orderItems.forEach(item => {
         orderItemsData.push({

@@ -250,9 +250,9 @@ export class DatabaseStorage implements IStorage {
         landing_rate: pfOrderItems.landing_rate,
         status: pfOrderItems.status,
         sap_code: pfOrderItems.sap_code,
-        hsn_code: pfOrderItems.hsn_code,
-        created_at: pfOrderItems.created_at,
-        updated_at: pfOrderItems.updated_at,
+        category: pfOrderItems.category,
+        subcategory: pfOrderItems.subcategory,
+        total_litres: pfOrderItems.total_litres,
         // PO fields
         po_number: pfPo.po_number,
         order_date: pfPo.order_date,
@@ -264,7 +264,7 @@ export class DatabaseStorage implements IStorage {
       .from(pfOrderItems)
       .innerJoin(pfPo, eq(pfOrderItems.po_id, pfPo.id))
       .innerJoin(pfMst, eq(pfPo.platform, pfMst.id))
-      .orderBy(desc(pfOrderItems.created_at));
+      .orderBy(desc(pfPo.created_at));
 
     return results.map(result => ({
       id: result.id,
@@ -276,9 +276,9 @@ export class DatabaseStorage implements IStorage {
       landing_rate: result.landing_rate,
       status: result.status,
       sap_code: result.sap_code,
-      hsn_code: result.hsn_code,
-      created_at: result.created_at,
-      updated_at: result.updated_at,
+      category: result.category,
+      subcategory: result.subcategory,
+      total_litres: result.total_litres,
       po_number: result.po_number,
       platform_name: result.platform_name,
       order_date: result.order_date,
