@@ -64,12 +64,12 @@ export default function POEdit() {
     if (po) {
       setFormData({
         po_number: po.po_number,
-        platform_id: po.platform_id.toString(),
-        status: po.status,
+        platform_id: po.platform.id.toString(),
+        status: po.status || "",
         order_date: format(new Date(po.order_date), 'yyyy-MM-dd'),
         expiry_date: po.expiry_date ? format(new Date(po.expiry_date), 'yyyy-MM-dd') : "",
-        city: po.city,
-        state: po.state,
+        city: po.city || "",
+        state: po.state || "",
         serving_distributor: po.serving_distributor || ""
       });
       setOrderItems(po.orderItems.map(item => ({
@@ -77,7 +77,7 @@ export default function POEdit() {
         item_name: item.item_name,
         quantity: item.quantity,
         landing_rate: item.landing_rate,
-        hsn_code: item.hsn_code || ""
+        hsn_code: item.sap_code || ""
       })));
     }
   }, [po]);
