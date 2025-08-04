@@ -19,7 +19,7 @@ import {
   pfOrderItems
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, like, desc, and } from "drizzle-orm";
+import { eq, desc, and, ilike } from "drizzle-orm";
 
 export interface IStorage {
   // User methods (legacy)
@@ -110,7 +110,7 @@ export class DatabaseStorage implements IStorage {
     }
     
     if (search) {
-      conditions.push(like(pfItemMst.pf_itemname, `%${search}%`));
+      conditions.push(ilike(pfItemMst.pf_itemname, `%${search}%`));
     }
 
     if (conditions.length > 0) {

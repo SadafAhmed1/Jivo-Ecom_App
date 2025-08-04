@@ -3,6 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertPfPoSchema, insertPfOrderItemsSchema } from "@shared/schema";
 import { z } from "zod";
+import { seedTestData } from "./seed-data";
 
 const createPoSchema = z.object({
   po: insertPfPoSchema.extend({
@@ -24,7 +25,7 @@ const updatePoSchema = z.object({
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Platform routes
-  app.get("/api/platforms", async (req, res) => {
+  app.get("/api/platforms", async (_req, res) => {
     try {
       const platforms = await storage.getAllPlatforms();
       res.json(platforms);
@@ -43,7 +44,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // SAP Items routes
-  app.get("/api/sap-items", async (req, res) => {
+  app.get("/api/sap-items", async (_req, res) => {
     try {
       const items = await storage.getAllSapItems();
       res.json(items);
@@ -85,7 +86,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // PO routes
-  app.get("/api/pos", async (req, res) => {
+  app.get("/api/pos", async (_req, res) => {
     try {
       const pos = await storage.getAllPos();
       res.json(pos);
@@ -141,6 +142,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(204).send();
     } catch (error) {
       res.status(500).json({ message: "Failed to delete PO" });
+    }
+  });
+
+  // Seed data endpoint (only for development)
+  app.post("/api/seed-test-data", async (_req, res) => {
+    if (process.env.NODE_ENV === "production") {
+      return res.status(403).json({ message: "Seed endpoint not available in production" });
+    }
+    
+    try {
+      const result = await seedTestData();
+      if (result.success) {
+        res.json({ message: "Test data seeded successfully" });
+      } else {
+        res.status(500).json({ message: "Failed to seed test data", error: result.error });
+      }
+    } catch (error) {
+      res.status(500).json({ message: "Failed to seed test data" });
     }
   });
 
