@@ -22,10 +22,7 @@ const navigation = [
     href: "/platform-po",
     icon: ShoppingCart,
     active: true,
-    subItems: [
-      { name: "Create PO", href: "/platform-po" },
-      { name: "View POs", href: "/platform-po/list" }
-    ]
+    description: "Create & manage platform orders"
   },
   {
     name: "Distributor PO",
@@ -72,7 +69,7 @@ export function Sidebar() {
       <nav className="flex-1 p-4">
         <div className="space-y-2">
           {navigation.map((item) => {
-            const isActive = location === item.href || (item.subItems && item.subItems.some(sub => location === sub.href));
+            const isActive = location === item.href;
             
             if (item.comingSoon) {
               return (
@@ -90,43 +87,22 @@ export function Sidebar() {
 
             return (
               <div key={item.name}>
-                {item.subItems ? (
-                  <div className={cn(
-                    "rounded-lg",
-                    isActive && "bg-blue-50 border border-blue-200"
+                <Link href={item.href}>
+                  <a className={cn(
+                    "flex items-center justify-between px-4 py-3 font-medium rounded-lg transition-colors duration-200 group",
+                    isActive ? "text-primary bg-blue-50 border border-blue-200" : "text-gray-600 hover:bg-gray-50 hover:text-primary"
                   )}>
-                    <Link href={item.href}>
-                      <a className={cn(
-                        "flex items-center space-x-3 px-4 py-3 font-medium transition-colors duration-200",
-                        isActive ? "text-primary" : "text-gray-600 hover:bg-gray-50 hover:text-primary"
-                      )}>
-                        <item.icon size={20} />
-                        <span>{item.name}</span>
-                      </a>
-                    </Link>
-                    {isActive && (
-                      <div className="pl-12 pb-2 space-y-1">
-                        {item.subItems.map((subItem) => (
-                          <Link key={subItem.name} href={subItem.href}>
-                            <a className="block px-2 py-1 text-sm text-blue-700 hover:bg-blue-100 rounded">
-                              {subItem.name}
-                            </a>
-                          </Link>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  <Link href={item.href}>
-                    <a className={cn(
-                      "flex items-center space-x-3 px-4 py-3 font-medium rounded-lg transition-colors duration-200",
-                      isActive ? "text-primary bg-blue-50" : "text-gray-600 hover:bg-gray-50 hover:text-primary"
-                    )}>
+                    <div className="flex items-center space-x-3">
                       <item.icon size={20} />
                       <span>{item.name}</span>
-                    </a>
-                  </Link>
-                )}
+                    </div>
+                    {'description' in item && (
+                      <span className="text-xs text-gray-400 group-hover:text-gray-600">
+                        {item.description}
+                      </span>
+                    )}
+                  </a>
+                </Link>
               </div>
             );
           })}
