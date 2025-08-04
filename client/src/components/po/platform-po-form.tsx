@@ -3,12 +3,13 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { z } from "zod";
-import { Plus, Save, Check, X } from "lucide-react";
+import { Plus, Save, Check, X, CalendarDays } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { DatePicker } from "@/components/ui/date-picker";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { LineItemRow } from "./line-item-row";
@@ -33,6 +34,7 @@ type POFormData = z.infer<typeof poFormSchema>;
 
 interface LineItem extends InsertPfOrderItems {
   tempId: string;
+  po_id?: number;
 }
 
 const statusOptions = [
@@ -169,18 +171,20 @@ export function PlatformPOForm() {
   const { totalQuantity, totalValue } = calculateTotals();
 
   return (
-    <div className="max-w-6xl mx-auto">
+    <div className="max-w-6xl mx-auto space-y-6">
       {/* Form Header */}
-      <Card className="mb-6">
-        <CardHeader className="border-b border-gray-200">
+      <Card className="shadow-lg border-0 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-900 dark:to-gray-800">
+        <CardHeader className="border-b border-blue-100 dark:border-gray-700 bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm">
           <div className="flex items-center justify-between">
-            <h3 className="text-lg font-semibold text-gray-900">Create New Purchase Order</h3>
+            <CardTitle className="text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+              Create New Purchase Order
+            </CardTitle>
             <div className="flex items-center space-x-3">
-              <Button variant="outline" type="button">
+              <Button variant="outline" type="button" className="hover:bg-red-50">
                 <X className="mr-2 h-4 w-4" />
                 Cancel
               </Button>
-              <Button variant="secondary" type="button">
+              <Button variant="secondary" type="button" className="hover:bg-blue-50">
                 <Save className="mr-2 h-4 w-4" />
                 Save Draft
               </Button>
@@ -188,18 +192,27 @@ export function PlatformPOForm() {
                 type="submit" 
                 form="po-form"
                 disabled={createPoMutation.isPending}
+                className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
               >
                 <Check className="mr-2 h-4 w-4" />
-                Create PO
+                {createPoMutation.isPending ? 'Creating...' : 'Create PO'}
               </Button>
             </div>
           </div>
         </CardHeader>
 
-        <CardContent className="p-6">
+        <CardContent className="p-8 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm">
           <Form {...form}>
-            <form id="po-form" onSubmit={form.handleSubmit(onSubmit)}>
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <form id="po-form" onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+              
+              {/* Basic Information Section */}
+              <div className="space-y-6">
+                <div className="flex items-center space-x-2 pb-2">
+                  <div className="h-px bg-gradient-to-r from-blue-200 to-indigo-200 flex-1"></div>
+                  <h4 className="text-sm font-medium text-blue-600 dark:text-blue-400 px-3">Basic Information</h4>
+                  <div className="h-px bg-gradient-to-r from-indigo-200 to-blue-200 flex-1"></div>
+                </div>
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <FormField
                   control={form.control}
                   name="po_number"
@@ -269,9 +282,16 @@ export function PlatformPOForm() {
                   name="order_date"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Order Date *</FormLabel>
+                      <FormLabel className="flex items-center gap-2">
+                        <CalendarDays className="h-4 w-4" />
+                        Order Date *
+                      </FormLabel>
                       <FormControl>
-                        <Input type="date" {...field} />
+                        <DatePicker
+                          date={field.value ? new Date(field.value) : undefined}
+                          onDateChange={(date) => field.onChange(date ? date.toISOString().split('T')[0] : '')}
+                          placeholder="Select order date"
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -283,9 +303,16 @@ export function PlatformPOForm() {
                   name="expiry_date"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Expiry Date</FormLabel>
+                      <FormLabel className="flex items-center gap-2">
+                        <CalendarDays className="h-4 w-4" />
+                        Expiry Date
+                      </FormLabel>
                       <FormControl>
-                        <Input type="date" {...field} />
+                        <DatePicker
+                          date={field.value ? new Date(field.value) : undefined}
+                          onDateChange={(date) => field.onChange(date ? date.toISOString().split('T')[0] : '')}
+                          placeholder="Select expiry date"
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -297,9 +324,16 @@ export function PlatformPOForm() {
                   name="appointment_date"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Appointment Date</FormLabel>
+                      <FormLabel className="flex items-center gap-2">
+                        <CalendarDays className="h-4 w-4" />
+                        Appointment Date
+                      </FormLabel>
                       <FormControl>
-                        <Input type="date" {...field} />
+                        <DatePicker
+                          date={field.value ? new Date(field.value) : undefined}
+                          onDateChange={(date) => field.onChange(date ? date.toISOString().split('T')[0] : '')}
+                          placeholder="Select appointment date"
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -408,6 +442,7 @@ export function PlatformPOForm() {
                     </FormItem>
                   )}
                 />
+                </div>
               </div>
             </form>
           </Form>
@@ -415,11 +450,17 @@ export function PlatformPOForm() {
       </Card>
 
       {/* Line Items Section */}
-      <Card>
-        <CardHeader className="border-b border-gray-200">
+      <Card className="shadow-lg border-0">
+        <CardHeader className="border-b border-blue-100 dark:border-gray-700 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-gray-800 dark:to-gray-900">
           <div className="flex items-center justify-between">
-            <h3 className="text-lg font-semibold text-gray-900">Order Items</h3>
-            <Button type="button" onClick={addLineItem} className="bg-secondary hover:bg-green-600">
+            <CardTitle className="text-lg font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
+              Order Items
+            </CardTitle>
+            <Button 
+              type="button" 
+              onClick={addLineItem} 
+              className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 shadow-md"
+            >
               <Plus className="mr-2 h-4 w-4" />
               Add Item
             </Button>
@@ -429,19 +470,19 @@ export function PlatformPOForm() {
         {/* Items Table */}
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-gray-50">
+            <thead className="bg-gradient-to-r from-slate-50 to-gray-50 dark:from-gray-800 dark:to-gray-900">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Item Details</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">SAP Code</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantity</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Basic Rate</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">GST Rate</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Landing Rate</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">Item Details</th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">SAP Code</th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">Category</th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">Quantity</th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">Basic Rate</th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">GST Rate</th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">Landing Rate</th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="bg-white dark:bg-gray-950 divide-y divide-gray-100 dark:divide-gray-800">
               {lineItems.map((item) => (
                 <LineItemRow
                   key={item.tempId}
@@ -464,12 +505,19 @@ export function PlatformPOForm() {
 
         {/* Summary Section */}
         {lineItems.length > 0 && (
-          <div className="px-6 py-4 border-t border-gray-200 bg-gray-50">
+          <div className="px-6 py-6 border-t border-blue-100 dark:border-gray-700 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-900">
             <div className="flex justify-between items-center">
-              <div className="text-sm text-gray-600">
-                {lineItems.length} item(s) • Total Quantity: {totalQuantity}
+              <div className="flex items-center space-x-6 text-sm font-medium text-gray-700 dark:text-gray-300">
+                <div className="flex items-center space-x-2">
+                  <div className="h-2 w-2 bg-blue-500 rounded-full"></div>
+                  <span>{lineItems.length} item(s)</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <div className="h-2 w-2 bg-green-500 rounded-full"></div>
+                  <span>Total Quantity: {totalQuantity}</span>
+                </div>
               </div>
-              <div className="text-lg font-semibold text-gray-900">
+              <div className="text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
                 Total Value: ₹{totalValue.toFixed(2)}
               </div>
             </div>

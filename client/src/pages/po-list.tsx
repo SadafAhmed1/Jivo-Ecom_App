@@ -52,26 +52,28 @@ export default function POList() {
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
       {/* Header */}
-      <header className="bg-white shadow-sm border-b border-gray-200 px-6 py-4">
+      <header className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-900 dark:to-gray-800 shadow-lg border-b border-blue-100 dark:border-gray-700 px-6 py-6">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-2xl font-semibold text-gray-900">Purchase Orders List</h2>
-            <p className="text-gray-600 mt-1">View and manage all platform purchase orders</p>
+            <h2 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+              Purchase Orders
+            </h2>
+            <p className="text-gray-600 dark:text-gray-300 mt-2 text-lg">View and manage all platform purchase orders</p>
           </div>
           <div className="flex items-center space-x-4">
             {/* Search */}
-            <div className="relative">
+            <div className="relative group">
               <input 
                 type="text" 
                 placeholder="Search POs..." 
-                className="w-64 pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
+                className="w-64 pl-12 pr-4 py-3 border-0 bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm rounded-xl shadow-md focus:ring-2 focus:ring-blue-500 focus:shadow-lg transition-all duration-200 outline-none"
               />
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 group-focus-within:text-blue-500 transition-colors" size={20} />
             </div>
             {/* Create New PO */}
             <Link href="/platform-po">
-              <Button className="bg-primary hover:bg-primary/90">
-                <Plus className="mr-2 h-4 w-4" />
+              <Button className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg px-6 py-3 text-white font-medium rounded-xl">
+                <Plus className="mr-2 h-5 w-5" />
                 Create New PO
               </Button>
             </Link>
@@ -106,33 +108,36 @@ export default function POList() {
               </CardContent>
             </Card>
           ) : (
-            <div className="space-y-4">
+            <div className="space-y-6">
               {pos.map((po) => {
                 const { totalQuantity, totalValue } = calculatePOTotals(po.orderItems);
                 
                 return (
-                  <Card key={po.id} className="hover:shadow-md transition-shadow">
-                    <CardHeader className="pb-3">
+                  <Card key={po.id} className="shadow-lg border-0 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm hover:shadow-xl transition-all duration-300 hover:scale-[1.02]">
+                    <CardHeader className="pb-4 bg-gradient-to-r from-slate-50 to-gray-50 dark:from-gray-800 dark:to-gray-900 border-b border-gray-100 dark:border-gray-700">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-4">
                           <div>
-                            <CardTitle className="text-lg">{po.po_number}</CardTitle>
-                            <p className="text-sm text-gray-600">{po.platform.pf_name}</p>
+                            <CardTitle className="text-xl font-bold text-gray-900 dark:text-white">{po.po_number}</CardTitle>
+                            <p className="text-sm font-medium text-blue-600 dark:text-blue-400">{po.platform.pf_name}</p>
                           </div>
-                          <Badge variant={getStatusBadgeVariant(po.status)}>
+                          <Badge 
+                            variant={getStatusBadgeVariant(po.status)}
+                            className="px-3 py-1 text-xs font-semibold"
+                          >
                             {po.status}
                           </Badge>
                         </div>
                         <div className="flex items-center space-x-2">
-                          <Button variant="outline" size="sm">
+                          <Button variant="outline" size="sm" className="hover:bg-blue-50 border-blue-200">
                             <Eye className="h-4 w-4 mr-1" />
                             View
                           </Button>
-                          <Button variant="outline" size="sm">
+                          <Button variant="outline" size="sm" className="hover:bg-green-50 border-green-200">
                             <Edit className="h-4 w-4 mr-1" />
                             Edit
                           </Button>
-                          <Button variant="outline" size="sm" className="text-red-600 hover:text-red-700">
+                          <Button variant="outline" size="sm" className="text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200">
                             <Trash2 className="h-4 w-4 mr-1" />
                             Delete
                           </Button>
