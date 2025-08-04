@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
-import { Bell, Search, Eye, Edit, Trash2, Plus } from "lucide-react";
+import { Bell, Search, Eye, Edit, Trash2, Plus, Filter, Download, RefreshCw } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import * as XLSX from 'xlsx';
 import type { PfPo, PfMst, PfOrderItems } from "@shared/schema";
 
 interface POWithDetails extends Omit<PfPo, 'platform'> {
@@ -19,10 +20,11 @@ interface POWithDetails extends Omit<PfPo, 'platform'> {
 export default function POList() {
   const [, setLocation] = useLocation();
   const [searchTerm, setSearchTerm] = useState("");
+  const [showFilter, setShowFilter] = useState(false);
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
-  const { data: pos = [], isLoading } = useQuery<POWithDetails[]>({
+  const { data: pos = [], isLoading, refetch } = useQuery<POWithDetails[]>({
     queryKey: ["/api/pos"]
   });
 
@@ -58,11 +60,95 @@ export default function POList() {
     }
   };
 
+  const handleRefresh = () => {
+    refetch();
+    toast({
+      title: "Refreshed",
+      description: "Purchase orders refreshed successfully"
+    });
+  };
+
+  const handleExport = () => {
+    // Prepare PO summary data
+    const poSummaryData = filteredPOs.map(po => {
+      const { totalQuantity, totalValue } = calculatePOTotals(po.orderItems);
+      return {
+        'PO Number': po.po_number,
+        'Platform': po.platform.pf_name,
+        'Status': po.status,
+        'Order Date': format(new Date(po.order_date), 'yyyy-MM-dd'),
+        'Expiry Date': po.expiry_date ? format(new Date(po.expiry_date), 'yyyy-MM-dd') : 'Not set',
+        'City': po.city,
+        'State': po.state,
+        'Location': `${po.city}, ${po.state}`,
+        'Distributor': po.serving_distributor || 'Not assigned',
+        'Total Items': po.orderItems.length,
+        'Total Quantity': totalQuantity,
+        'Total Value': parseFloat(totalValue.toFixed(2))
+      };
+    });
+
+    // Prepare detailed order items data
+    const orderItemsData = [];
+    filteredPOs.forEach(po => {
+      po.orderItems.forEach(item => {
+        orderItemsData.push({
+          'PO Number': po.po_number,
+          'Platform': po.platform.pf_name,
+          'Item Name': item.item_name,
+          'SAP Code': item.sap_code || 'N/A',
+          'Quantity': item.quantity,
+          'Basic Rate': parseFloat(item.basic_rate || '0'),
+          'GST Rate': parseFloat(item.gst_rate || '0'),
+          'Landing Rate': parseFloat(item.landing_rate || '0'),
+          'Item Total': parseFloat((parseFloat(item.landing_rate || '0') * item.quantity).toFixed(2)),
+          'Status': item.status || 'Pending'
+        });
+      });
+    });
+
+    // Create a new workbook
+    const workbook = XLSX.utils.book_new();
+    
+    // Create PO Summary worksheet
+    const poSummaryWorksheet = XLSX.utils.json_to_sheet(poSummaryData);
+    const poSummaryColWidths = [
+      { wch: 15 }, { wch: 20 }, { wch: 12 }, { wch: 12 }, { wch: 12 },
+      { wch: 15 }, { wch: 15 }, { wch: 25 }, { wch: 20 }, { wch: 12 },
+      { wch: 15 }, { wch: 15 }
+    ];
+    poSummaryWorksheet['!cols'] = poSummaryColWidths;
+    XLSX.utils.book_append_sheet(workbook, poSummaryWorksheet, 'PO Summary');
+    
+    // Create Order Items worksheet if there are items
+    if (orderItemsData.length > 0) {
+      const itemsWorksheet = XLSX.utils.json_to_sheet(orderItemsData);
+      const itemsColWidths = [
+        { wch: 15 }, { wch: 20 }, { wch: 30 }, { wch: 15 }, 
+        { wch: 10 }, { wch: 12 }, { wch: 10 }, { wch: 12 },
+        { wch: 12 }, { wch: 12 }
+      ];
+      itemsWorksheet['!cols'] = itemsColWidths;
+      XLSX.utils.book_append_sheet(workbook, itemsWorksheet, 'Order Items');
+    }
+    
+    // Generate filename with current date
+    const filename = `purchase-orders-${format(new Date(), 'yyyy-MM-dd')}.xlsx`;
+    
+    // Write file
+    XLSX.writeFile(workbook, filename);
+    
+    toast({
+      title: "Export Complete",
+      description: `${filteredPOs.length} purchase orders with ${orderItemsData.length} items exported to Excel`
+    });
+  };
 
   const filteredPOs = pos.filter(po => 
     po.po_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
     po.platform.pf_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    po.status.toLowerCase().includes(searchTerm.toLowerCase())
+    po.status.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    `${po.city}, ${po.state}`.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const getStatusBadgeVariant = (status: string) => {

@@ -39,7 +39,7 @@ export function PlatformPOTabs() {
       <Card className="shadow-lg border-0">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <CardHeader className="border-b border-gray-100 dark:border-gray-700 bg-gradient-to-r from-slate-50 to-gray-50 dark:from-gray-800 dark:to-gray-900">
-            <TabsList className="grid w-full grid-cols-4 bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm shadow-md rounded-xl">
+            <TabsList className="grid w-full grid-cols-3 bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm shadow-md rounded-xl">
               <TabsTrigger 
                 value="create" 
                 className="flex items-center space-x-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-indigo-600 data-[state=active]:text-white"
@@ -60,15 +60,7 @@ export function PlatformPOTabs() {
                 disabled
               >
                 <BarChart3 className="h-4 w-4" />
-                <span>Analytics</span>
-              </TabsTrigger>
-              <TabsTrigger 
-                value="settings" 
-                className="flex items-center space-x-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-gray-600 data-[state=active]:to-slate-600 data-[state=active]:text-white"
-                disabled
-              >
-                <Settings className="h-4 w-4" />
-                <span>Settings</span>
+                <span>View Order Items</span>
               </TabsTrigger>
             </TabsList>
           </CardHeader>
@@ -90,22 +82,10 @@ export function PlatformPOTabs() {
               <div className="p-12 text-center">
                 <BarChart3 className="h-16 w-16 text-gray-400 mx-auto mb-4" />
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                  Analytics Coming Soon
+                  Order Items View Coming Soon
                 </h3>
                 <p className="text-gray-600 dark:text-gray-300">
-                  Advanced PO analytics and reporting features will be available in the next release.
-                </p>
-              </div>
-            </TabsContent>
-
-            <TabsContent value="settings" className="mt-0">
-              <div className="p-12 text-center">
-                <Settings className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                  Settings Coming Soon
-                </h3>
-                <p className="text-gray-600 dark:text-gray-300">
-                  Platform-specific settings and configuration options will be available soon.
+                  Detailed order items view and management features will be available in the next release.
                 </p>
               </div>
             </TabsContent>
