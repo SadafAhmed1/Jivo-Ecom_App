@@ -76,8 +76,18 @@ export function PlatformPOForm() {
   const form = useForm<POFormData>({
     resolver: zodResolver(poFormSchema),
     defaultValues: {
+      po_number: "",
+      platform: 0,
       status: "Open",
-      order_date: new Date().toISOString().split('T')[0]
+      order_date: new Date().toISOString().split('T')[0],
+      expiry_date: "",
+      appointment_date: "",
+      region: "",
+      state: "",
+      city: "",
+      area: "",
+      serving_distributor: "",
+      attachment: ""
     }
   });
 

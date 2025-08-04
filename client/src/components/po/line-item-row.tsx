@@ -44,7 +44,18 @@ export function LineItemRow({ item, platformId, onUpdate, onRemove }: LineItemRo
 
   // Fetch platform items for search
   const { data: platformItems = [] } = useQuery<PlatformItemWithDetails[]>({
-    queryKey: ["/api/platform-items", { platformId, search: searchTerm }],
+    queryKey: ["/api/platform-items", platformId, searchTerm],
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      if (platformId) params.append('platformId', platformId.toString());
+      if (searchTerm) params.append('search', searchTerm);
+      
+      const response = await fetch(`/api/platform-items?${params.toString()}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch platform items');
+      }
+      return response.json();
+    },
     enabled: !!platformId && searchTerm.length > 0
   });
 
