@@ -40,8 +40,8 @@ export interface IStorage {
   createPlatformItem(item: InsertPfItemMst): Promise<PfItemMst>;
   
   // PO methods
-  getAllPos(): Promise<(PfPo & { platform: PfMst; orderItems: PfOrderItems[] })[]>;
-  getPoById(id: number): Promise<(PfPo & { platform: PfMst; orderItems: PfOrderItems[] }) | undefined>;
+  getAllPos(): Promise<(Omit<PfPo, 'platform'> & { platform: PfMst; orderItems: PfOrderItems[] })[]>;
+  getPoById(id: number): Promise<(Omit<PfPo, 'platform'> & { platform: PfMst; orderItems: PfOrderItems[] }) | undefined>;
   createPo(po: InsertPfPo, items: InsertPfOrderItems[]): Promise<PfPo>;
   updatePo(id: number, po: Partial<InsertPfPo>, items?: InsertPfOrderItems[]): Promise<PfPo>;
   deletePo(id: number): Promise<void>;
@@ -114,7 +114,7 @@ export class DatabaseStorage implements IStorage {
     }
 
     if (conditions.length > 0) {
-      query = query.where(and(...conditions));
+      query = query.where(and(...conditions)) as typeof query;
     }
 
     const results = await query;
@@ -135,7 +135,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   // PO methods
-  async getAllPos(): Promise<(PfPo & { platform: PfMst; orderItems: PfOrderItems[] })[]> {
+  async getAllPos(): Promise<(Omit<PfPo, 'platform'> & { platform: PfMst; orderItems: PfOrderItems[] })[]> {
     const pos = await db
       .select({
         po: pfPo,
@@ -152,8 +152,9 @@ export class DatabaseStorage implements IStorage {
         .from(pfOrderItems)
         .where(eq(pfOrderItems.po_id, po.id));
       
+      const { platform: platformId, ...poWithoutPlatform } = po;
       result.push({
-        ...po,
+        ...poWithoutPlatform,
         platform: platform!,
         orderItems
       });
@@ -162,7 +163,7 @@ export class DatabaseStorage implements IStorage {
     return result;
   }
 
-  async getPoById(id: number): Promise<(PfPo & { platform: PfMst; orderItems: PfOrderItems[] }) | undefined> {
+  async getPoById(id: number): Promise<(Omit<PfPo, 'platform'> & { platform: PfMst; orderItems: PfOrderItems[] }) | undefined> {
     const [result] = await db
       .select({
         po: pfPo,
@@ -179,8 +180,9 @@ export class DatabaseStorage implements IStorage {
       .from(pfOrderItems)
       .where(eq(pfOrderItems.po_id, id));
 
+    const { platform: platformId, ...poWithoutPlatform } = result.po;
     return {
-      ...result.po,
+      ...poWithoutPlatform,
       platform: result.platform!,
       orderItems
     };

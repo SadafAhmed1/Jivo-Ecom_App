@@ -86,24 +86,22 @@ export function Sidebar() {
             }
 
             return (
-              <div key={item.name}>
-                <Link href={item.href}>
-                  <a className={cn(
-                    "flex items-center justify-between px-4 py-3 font-medium rounded-lg transition-colors duration-200 group",
-                    isActive ? "text-primary bg-blue-50 border border-blue-200" : "text-gray-600 hover:bg-gray-50 hover:text-primary"
-                  )}>
-                    <div className="flex items-center space-x-3">
-                      <item.icon size={20} />
-                      <span>{item.name}</span>
-                    </div>
-                    {'description' in item && (
-                      <span className="text-xs text-gray-400 group-hover:text-gray-600">
-                        {item.description}
-                      </span>
-                    )}
-                  </a>
-                </Link>
-              </div>
+              <Link key={item.name} href={item.href}>
+                <div className={cn(
+                  "flex items-center justify-between px-4 py-3 font-medium rounded-lg transition-colors duration-200 group cursor-pointer",
+                  isActive ? "text-primary bg-blue-50 border border-blue-200" : "text-gray-600 hover:bg-gray-50 hover:text-primary"
+                )}>
+                  <div className="flex items-center space-x-3">
+                    <item.icon size={20} />
+                    <span>{item.name}</span>
+                  </div>
+                  {'description' in item && (
+                    <span className="text-xs text-gray-400 group-hover:text-gray-600">
+                      {item.description}
+                    </span>
+                  )}
+                </div>
+              </Link>
             );
           })}
         </div>

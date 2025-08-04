@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import type { PfPo, PfMst, PfOrderItems } from "@shared/schema";
 
-interface POWithDetails extends PfPo {
+interface POWithDetails extends Omit<PfPo, 'platform'> {
   platform: PfMst;
   orderItems: PfOrderItems[];
 }
