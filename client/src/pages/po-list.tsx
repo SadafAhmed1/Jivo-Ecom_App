@@ -1,10 +1,14 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
-import { Bell, Search, Eye, Edit, Trash2, Plus } from "lucide-react";
-import { Link } from "wouter";
+import { Bell, Search, Eye, Edit, Trash2, Plus, Filter, Download, RefreshCw, BarChart3, Settings } from "lucide-react";
+import { Link, useLocation } from "wouter";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
 import type { PfPo, PfMst, PfOrderItems } from "@shared/schema";
 
 interface POWithDetails extends Omit<PfPo, 'platform'> {
@@ -13,9 +17,91 @@ interface POWithDetails extends Omit<PfPo, 'platform'> {
 }
 
 export default function POList() {
-  const { data: pos = [], isLoading } = useQuery<POWithDetails[]>({
+  const [, setLocation] = useLocation();
+  const [searchTerm, setSearchTerm] = useState("");
+  const [showFilter, setShowFilter] = useState(false);
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  const { data: pos = [], isLoading, refetch } = useQuery<POWithDetails[]>({
     queryKey: ["/api/pos"]
   });
+
+  const deletePOMutation = useMutation({
+    mutationFn: (id: number) => apiRequest(`/api/pos/${id}`, { method: 'DELETE' }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/pos"] });
+      toast({
+        title: "Success",
+        description: "Purchase order deleted successfully"
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to delete purchase order",
+        variant: "destructive"
+      });
+    }
+  });
+
+  const handleView = (po: POWithDetails) => {
+    // TODO: Navigate to PO details page
+    toast({
+      title: "View PO",
+      description: `Viewing PO ${po.po_number}`
+    });
+  };
+
+  const handleEdit = (po: POWithDetails) => {
+    // TODO: Navigate to edit page
+    toast({
+      title: "Edit PO",
+      description: `Editing PO ${po.po_number}`
+    });
+  };
+
+  const handleDelete = (po: POWithDetails) => {
+    if (confirm(`Are you sure you want to delete PO ${po.po_number}?`)) {
+      deletePOMutation.mutate(po.id);
+    }
+  };
+
+  const handleRefresh = () => {
+    refetch();
+    toast({
+      title: "Refreshed",
+      description: "Purchase orders refreshed successfully"
+    });
+  };
+
+  const handleExport = () => {
+    // Generate CSV export
+    const csvData = pos.map(po => {
+      const { totalQuantity, totalValue } = calculatePOTotals(po.orderItems);
+      return `${po.po_number},${po.platform.pf_name},${po.status},${format(new Date(po.order_date), 'yyyy-MM-dd')},${po.city} ${po.state},${totalQuantity},${totalValue.toFixed(2)}`;
+    });
+    const csvContent = "PO Number,Platform,Status,Order Date,Location,Total Quantity,Total Value\n" + csvData.join('\n');
+    
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `purchase-orders-${format(new Date(), 'yyyy-MM-dd')}.csv`;
+    a.click();
+    window.URL.revokeObjectURL(url);
+    
+    toast({
+      title: "Export Complete",
+      description: "Purchase orders exported to CSV"
+    });
+  };
+
+  const filteredPOs = pos.filter(po => 
+    po.po_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    po.platform.pf_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    po.status.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   const getStatusBadgeVariant = (status: string) => {
     switch (status.toLowerCase()) {
@@ -63,9 +149,11 @@ export default function POList() {
           <div className="flex items-center space-x-4">
             {/* Search */}
             <div className="relative group">
-              <input 
+              <Input 
                 type="text" 
                 placeholder="Search POs..." 
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-64 pl-12 pr-4 py-3 border-0 bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm rounded-xl shadow-md focus:ring-2 focus:ring-blue-500 focus:shadow-lg transition-all duration-200 outline-none"
               />
               <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 group-focus-within:text-blue-500 transition-colors" size={20} />
@@ -89,7 +177,7 @@ export default function POList() {
       {/* Content Area */}
       <main className="flex-1 overflow-y-auto p-6">
         <div className="max-w-7xl mx-auto">
-          {pos.length === 0 ? (
+          {filteredPOs.length === 0 ? (
             <Card>
               <CardContent className="flex flex-col items-center justify-center py-12">
                 <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mb-4">
@@ -109,7 +197,7 @@ export default function POList() {
             </Card>
           ) : (
             <div className="space-y-6">
-              {pos.map((po) => {
+              {filteredPOs.map((po) => {
                 const { totalQuantity, totalValue } = calculatePOTotals(po.orderItems);
                 
                 return (
@@ -129,15 +217,31 @@ export default function POList() {
                           </Badge>
                         </div>
                         <div className="flex items-center space-x-2">
-                          <Button variant="outline" size="sm" className="hover:bg-blue-50 border-blue-200">
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            onClick={() => handleView(po)}
+                            className="hover:bg-blue-50 border-blue-200"
+                          >
                             <Eye className="h-4 w-4 mr-1" />
                             View
                           </Button>
-                          <Button variant="outline" size="sm" className="hover:bg-green-50 border-green-200">
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            onClick={() => handleEdit(po)}
+                            className="hover:bg-green-50 border-green-200"
+                          >
                             <Edit className="h-4 w-4 mr-1" />
                             Edit
                           </Button>
-                          <Button variant="outline" size="sm" className="text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200">
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            onClick={() => handleDelete(po)}
+                            disabled={deletePOMutation.isPending}
+                            className="text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200"
+                          >
                             <Trash2 className="h-4 w-4 mr-1" />
                             Delete
                           </Button>
