@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
-import { Bell, Search, Eye, Edit, Trash2, Plus, Filter, Download, RefreshCw, BarChart3, Settings } from "lucide-react";
+import { Bell, Search, Eye, Edit, Trash2, Plus } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -19,16 +19,15 @@ interface POWithDetails extends Omit<PfPo, 'platform'> {
 export default function POList() {
   const [, setLocation] = useLocation();
   const [searchTerm, setSearchTerm] = useState("");
-  const [showFilter, setShowFilter] = useState(false);
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
-  const { data: pos = [], isLoading, refetch } = useQuery<POWithDetails[]>({
+  const { data: pos = [], isLoading } = useQuery<POWithDetails[]>({
     queryKey: ["/api/pos"]
   });
 
   const deletePOMutation = useMutation({
-    mutationFn: (id: number) => apiRequest(`/api/pos/${id}`, { method: 'DELETE' }),
+    mutationFn: (id: number) => apiRequest('DELETE', `/api/pos/${id}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/pos"] });
       toast({
@@ -46,19 +45,11 @@ export default function POList() {
   });
 
   const handleView = (po: POWithDetails) => {
-    // TODO: Navigate to PO details page
-    toast({
-      title: "View PO",
-      description: `Viewing PO ${po.po_number}`
-    });
+    setLocation(`/po-details/${po.id}`);
   };
 
   const handleEdit = (po: POWithDetails) => {
-    // TODO: Navigate to edit page
-    toast({
-      title: "Edit PO",
-      description: `Editing PO ${po.po_number}`
-    });
+    setLocation(`/po-edit/${po.id}`);
   };
 
   const handleDelete = (po: POWithDetails) => {
@@ -67,35 +58,6 @@ export default function POList() {
     }
   };
 
-  const handleRefresh = () => {
-    refetch();
-    toast({
-      title: "Refreshed",
-      description: "Purchase orders refreshed successfully"
-    });
-  };
-
-  const handleExport = () => {
-    // Generate CSV export
-    const csvData = pos.map(po => {
-      const { totalQuantity, totalValue } = calculatePOTotals(po.orderItems);
-      return `${po.po_number},${po.platform.pf_name},${po.status},${format(new Date(po.order_date), 'yyyy-MM-dd')},${po.city} ${po.state},${totalQuantity},${totalValue.toFixed(2)}`;
-    });
-    const csvContent = "PO Number,Platform,Status,Order Date,Location,Total Quantity,Total Value\n" + csvData.join('\n');
-    
-    const blob = new Blob([csvContent], { type: 'text/csv' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `purchase-orders-${format(new Date(), 'yyyy-MM-dd')}.csv`;
-    a.click();
-    window.URL.revokeObjectURL(url);
-    
-    toast({
-      title: "Export Complete",
-      description: "Purchase orders exported to CSV"
-    });
-  };
 
   const filteredPOs = pos.filter(po => 
     po.po_number.toLowerCase().includes(searchTerm.toLowerCase()) ||

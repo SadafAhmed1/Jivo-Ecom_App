@@ -6,6 +6,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { Sidebar } from "@/components/layout/sidebar";
 import Dashboard from "@/pages/dashboard";
 import PlatformPO from "@/pages/platform-po";
+import PODetails from "@/pages/po-details";
+import POEdit from "@/pages/po-edit";
 
 import NotFound from "@/pages/not-found";
 
@@ -17,6 +19,8 @@ function Router() {
         <Switch>
           <Route path="/" component={Dashboard} />
           <Route path="/platform-po" component={PlatformPO} />
+          <Route path="/po-details/:id" component={PODetails} />
+          <Route path="/po-edit/:id" component={POEdit} />
 
           <Route component={NotFound} />
         </Switch>

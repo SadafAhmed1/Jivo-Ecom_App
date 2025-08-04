@@ -1,11 +1,14 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { Search, Eye, Edit, Trash2, Filter, Download, RefreshCw } from "lucide-react";
+import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import type { PfPo, PfMst, PfOrderItems } from "@shared/schema";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
+import type { PfMst, PfOrderItems } from "@shared/schema";
 
 interface POWithDetails {
   id: number;
@@ -21,9 +24,45 @@ interface POWithDetails {
 }
 
 export function POListView() {
+  const [, setLocation] = useLocation();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  
   const { data: pos = [], isLoading, refetch } = useQuery<POWithDetails[]>({
     queryKey: ["/api/pos"]
   });
+
+  const deletePOMutation = useMutation({
+    mutationFn: (id: number) => apiRequest('DELETE', `/api/pos/${id}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/pos"] });
+      toast({
+        title: "Success",
+        description: "Purchase order deleted successfully"
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to delete purchase order",
+        variant: "destructive"
+      });
+    }
+  });
+
+  const handleView = (po: POWithDetails) => {
+    setLocation(`/po-details/${po.id}`);
+  };
+
+  const handleEdit = (po: POWithDetails) => {
+    setLocation(`/po-edit/${po.id}`);
+  };
+
+  const handleDelete = (po: POWithDetails) => {
+    if (confirm(`Are you sure you want to delete PO ${po.po_number}?`)) {
+      deletePOMutation.mutate(po.id);
+    }
+  };
 
   const getStatusBadgeVariant = (status: string) => {
     switch (status.toLowerCase()) {
@@ -121,15 +160,31 @@ export function POListView() {
                       </Badge>
                     </div>
                     <div className="flex items-center space-x-2">
-                      <Button variant="outline" size="sm" className="hover:bg-blue-50 border-blue-200">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={() => handleView(po)}
+                        className="hover:bg-blue-50 border-blue-200"
+                      >
                         <Eye className="h-4 w-4 mr-1" />
                         View
                       </Button>
-                      <Button variant="outline" size="sm" className="hover:bg-green-50 border-green-200">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={() => handleEdit(po)}
+                        className="hover:bg-green-50 border-green-200"
+                      >
                         <Edit className="h-4 w-4 mr-1" />
                         Edit
                       </Button>
-                      <Button variant="outline" size="sm" className="text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={() => handleDelete(po)}
+                        disabled={deletePOMutation.isPending}
+                        className="text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200"
+                      >
                         <Trash2 className="h-4 w-4 mr-1" />
                         Delete
                       </Button>
