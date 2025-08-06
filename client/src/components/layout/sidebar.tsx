@@ -57,34 +57,6 @@ const navigation = [
     ]
   },
   {
-    name: "Flipkart Grocery POs",
-    href: "/flipkart-grocery-pos",
-    icon: Package,
-    active: true,
-    description: "View imported Flipkart grocery POs"
-  },
-  {
-    name: "Zepto POs",
-    href: "/zepto-pos",
-    icon: Package,
-    active: true,
-    description: "View imported Zepto POs"
-  },
-  {
-    name: "City Mall POs",
-    href: "/city-mall-pos",
-    icon: Package,
-    active: true,
-    description: "View imported City Mall POs"
-  },
-  {
-    name: "Blinkit POs",
-    href: "/blinkit-pos",
-    icon: Package,
-    active: true,
-    description: "View imported Blinkit POs"
-  },
-  {
     name: "Distributor PO",
     href: "/distributor-po",
     icon: Truck,
