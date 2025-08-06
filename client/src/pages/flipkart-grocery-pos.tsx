@@ -51,23 +51,29 @@ export default function FlipkartGroceryPOs() {
   };
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">Flipkart Grocery POs</h1>
-          <p className="text-muted-foreground">
-            View and manage imported Flipkart grocery purchase orders
-          </p>
+    <div className="flex-1 flex flex-col overflow-hidden">
+      <div className="flex-shrink-0 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="container mx-auto p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold">Flipkart Grocery POs</h1>
+              <p className="text-muted-foreground">
+                View and manage imported Flipkart grocery purchase orders
+              </p>
+            </div>
+            <Link href="/flipkart-grocery-upload">
+              <Button>
+                <Package className="mr-2 h-4 w-4" />
+                Import New PO
+              </Button>
+            </Link>
+          </div>
         </div>
-        <Link href="/flipkart-grocery-upload">
-          <Button>
-            <Package className="mr-2 h-4 w-4" />
-            Import New PO
-          </Button>
-        </Link>
       </div>
 
-      {/* Search and Filters */}
+      <div className="flex-1 overflow-y-auto">
+        <div className="container mx-auto p-6 space-y-6">
+          {/* Search and Filters */}
       <Card>
         <CardHeader>
           <CardTitle>Search & Filter</CardTitle>
@@ -196,6 +202,8 @@ export default function FlipkartGroceryPOs() {
           )}
         </CardContent>
       </Card>
+        </div>
+      </div>
     </div>
   );
 }

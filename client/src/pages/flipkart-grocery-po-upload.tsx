@@ -101,17 +101,22 @@ export default function FlipkartGroceryPOUpload() {
   };
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">Import Flipkart Grocery PO</h1>
-          <p className="text-muted-foreground">
-            Upload and import Flipkart grocery purchase orders from CSV files
-          </p>
+    <div className="flex-1 flex flex-col overflow-hidden">
+      <div className="flex-shrink-0 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="container mx-auto p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold">Import Flipkart Grocery PO</h1>
+              <p className="text-muted-foreground">
+                Upload and import Flipkart grocery purchase orders from CSV files
+              </p>
+            </div>
+          </div>
         </div>
       </div>
 
-      <div className="grid gap-6">
+      <div className="flex-1 overflow-y-auto">
+        <div className="container mx-auto p-6 space-y-6">
         {/* File Upload Section */}
         <Card>
           <CardHeader>
@@ -215,7 +220,7 @@ export default function FlipkartGroceryPOUpload() {
                     <div>Tax</div>
                     <div>Total</div>
                   </div>
-                  <div className="max-h-60 overflow-y-auto">
+                  <div className="max-h-80 overflow-y-auto">
                     {parsedData.lines.slice(0, 10).map((line, index) => (
                       <div key={index} className="grid grid-cols-6 gap-4 p-3 border-t text-sm">
                         <div className="truncate" title={line.title}>{line.title}</div>
@@ -277,6 +282,7 @@ export default function FlipkartGroceryPOUpload() {
             </div>
           </CardContent>
         </Card>
+        </div>
       </div>
     </div>
   );

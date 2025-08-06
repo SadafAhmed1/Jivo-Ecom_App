@@ -89,29 +89,34 @@ export default function FlipkartGroceryPODetails() {
   };
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Link href="/flipkart-grocery-pos">
-            <Button variant="ghost" size="sm">
-              <ArrowLeft className="h-4 w-4" />
-            </Button>
-          </Link>
-          <div>
-            <h1 className="text-3xl font-bold">PO #{po.po_number}</h1>
-            <p className="text-muted-foreground">
-              Flipkart Grocery Purchase Order Details
-            </p>
+    <div className="flex-1 flex flex-col overflow-hidden">
+      <div className="flex-shrink-0 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="container mx-auto p-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <Link href="/flipkart-grocery-pos">
+                <Button variant="ghost" size="sm">
+                  <ArrowLeft className="h-4 w-4" />
+                </Button>
+              </Link>
+              <div>
+                <h1 className="text-3xl font-bold">PO #{po.po_number}</h1>
+                <p className="text-muted-foreground">
+                  Flipkart Grocery Purchase Order Details
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              {getStatusBadge(po.status)}
+              <Badge variant="outline">{po.category}</Badge>
+            </div>
           </div>
-        </div>
-        <div className="flex items-center gap-2">
-          {getStatusBadge(po.status)}
-          <Badge variant="outline">{po.category}</Badge>
         </div>
       </div>
 
-      {/* PO Summary */}
+      <div className="flex-1 overflow-y-auto">
+        <div className="container mx-auto p-6 space-y-6">
+          {/* PO Summary */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
           <CardContent className="pt-6">
@@ -335,6 +340,8 @@ export default function FlipkartGroceryPODetails() {
           )}
         </CardContent>
       </Card>
+        </div>
+      </div>
     </div>
   );
 }
