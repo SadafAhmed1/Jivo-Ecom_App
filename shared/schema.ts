@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, integer, decimal, timestamp, boolean } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, integer, decimal, timestamp, boolean, serial } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 import { relations } from "drizzle-orm";
@@ -459,3 +459,79 @@ export type BlinkitPoHeader = typeof blinkitPoHeader.$inferSelect;
 export type InsertBlinkitPoHeader = z.infer<typeof insertBlinkitPoHeaderSchema>;
 export type BlinkitPoLines = typeof blinkitPoLines.$inferSelect;
 export type InsertBlinkitPoLines = z.infer<typeof insertBlinkitPoLinesSchema>;
+
+// Swiggy PO tables
+export const swiggyPos = pgTable("swiggy_pos", {
+  id: serial("id").primaryKey(),
+  po_number: varchar("po_number", { length: 100 }).notNull().unique(),
+  po_date: timestamp("po_date"),
+  po_release_date: timestamp("po_release_date"),
+  expected_delivery_date: timestamp("expected_delivery_date"),
+  po_expiry_date: timestamp("po_expiry_date"),
+  vendor_name: varchar("vendor_name", { length: 255 }),
+  payment_terms: varchar("payment_terms", { length: 100 }),
+  total_items: integer("total_items").default(0),
+  total_quantity: integer("total_quantity").default(0),
+  total_taxable_value: decimal("total_taxable_value", { precision: 15, scale: 2 }),
+  total_tax_amount: decimal("total_tax_amount", { precision: 15, scale: 2 }),
+  grand_total: decimal("grand_total", { precision: 15, scale: 2 }),
+  unique_hsn_codes: varchar("unique_hsn_codes").array(),
+  status: varchar("status", { length: 50 }).default("pending"),
+  created_by: varchar("created_by", { length: 100 }),
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow(),
+});
+
+export const swiggyPoLines = pgTable("swiggy_po_lines", {
+  id: serial("id").primaryKey(),
+  po_id: integer("po_id").references(() => swiggyPos.id, { onDelete: "cascade" }),
+  line_number: integer("line_number").notNull(),
+  item_code: varchar("item_code", { length: 100 }).notNull(),
+  item_description: text("item_description"),
+  hsn_code: varchar("hsn_code", { length: 20 }),
+  quantity: integer("quantity").notNull(),
+  mrp: decimal("mrp", { precision: 10, scale: 2 }),
+  unit_base_cost: decimal("unit_base_cost", { precision: 10, scale: 3 }),
+  taxable_value: decimal("taxable_value", { precision: 12, scale: 5 }),
+  cgst_rate: decimal("cgst_rate", { precision: 5, scale: 2 }),
+  cgst_amount: decimal("cgst_amount", { precision: 10, scale: 5 }),
+  sgst_rate: decimal("sgst_rate", { precision: 5, scale: 2 }),
+  sgst_amount: decimal("sgst_amount", { precision: 10, scale: 5 }),
+  igst_rate: decimal("igst_rate", { precision: 5, scale: 2 }),
+  igst_amount: decimal("igst_amount", { precision: 10, scale: 5 }),
+  cess_rate: decimal("cess_rate", { precision: 5, scale: 2 }),
+  cess_amount: decimal("cess_amount", { precision: 10, scale: 5 }),
+  additional_cess: decimal("additional_cess", { precision: 10, scale: 5 }),
+  total_tax_amount: decimal("total_tax_amount", { precision: 10, scale: 5 }),
+  line_total: decimal("line_total", { precision: 12, scale: 5 }),
+  created_at: timestamp("created_at").defaultNow(),
+});
+
+export const swiggyPosRelations = relations(swiggyPos, ({ many }) => ({
+  poLines: many(swiggyPoLines),
+}));
+
+export const swiggyPoLinesRelations = relations(swiggyPoLines, ({ one }) => ({
+  po: one(swiggyPos, {
+    fields: [swiggyPoLines.po_id],
+    references: [swiggyPos.id],
+  }),
+}));
+
+// Insert schemas for Swiggy PO tables
+export const insertSwiggyPoSchema = createInsertSchema(swiggyPos).omit({
+  id: true,
+  created_at: true,
+  updated_at: true
+});
+
+export const insertSwiggyPoLinesSchema = createInsertSchema(swiggyPoLines).omit({
+  id: true,
+  po_id: true,
+  created_at: true
+});
+
+export type SwiggyPo = typeof swiggyPos.$inferSelect;
+export type InsertSwiggyPo = z.infer<typeof insertSwiggyPoSchema>;
+export type SwiggyPoLine = typeof swiggyPoLines.$inferSelect;
+export type InsertSwiggyPoLine = z.infer<typeof insertSwiggyPoLinesSchema>;

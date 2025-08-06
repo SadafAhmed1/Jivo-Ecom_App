@@ -53,6 +53,11 @@ const navigation = [
         name: "Blinkit",
         href: "/blinkit-upload",
         description: "Import Blinkit POs"
+      },
+      {
+        name: "Swiggy",
+        href: "/swiggy-upload",
+        description: "Import Swiggy POs"
       }
     ]
   },

@@ -1,6 +1,7 @@
 import { parse } from 'csv-parse/sync';
 import XLSX from 'xlsx';
-import type { InsertFlipkartGroceryPoHeader, InsertFlipkartGroceryPoLines, InsertZeptoPoHeader, InsertZeptoPoLines, InsertCityMallPoHeader, InsertCityMallPoLines, InsertBlinkitPoHeader, InsertBlinkitPoLines } from '@shared/schema';
+import * as xml2js from 'xml2js';
+import type { InsertFlipkartGroceryPoHeader, InsertFlipkartGroceryPoLines, InsertZeptoPoHeader, InsertZeptoPoLines, InsertCityMallPoHeader, InsertCityMallPoLines, InsertBlinkitPoHeader, InsertBlinkitPoLines, InsertSwiggyPo, InsertSwiggyPoLine } from '@shared/schema';
 
 interface ParsedFlipkartPO {
   header: InsertFlipkartGroceryPoHeader;
@@ -597,5 +598,129 @@ export function parseBlinkitPO(fileContent: Buffer, uploadedBy: string): {
   return {
     header: blinkitHeader,
     lines: blinkitLines
+  };
+}
+
+interface ParsedSwiggyPO {
+  header: InsertSwiggyPo;
+  lines: InsertSwiggyPoLine[];
+}
+
+export async function parseSwiggyPO(fileBuffer: Buffer, uploadedBy: string): Promise<ParsedSwiggyPO> {
+  // Read the Excel file
+  const workbook = XLSX.read(fileBuffer, { type: 'buffer' });
+  const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+  
+  // Convert worksheet to CSV format first to get tabular data
+  const csvData = XLSX.utils.sheet_to_csv(worksheet);
+  
+  // Parse CSV to get structured rows
+  const records = parse(csvData, {
+    skip_empty_lines: true,
+    relax_column_count: true
+  });
+  
+  // Initialize variables for header
+  let poNumber = '';
+  let poDate = '';
+  let supplierName = '';
+  let totalAmount = 0;
+  let totalQuantity = 0;
+  
+  // Extract header information from CSV rows
+  for (const row of records) {
+    if (!row || row.length === 0) continue;
+    
+    for (const value of row) {
+      if (!value) continue;
+      
+      // Look for PO number pattern
+      if (typeof value === 'string' && value.includes('SOTY-')) {
+        poNumber = value.trim();
+      }
+      
+      // Look for date patterns
+      if (typeof value === 'string' && value.match(/\d{2}\/\d{2}\/\d{4}/)) {
+        poDate = value;
+      }
+      
+      // Look for supplier information
+      if (typeof value === 'string' && value.toLowerCase().includes('supplier')) {
+        supplierName = value;
+      }
+    }
+  }
+  
+  // Parse line items from the data rows
+  const lines: InsertSwiggyPoLine[] = [];
+  let lineNumber = 1;
+  
+  // Look for tabular data starting after header rows
+  let dataStartRow = -1;
+  for (let i = 0; i < records.length; i++) {
+    const row = records[i];
+    if (!row) continue;
+    
+    // Check if this row contains item data headers
+    const cellValues = row.map((val: any) => (val || '').toString().toLowerCase());
+    if (cellValues.some((val: string) => val.includes('item') || val.includes('product') || val.includes('description'))) {
+      dataStartRow = i + 1;
+      break;
+    }
+  }
+  
+  // Extract line items
+  if (dataStartRow > 0) {
+    for (let i = dataStartRow; i < records.length; i++) {
+      const row = records[i];
+      if (!row || row.length < 3) continue;
+      
+      // Skip empty rows
+      if (row.every((val: any) => !val)) continue;
+      
+      const itemCode = row[0]?.toString() || '';
+      const itemName = row[1]?.toString() || '';
+      const quantity = Number(row[2]) || 0;
+      const unitPrice = Number(row[3]) || 0;
+      const totalPrice = Number(row[4]) || (quantity * unitPrice);
+      
+      if (itemCode && quantity > 0) {
+        lines.push({
+          line_number: lineNumber++,
+          item_code: itemCode,
+          quantity: quantity,
+          unit_price: unitPrice.toString(),
+          total_amount: totalPrice.toString(),
+          uom: 'PCS',
+          status: 'Active',
+          created_by: uploadedBy
+        });
+        
+        totalQuantity += quantity;
+        totalAmount += totalPrice;
+      }
+    }
+  }
+  
+  // Generate PO number if not found
+  if (!poNumber) {
+    const timestamp = new Date().toISOString().slice(0, 19).replace(/[-:]/g, '').replace('T', '_');
+    poNumber = `SW_${timestamp}`;
+  }
+  
+  const header: InsertSwiggyPo = {
+    po_number: poNumber,
+    po_date: poDate ? new Date(poDate) : new Date(),
+    total_amount: totalAmount.toString(),
+    total_quantity: totalQuantity,
+    total_items: lines.length,
+    status: 'Open',
+    created_by: uploadedBy,
+    uploaded_by: uploadedBy
+  };
+  
+  return {
+    header,
+    lines
   };
 }

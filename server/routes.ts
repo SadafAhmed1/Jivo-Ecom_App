@@ -4,7 +4,7 @@ import { storage } from "./storage";
 import { insertPfPoSchema, insertPfOrderItemsSchema, insertFlipkartGroceryPoHeaderSchema, insertFlipkartGroceryPoLinesSchema } from "@shared/schema";
 import { z } from "zod";
 import { seedTestData } from "./seed-data";
-import { parseFlipkartGroceryPO, parseZeptoPO, parseCityMallPO, parseBlinkitPO } from "./csv-parser";
+import { parseFlipkartGroceryPO, parseZeptoPO, parseCityMallPO, parseBlinkitPO, parseSwiggyPO } from "./csv-parser";
 import multer from 'multer';
 
 const createPoSchema = z.object({
@@ -546,6 +546,88 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(204).send();
     } catch (error) {
       console.error("Error deleting Blinkit PO:", error);
+      res.status(500).json({ error: "Failed to delete PO" });
+    }
+  });
+
+  // Swiggy PO routes
+  app.get("/api/swiggy-pos", async (req, res) => {
+    try {
+      const pos = await storage.getAllSwiggyPos();
+      res.json(pos);
+    } catch (error) {
+      console.error("Error fetching Swiggy POs:", error);
+      res.status(500).json({ error: "Failed to fetch POs" });
+    }
+  });
+
+  app.get("/api/swiggy-pos/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const po = await storage.getSwiggyPoById(id);
+      if (!po) {
+        return res.status(404).json({ error: "PO not found" });
+      }
+      res.json(po);
+    } catch (error) {
+      console.error("Error fetching Swiggy PO:", error);
+      res.status(500).json({ error: "Failed to fetch PO" });
+    }
+  });
+
+  app.post("/api/swiggy-pos/upload", upload.single('file'), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: "No file uploaded" });
+      }
+
+      const uploadedBy = "system"; // In a real app, this would come from authentication
+      const { header, lines } = await parseSwiggyPO(req.file.buffer, uploadedBy);
+      
+      const createdPo = await storage.createSwiggyPo(header, lines);
+      res.status(201).json(createdPo);
+    } catch (error) {
+      console.error("Error uploading Swiggy PO:", error);
+      res.status(500).json({ error: "Failed to upload and process file" });
+    }
+  });
+
+  app.post("/api/swiggy-pos", async (req, res) => {
+    try {
+      const { header, lines } = req.body;
+      
+      if (!header || !lines) {
+        return res.status(400).json({ error: "Header and lines are required" });
+      }
+      
+      const createdPo = await storage.createSwiggyPo(header, lines);
+      res.status(201).json(createdPo);
+    } catch (error) {
+      console.error("Error creating Swiggy PO:", error);
+      res.status(500).json({ error: "Failed to create PO" });
+    }
+  });
+
+  app.put("/api/swiggy-pos/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const { header, lines } = req.body;
+      
+      const updatedPo = await storage.updateSwiggyPo(id, header);
+      res.json(updatedPo);
+    } catch (error) {
+      console.error("Error updating Swiggy PO:", error);
+      res.status(500).json({ error: "Failed to update PO" });
+    }
+  });
+
+  app.delete("/api/swiggy-pos/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      await storage.deleteSwiggyPo(id);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting Swiggy PO:", error);
       res.status(500).json({ error: "Failed to delete PO" });
     }
   });

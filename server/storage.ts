@@ -27,6 +27,10 @@ import {
   type InsertBlinkitPoHeader,
   type BlinkitPoLines,
   type InsertBlinkitPoLines,
+  type SwiggyPo,
+  type SwiggyPoLine,
+  type InsertSwiggyPo,
+  type InsertSwiggyPoLine,
   users,
   pfMst,
   sapItemMst,
@@ -40,7 +44,9 @@ import {
   cityMallPoHeader,
   cityMallPoLines,
   blinkitPoHeader,
-  blinkitPoLines
+  blinkitPoLines,
+  swiggyPos,
+  swiggyPoLines
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, ilike } from "drizzle-orm";
@@ -100,6 +106,13 @@ export interface IStorage {
   createBlinkitPo(header: InsertBlinkitPoHeader, lines: InsertBlinkitPoLines[]): Promise<BlinkitPoHeader>;
   updateBlinkitPo(id: number, header: Partial<InsertBlinkitPoHeader>, lines?: InsertBlinkitPoLines[]): Promise<BlinkitPoHeader>;
   deleteBlinkitPo(id: number): Promise<void>;
+
+  // Swiggy PO methods
+  getAllSwiggyPos(): Promise<(SwiggyPo & { poLines: SwiggyPoLine[] })[]>;
+  getSwiggyPoById(id: number): Promise<(SwiggyPo & { poLines: SwiggyPoLine[] }) | undefined>;
+  createSwiggyPo(po: InsertSwiggyPo, lines: InsertSwiggyPoLine[]): Promise<SwiggyPo>;
+  updateSwiggyPo(id: number, po: Partial<InsertSwiggyPo>): Promise<SwiggyPo | undefined>;
+  deleteSwiggyPo(id: number): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -637,6 +650,68 @@ export class DatabaseStorage implements IStorage {
 
   async deleteBlinkitPo(id: number): Promise<void> {
     await db.delete(blinkitPoHeader).where(eq(blinkitPoHeader.id, id));
+  }
+
+  // Swiggy PO methods
+  async getAllSwiggyPos(): Promise<(SwiggyPo & { poLines: SwiggyPoLine[] })[]> {
+    const pos = await db
+      .select()
+      .from(swiggyPos)
+      .orderBy(desc(swiggyPos.created_at));
+
+    return await Promise.all(
+      pos.map(async (po) => {
+        const lines = await db
+          .select()
+          .from(swiggyPoLines)
+          .where(eq(swiggyPoLines.po_id, po.id))
+          .orderBy(swiggyPoLines.line_number);
+        return { ...po, poLines: lines };
+      })
+    );
+  }
+
+  async getSwiggyPoById(id: number): Promise<(SwiggyPo & { poLines: SwiggyPoLine[] }) | undefined> {
+    const [po] = await db
+      .select()
+      .from(swiggyPos)
+      .where(eq(swiggyPos.id, id));
+
+    if (!po) return undefined;
+
+    const lines = await db
+      .select()
+      .from(swiggyPoLines)
+      .where(eq(swiggyPoLines.po_id, po.id))
+      .orderBy(swiggyPoLines.line_number);
+
+    return { ...po, poLines: lines };
+  }
+
+  async createSwiggyPo(po: InsertSwiggyPo, lines: InsertSwiggyPoLine[]): Promise<SwiggyPo> {
+    return await db.transaction(async (tx) => {
+      const [createdPo] = await tx.insert(swiggyPos).values(po).returning();
+      
+      if (lines.length > 0) {
+        const linesWithPoId = lines.map(line => ({ ...line, po_id: createdPo.id }));
+        await tx.insert(swiggyPoLines).values(linesWithPoId);
+      }
+      
+      return createdPo;
+    });
+  }
+
+  async updateSwiggyPo(id: number, po: Partial<InsertSwiggyPo>): Promise<SwiggyPo | undefined> {
+    const [updated] = await db
+      .update(swiggyPos)
+      .set({ ...po, updated_at: new Date() })
+      .where(eq(swiggyPos.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteSwiggyPo(id: number): Promise<void> {
+    await db.delete(swiggyPos).where(eq(swiggyPos.id, id));
   }
 }
 
