@@ -19,6 +19,10 @@ import {
   type InsertZeptoPoHeader,
   type ZeptoPoLines,
   type InsertZeptoPoLines,
+  type CityMallPoHeader,
+  type InsertCityMallPoHeader,
+  type CityMallPoLines,
+  type InsertCityMallPoLines,
   users,
   pfMst,
   sapItemMst,
@@ -28,7 +32,9 @@ import {
   flipkartGroceryPoHeader,
   flipkartGroceryPoLines,
   zeptoPoHeader,
-  zeptoPoLines
+  zeptoPoLines,
+  cityMallPoHeader,
+  cityMallPoLines
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, ilike } from "drizzle-orm";
@@ -74,6 +80,13 @@ export interface IStorage {
   createZeptoPo(header: InsertZeptoPoHeader, lines: InsertZeptoPoLines[]): Promise<ZeptoPoHeader>;
   updateZeptoPo(id: number, header: Partial<InsertZeptoPoHeader>, lines?: InsertZeptoPoLines[]): Promise<ZeptoPoHeader>;
   deleteZeptoPo(id: number): Promise<void>;
+
+  // City Mall PO methods
+  getAllCityMallPos(): Promise<(CityMallPoHeader & { poLines: CityMallPoLines[] })[]>;
+  getCityMallPoById(id: number): Promise<(CityMallPoHeader & { poLines: CityMallPoLines[] }) | undefined>;
+  createCityMallPo(header: InsertCityMallPoHeader, lines: InsertCityMallPoLines[]): Promise<CityMallPoHeader>;
+  updateCityMallPo(id: number, header: Partial<InsertCityMallPoHeader>, lines?: InsertCityMallPoLines[]): Promise<CityMallPoHeader>;
+  deleteCityMallPo(id: number): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -395,7 +408,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getFlipkartGroceryPoLines(poHeaderId: number): Promise<FlipkartGroceryPoLines[]> {
-    return await db.select().from(flipkartGroceryPoLines).where(eq(flipkartGroceryPoLines.po_header_id, poHeaderId));
+    return await db.select().from(flipkartGroceryPoLines).where(eq(flipkartGroceryPoLines.header_id, poHeaderId));
   }
 
   // Zepto PO methods
@@ -481,6 +494,71 @@ export class DatabaseStorage implements IStorage {
 
   async deleteZeptoPo(id: number): Promise<void> {
     await db.delete(zeptoPoHeader).where(eq(zeptoPoHeader.id, id));
+  }
+
+  // City Mall PO methods
+  async getAllCityMallPos(): Promise<(CityMallPoHeader & { poLines: CityMallPoLines[] })[]> {
+    const pos = await db.select().from(cityMallPoHeader).orderBy(desc(cityMallPoHeader.created_at));
+    
+    const posWithLines = await Promise.all(
+      pos.map(async (po) => {
+        const lines = await db.select().from(cityMallPoLines).where(eq(cityMallPoLines.po_header_id, po.id));
+        return { ...po, poLines: lines };
+      })
+    );
+    
+    return posWithLines;
+  }
+
+  async getCityMallPoById(id: number): Promise<(CityMallPoHeader & { poLines: CityMallPoLines[] }) | undefined> {
+    const [po] = await db.select().from(cityMallPoHeader).where(eq(cityMallPoHeader.id, id));
+    if (!po) return undefined;
+    
+    const lines = await db.select().from(cityMallPoLines).where(eq(cityMallPoLines.po_header_id, id));
+    return { ...po, poLines: lines };
+  }
+
+  async createCityMallPo(header: InsertCityMallPoHeader, lines: InsertCityMallPoLines[]): Promise<CityMallPoHeader> {
+    return await db.transaction(async (tx) => {
+      const [createdHeader] = await tx.insert(cityMallPoHeader).values(header).returning();
+      
+      if (lines.length > 0) {
+        const linesWithHeaderId = lines.map(line => ({
+          ...line,
+          po_header_id: createdHeader.id
+        }));
+        await tx.insert(cityMallPoLines).values(linesWithHeaderId);
+      }
+      
+      return createdHeader;
+    });
+  }
+
+  async updateCityMallPo(id: number, header: Partial<InsertCityMallPoHeader>, lines?: InsertCityMallPoLines[]): Promise<CityMallPoHeader> {
+    return await db.transaction(async (tx) => {
+      const [updatedHeader] = await tx
+        .update(cityMallPoHeader)
+        .set({ ...header, updated_at: new Date() })
+        .where(eq(cityMallPoHeader.id, id))
+        .returning();
+      
+      if (lines) {
+        await tx.delete(cityMallPoLines).where(eq(cityMallPoLines.po_header_id, id));
+        if (lines.length > 0) {
+          const linesWithHeaderId = lines.map(line => ({
+            ...line,
+            po_header_id: id
+          }));
+          await tx.insert(cityMallPoLines).values(linesWithHeaderId);
+        }
+      }
+      
+      return updatedHeader;
+    });
+  }
+
+  async deleteCityMallPo(id: number): Promise<void> {
+    await db.delete(cityMallPoHeader).where(eq(cityMallPoHeader.id, id));
   }
 }
 

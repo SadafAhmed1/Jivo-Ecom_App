@@ -314,3 +314,72 @@ export type ZeptoPoHeader = typeof zeptoPoHeader.$inferSelect;
 export type InsertZeptoPoHeader = z.infer<typeof insertZeptoPoHeaderSchema>;
 export type ZeptoPoLines = typeof zeptoPoLines.$inferSelect;
 export type InsertZeptoPoLines = z.infer<typeof insertZeptoPoLinesSchema>;
+
+// City Mall PO Tables
+export const cityMallPoHeader = pgTable("city_mall_po_header", {
+  id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
+  po_number: varchar("po_number", { length: 50 }).notNull(),
+  status: varchar("status", { length: 20 }).default("Open"),
+  total_quantity: integer("total_quantity").default(0),
+  total_base_amount: decimal("total_base_amount", { precision: 15, scale: 2 }).default("0"),
+  total_igst_amount: decimal("total_igst_amount", { precision: 15, scale: 2 }).default("0"),
+  total_cess_amount: decimal("total_cess_amount", { precision: 15, scale: 2 }).default("0"),
+  total_amount: decimal("total_amount", { precision: 15, scale: 2 }).default("0"),
+  unique_hsn_codes: text("unique_hsn_codes").array(),
+  created_by: varchar("created_by", { length: 100 }),
+  uploaded_by: varchar("uploaded_by", { length: 100 }),
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow(),
+});
+
+export const cityMallPoLines = pgTable("city_mall_po_lines", {
+  id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
+  po_header_id: integer("po_header_id").references(() => cityMallPoHeader.id, { onDelete: "cascade" }),
+  line_number: integer("line_number").notNull(),
+  article_id: varchar("article_id", { length: 50 }),
+  article_name: text("article_name"),
+  hsn_code: varchar("hsn_code", { length: 20 }),
+  mrp: decimal("mrp", { precision: 10, scale: 2 }),
+  base_cost_price: decimal("base_cost_price", { precision: 10, scale: 2 }),
+  quantity: integer("quantity").default(0),
+  base_amount: decimal("base_amount", { precision: 15, scale: 2 }),
+  igst_percent: decimal("igst_percent", { precision: 5, scale: 2 }),
+  cess_percent: decimal("cess_percent", { precision: 5, scale: 2 }),
+  igst_amount: decimal("igst_amount", { precision: 10, scale: 2 }),
+  cess_amount: decimal("cess_amount", { precision: 10, scale: 2 }),
+  total_amount: decimal("total_amount", { precision: 15, scale: 2 }),
+  status: varchar("status", { length: 20 }).default("Pending"),
+  created_by: varchar("created_by", { length: 100 }),
+  created_at: timestamp("created_at").defaultNow(),
+});
+
+// Relations for City Mall PO tables
+export const cityMallPoHeaderRelations = relations(cityMallPoHeader, ({ many }) => ({
+  poLines: many(cityMallPoLines)
+}));
+
+export const cityMallPoLinesRelations = relations(cityMallPoLines, ({ one }) => ({
+  header: one(cityMallPoHeader, {
+    fields: [cityMallPoLines.po_header_id],
+    references: [cityMallPoHeader.id]
+  })
+}));
+
+// Insert schemas for City Mall PO tables
+export const insertCityMallPoHeaderSchema = createInsertSchema(cityMallPoHeader).omit({
+  id: true,
+  created_at: true,
+  updated_at: true
+});
+
+export const insertCityMallPoLinesSchema = createInsertSchema(cityMallPoLines).omit({
+  id: true,
+  po_header_id: true,
+  created_at: true
+});
+
+// Types for City Mall PO tables
+export type CityMallPoHeader = typeof cityMallPoHeader.$inferSelect;
+export type InsertCityMallPoHeader = z.infer<typeof insertCityMallPoHeaderSchema>;
+export type CityMallPoLines = typeof cityMallPoLines.$inferSelect;
+export type InsertCityMallPoLines = z.infer<typeof insertCityMallPoLinesSchema>;

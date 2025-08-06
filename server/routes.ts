@@ -4,7 +4,7 @@ import { storage } from "./storage";
 import { insertPfPoSchema, insertPfOrderItemsSchema, insertFlipkartGroceryPoHeaderSchema, insertFlipkartGroceryPoLinesSchema } from "@shared/schema";
 import { z } from "zod";
 import { seedTestData } from "./seed-data";
-import { parseFlipkartGroceryPO, parseZeptoPO } from "./csv-parser";
+import { parseFlipkartGroceryPO, parseZeptoPO, parseCityMallPO } from "./csv-parser";
 import multer from 'multer';
 
 const createPoSchema = z.object({
@@ -368,6 +368,91 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(204).send();
     } catch (error) {
       console.error("Error deleting Zepto PO:", error);
+      res.status(500).json({ error: "Failed to delete PO" });
+    }
+  });
+
+  // City Mall CSV parsing endpoint
+  app.post("/api/parse-city-mall-csv", upload.single("csvFile"), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: "No file uploaded" });
+      }
+      
+      const csvContent = req.file.buffer.toString("utf-8");
+      const parsedData = parseCityMallPO(csvContent, "system");
+      res.json(parsedData);
+    } catch (error) {
+      console.error("Error parsing City Mall CSV:", error);
+      res.status(400).json({ error: error instanceof Error ? error.message : "Failed to parse CSV" });
+    }
+  });
+
+  app.get("/api/city-mall-pos", async (req, res) => {
+    try {
+      const cityMallPos = await storage.getAllCityMallPos();
+      res.json(cityMallPos);
+    } catch (error) {
+      console.error("Error fetching City Mall POs:", error);
+      res.status(500).json({ error: "Failed to fetch City Mall POs" });
+    }
+  });
+
+  app.get("/api/city-mall-pos/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ error: "Invalid ID" });
+      }
+      
+      const cityMallPo = await storage.getCityMallPoById(id);
+      if (!cityMallPo) {
+        return res.status(404).json({ error: "City Mall PO not found" });
+      }
+      
+      res.json(cityMallPo);
+    } catch (error) {
+      console.error("Error fetching City Mall PO:", error);
+      res.status(500).json({ error: "Failed to fetch City Mall PO" });
+    }
+  });
+
+  app.post("/api/city-mall-pos", async (req, res) => {
+    try {
+      const { header, lines } = req.body;
+      
+      if (!header || !lines) {
+        return res.status(400).json({ error: "Header and lines are required" });
+      }
+      
+      const createdPo = await storage.createCityMallPo(header, lines);
+      res.status(201).json(createdPo);
+    } catch (error) {
+      console.error("Error creating City Mall PO:", error);
+      res.status(500).json({ error: "Failed to create PO" });
+    }
+  });
+
+  app.put("/api/city-mall-pos/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const { header, lines } = req.body;
+      
+      const updatedPo = await storage.updateCityMallPo(id, header, lines);
+      res.json(updatedPo);
+    } catch (error) {
+      console.error("Error updating City Mall PO:", error);
+      res.status(500).json({ error: "Failed to update PO" });
+    }
+  });
+
+  app.delete("/api/city-mall-pos/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      await storage.deleteCityMallPo(id);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting City Mall PO:", error);
       res.status(500).json({ error: "Failed to delete PO" });
     }
   });

@@ -1,5 +1,5 @@
 import { parse } from 'csv-parse/sync';
-import type { InsertFlipkartGroceryPoHeader, InsertFlipkartGroceryPoLines, InsertZeptoPoHeader, InsertZeptoPoLines } from '@shared/schema';
+import type { InsertFlipkartGroceryPoHeader, InsertFlipkartGroceryPoLines, InsertZeptoPoHeader, InsertZeptoPoLines, InsertCityMallPoHeader, InsertCityMallPoLines } from '@shared/schema';
 
 interface ParsedFlipkartPO {
   header: InsertFlipkartGroceryPoHeader;
@@ -368,6 +368,106 @@ export function parseZeptoPO(csvContent: string, uploadedBy: string): ParsedZept
     total_tax_amount: totalTaxAmount.toString(),
     total_amount: totalAmount.toString(),
     unique_brands: Array.from(brands),
+    created_by: uploadedBy,
+    uploaded_by: uploadedBy
+  };
+
+  return { header, lines };
+}
+
+interface ParsedCityMallPO {
+  header: InsertCityMallPoHeader;
+  lines: InsertCityMallPoLines[];
+}
+
+export function parseCityMallPO(csvContent: string, uploadedBy: string): ParsedCityMallPO {
+  const records = parse(csvContent, {
+    columns: true,
+    skip_empty_lines: true,
+    trim: true
+  });
+
+  if (records.length === 0) {
+    throw new Error('CSV file is empty or invalid');
+  }
+
+  // Extract PO number from filename or use a generated one
+  const poNumber = `CM${Date.now()}`;
+  
+  const lines: InsertCityMallPoLines[] = [];
+  const hsnCodes = new Set<string>();
+  let totalQuantity = 0;
+  let totalBaseAmount = 0;
+  let totalIgstAmount = 0;
+  let totalCessAmount = 0;
+  let totalAmount = 0;
+
+  // Process each line item
+  records.forEach((record: Record<string, string>, index: number) => {
+    try {
+      // Skip total row
+      if (record['S.No'] === '' && record['Article Id'] === 'Total') {
+        return;
+      }
+
+      // Parse IGST and CESS percentages from combined field
+      const igstCessField = record['IGST (%) cess (%)'] || '';
+      const igstCessLines = igstCessField.split('\n');
+      const igstPercent = parseFloat(igstCessLines[0] || '0');
+      const cessPercent = parseFloat(igstCessLines[1] || '0');
+
+      // Parse IGST and CESS amounts from combined field
+      const igstCessAmountField = record['IGST (₹) cess'] || '';
+      const igstCessAmountLines = igstCessAmountField.split('\n');
+      const igstAmount = parseFloat(igstCessAmountLines[0] || '0');
+      const cessAmount = parseFloat(igstCessAmountLines[1] || '0');
+
+      const line: InsertCityMallPoLines = {
+        line_number: parseInt(record['S.No']) || index + 1,
+        article_id: record['Article Id'] || '',
+        article_name: record['Article Name'] || '',
+        hsn_code: record['HSN Code'] || '',
+        mrp: parseDecimal(record['MRP (₹)']),
+        base_cost_price: parseDecimal(record['Base Cost Price (₹)']),
+        quantity: parseInt(record['Quantity']) || 0,
+        base_amount: parseDecimal(record['Base Amount (₹)']),
+        igst_percent: igstPercent.toString(),
+        cess_percent: cessPercent.toString(),
+        igst_amount: igstAmount.toString(),
+        cess_amount: cessAmount.toString(),
+        total_amount: parseDecimal(record['Total Amount (₹)']),
+        status: 'Pending',
+        created_by: uploadedBy
+      };
+
+      lines.push(line);
+
+      // Add HSN code to set
+      if (line.hsn_code) {
+        hsnCodes.add(line.hsn_code);
+      }
+
+      // Update totals
+      totalQuantity += line.quantity || 0;
+      totalBaseAmount += Number(line.base_amount || 0);
+      totalIgstAmount += igstAmount;
+      totalCessAmount += cessAmount;
+      totalAmount += Number(line.total_amount || 0);
+
+    } catch (error) {
+      console.warn(`Error parsing City Mall PO line ${index + 1}:`, error);
+    }
+  });
+
+  const header: InsertCityMallPoHeader = {
+    po_number: poNumber,
+    status: 'Open',
+    total_quantity: totalQuantity,
+    total_base_amount: totalBaseAmount.toString(),
+    total_igst_amount: totalIgstAmount.toString(),
+    total_cess_amount: totalCessAmount.toString(),
+    total_amount: totalAmount.toString(),
+    unique_hsn_codes: Array.from(hsnCodes),
     created_by: uploadedBy,
     uploaded_by: uploadedBy
   };
