@@ -240,3 +240,77 @@ export type FlipkartGroceryPoHeader = typeof flipkartGroceryPoHeader.$inferSelec
 export type InsertFlipkartGroceryPoHeader = z.infer<typeof insertFlipkartGroceryPoHeaderSchema>;
 export type FlipkartGroceryPoLines = typeof flipkartGroceryPoLines.$inferSelect;
 export type InsertFlipkartGroceryPoLines = z.infer<typeof insertFlipkartGroceryPoLinesSchema>;
+
+// Zepto PO Schema
+export const zeptoPoHeader = pgTable("zepto_po_header", {
+  id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
+  po_number: varchar("po_number", { length: 50 }).notNull(),
+  status: varchar("status", { length: 20 }).default("Open"),
+  total_quantity: integer("total_quantity").default(0),
+  total_cost_value: decimal("total_cost_value", { precision: 15, scale: 2 }).default("0"),
+  total_tax_amount: decimal("total_tax_amount", { precision: 15, scale: 2 }).default("0"),
+  total_amount: decimal("total_amount", { precision: 15, scale: 2 }).default("0"),
+  unique_brands: text("unique_brands").array(),
+  created_by: varchar("created_by", { length: 100 }),
+  uploaded_by: varchar("uploaded_by", { length: 100 }),
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow()
+});
+
+export const zeptoPoLines = pgTable("zepto_po_lines", {
+  id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
+  po_header_id: integer("po_header_id").references(() => zeptoPoHeader.id, { onDelete: "cascade" }),
+  line_number: integer("line_number").notNull(),
+  po_number: varchar("po_number", { length: 50 }),
+  sku: text("sku"),
+  brand: varchar("brand", { length: 100 }),
+  sku_id: varchar("sku_id", { length: 100 }),
+  sap_id: varchar("sap_id", { length: 50 }),
+  hsn_code: varchar("hsn_code", { length: 20 }),
+  ean_no: varchar("ean_no", { length: 50 }),
+  po_qty: integer("po_qty").default(0),
+  asn_qty: integer("asn_qty").default(0),
+  grn_qty: integer("grn_qty").default(0),
+  remaining_qty: integer("remaining_qty").default(0),
+  cost_price: decimal("cost_price", { precision: 10, scale: 2 }),
+  cgst: decimal("cgst", { precision: 10, scale: 2 }),
+  sgst: decimal("sgst", { precision: 10, scale: 2 }),
+  igst: decimal("igst", { precision: 10, scale: 2 }),
+  cess: decimal("cess", { precision: 10, scale: 2 }),
+  mrp: decimal("mrp", { precision: 10, scale: 2 }),
+  total_value: decimal("total_value", { precision: 15, scale: 2 }),
+  status: varchar("status", { length: 20 }).default("Pending"),
+  created_by: varchar("created_by", { length: 100 }),
+  created_at: timestamp("created_at").defaultNow()
+});
+
+// Relations for Zepto PO tables
+export const zeptoPoHeaderRelations = relations(zeptoPoHeader, ({ many }) => ({
+  poLines: many(zeptoPoLines)
+}));
+
+export const zeptoPoLinesRelations = relations(zeptoPoLines, ({ one }) => ({
+  header: one(zeptoPoHeader, {
+    fields: [zeptoPoLines.po_header_id],
+    references: [zeptoPoHeader.id]
+  })
+}));
+
+// Insert schemas for Zepto PO tables
+export const insertZeptoPoHeaderSchema = createInsertSchema(zeptoPoHeader).omit({
+  id: true,
+  created_at: true,
+  updated_at: true
+});
+
+export const insertZeptoPoLinesSchema = createInsertSchema(zeptoPoLines).omit({
+  id: true,
+  po_header_id: true,
+  created_at: true
+});
+
+// Types for Zepto PO tables
+export type ZeptoPoHeader = typeof zeptoPoHeader.$inferSelect;
+export type InsertZeptoPoHeader = z.infer<typeof insertZeptoPoHeaderSchema>;
+export type ZeptoPoLines = typeof zeptoPoLines.$inferSelect;
+export type InsertZeptoPoLines = z.infer<typeof insertZeptoPoLinesSchema>;

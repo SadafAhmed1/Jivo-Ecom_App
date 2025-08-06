@@ -15,6 +15,10 @@ import {
   type InsertFlipkartGroceryPoHeader,
   type FlipkartGroceryPoLines,
   type InsertFlipkartGroceryPoLines,
+  type ZeptoPoHeader,
+  type InsertZeptoPoHeader,
+  type ZeptoPoLines,
+  type InsertZeptoPoLines,
   users,
   pfMst,
   sapItemMst,
@@ -22,7 +26,9 @@ import {
   pfPo,
   pfOrderItems,
   flipkartGroceryPoHeader,
-  flipkartGroceryPoLines
+  flipkartGroceryPoLines,
+  zeptoPoHeader,
+  zeptoPoLines
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, ilike } from "drizzle-orm";
@@ -61,6 +67,13 @@ export interface IStorage {
   createFlipkartGroceryPo(header: InsertFlipkartGroceryPoHeader, lines: InsertFlipkartGroceryPoLines[]): Promise<FlipkartGroceryPoHeader>;
   updateFlipkartGroceryPo(id: number, header: Partial<InsertFlipkartGroceryPoHeader>, lines?: InsertFlipkartGroceryPoLines[]): Promise<FlipkartGroceryPoHeader>;
   deleteFlipkartGroceryPo(id: number): Promise<void>;
+
+  // Zepto PO methods
+  getAllZeptoPos(): Promise<(ZeptoPoHeader & { poLines: ZeptoPoLines[] })[]>;
+  getZeptoPOById(id: number): Promise<(ZeptoPoHeader & { poLines: ZeptoPoLines[] }) | undefined>;
+  createZeptoPo(header: InsertZeptoPoHeader, lines: InsertZeptoPoLines[]): Promise<ZeptoPoHeader>;
+  updateZeptoPo(id: number, header: Partial<InsertZeptoPoHeader>, lines?: InsertZeptoPoLines[]): Promise<ZeptoPoHeader>;
+  deleteZeptoPo(id: number): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -383,6 +396,91 @@ export class DatabaseStorage implements IStorage {
 
   async getFlipkartGroceryPoLines(poHeaderId: number): Promise<FlipkartGroceryPoLines[]> {
     return await db.select().from(flipkartGroceryPoLines).where(eq(flipkartGroceryPoLines.po_header_id, poHeaderId));
+  }
+
+  // Zepto PO methods
+  async getAllZeptoPos(): Promise<(ZeptoPoHeader & { poLines: ZeptoPoLines[] })[]> {
+    const headers = await db.select().from(zeptoPoHeader).orderBy(desc(zeptoPoHeader.created_at));
+    
+    const result = [];
+    for (const header of headers) {
+      const lines = await db.select().from(zeptoPoLines)
+        .where(eq(zeptoPoLines.po_header_id, header.id))
+        .orderBy(zeptoPoLines.line_number);
+      
+      result.push({
+        ...header,
+        poLines: lines
+      });
+    }
+    
+    return result;
+  }
+
+  async getZeptoPOById(id: number): Promise<(ZeptoPoHeader & { poLines: ZeptoPoLines[] }) | undefined> {
+    const [header] = await db.select().from(zeptoPoHeader).where(eq(zeptoPoHeader.id, id));
+    if (!header) return undefined;
+
+    const lines = await db.select().from(zeptoPoLines)
+      .where(eq(zeptoPoLines.po_header_id, header.id))
+      .orderBy(zeptoPoLines.line_number);
+
+    return {
+      ...header,
+      poLines: lines
+    };
+  }
+
+  async createZeptoPo(header: InsertZeptoPoHeader, lines: InsertZeptoPoLines[]): Promise<ZeptoPoHeader> {
+    return await db.transaction(async (tx) => {
+      // Insert header
+      const [createdHeader] = await tx.insert(zeptoPoHeader).values(header).returning();
+      
+      // Insert lines with header reference
+      if (lines.length > 0) {
+        const linesWithHeaderId = lines.map(line => ({
+          ...line,
+          po_header_id: createdHeader.id
+        }));
+        
+        await tx.insert(zeptoPoLines).values(linesWithHeaderId);
+      }
+      
+      return createdHeader;
+    });
+  }
+
+  async updateZeptoPo(id: number, header: Partial<InsertZeptoPoHeader>, lines?: InsertZeptoPoLines[]): Promise<ZeptoPoHeader> {
+    return await db.transaction(async (tx) => {
+      // Update header
+      const [updatedHeader] = await tx
+        .update(zeptoPoHeader)
+        .set({ ...header, updated_at: new Date() })
+        .where(eq(zeptoPoHeader.id, id))
+        .returning();
+
+      // Update lines if provided
+      if (lines) {
+        // Delete existing lines
+        await tx.delete(zeptoPoLines).where(eq(zeptoPoLines.po_header_id, id));
+        
+        // Insert new lines
+        if (lines.length > 0) {
+          const linesWithHeaderId = lines.map(line => ({
+            ...line,
+            po_header_id: id
+          }));
+          
+          await tx.insert(zeptoPoLines).values(linesWithHeaderId);
+        }
+      }
+
+      return updatedHeader;
+    });
+  }
+
+  async deleteZeptoPo(id: number): Promise<void> {
+    await db.delete(zeptoPoHeader).where(eq(zeptoPoHeader.id, id));
   }
 }
 

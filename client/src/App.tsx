@@ -11,6 +11,9 @@ import POEdit from "@/pages/po-edit";
 import FlipkartGroceryPOUpload from "@/pages/flipkart-grocery-po-upload";
 import FlipkartGroceryPOs from "@/pages/flipkart-grocery-pos";
 import FlipkartGroceryPODetails from "@/pages/flipkart-grocery-po-details";
+import ZeptoPoUpload from "@/pages/zepto-po-upload";
+import ZeptoPOs from "@/pages/zepto-pos";
+import ZeptoPoDetails from "@/pages/zepto-po-details";
 
 import NotFound from "@/pages/not-found";
 
@@ -27,6 +30,9 @@ function Router() {
           <Route path="/flipkart-grocery-upload" component={FlipkartGroceryPOUpload} />
           <Route path="/flipkart-grocery-pos" component={FlipkartGroceryPOs} />
           <Route path="/flipkart-grocery-po/:id" component={FlipkartGroceryPODetails} />
+          <Route path="/zepto-upload" component={ZeptoPoUpload} />
+          <Route path="/zepto-pos" component={ZeptoPOs} />
+          <Route path="/zepto-pos/:id" component={ZeptoPoDetails} />
 
           <Route component={NotFound} />
         </Switch>

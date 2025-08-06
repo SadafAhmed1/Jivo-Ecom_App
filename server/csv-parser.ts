@@ -1,5 +1,5 @@
 import { parse } from 'csv-parse/sync';
-import type { InsertFlipkartGroceryPoHeader, InsertFlipkartGroceryPoLines } from '@shared/schema';
+import type { InsertFlipkartGroceryPoHeader, InsertFlipkartGroceryPoLines, InsertZeptoPoHeader, InsertZeptoPoLines } from '@shared/schema';
 
 interface ParsedFlipkartPO {
   header: InsertFlipkartGroceryPoHeader;
@@ -283,4 +283,94 @@ function parseDecimal(value: string | undefined): string | null {
   } catch (error) {
     return null;
   }
+}
+
+interface ParsedZeptoPO {
+  header: InsertZeptoPoHeader;
+  lines: InsertZeptoPoLines[];
+}
+
+export function parseZeptoPO(csvContent: string, uploadedBy: string): ParsedZeptoPO {
+  const records = parse(csvContent, {
+    columns: true,
+    skip_empty_lines: true,
+    trim: true
+  });
+
+  if (records.length === 0) {
+    throw new Error('CSV file is empty or invalid');
+  }
+
+  // Get PO number from first record
+  const firstRecord = records[0] as Record<string, string>;
+  const poNumber = firstRecord['PO No.'];
+  if (!poNumber) {
+    throw new Error('PO Number not found in CSV');
+  }
+
+  const lines: InsertZeptoPoLines[] = [];
+  const brands = new Set<string>();
+  let totalQuantity = 0;
+  let totalCostValue = 0;
+  let totalTaxAmount = 0;
+  let totalAmount = 0;
+
+  // Process each line item
+  records.forEach((record: Record<string, string>, index: number) => {
+    try {
+      const line: InsertZeptoPoLines = {
+        line_number: index + 1,
+        po_number: record['PO No.'] || poNumber,
+        sku: record['SKU'] || '',
+        brand: record['Brand'] || '',
+        sku_id: record['SKU Id'] || '',
+        sap_id: record['SAP Id'] || '',
+        hsn_code: record['HSN Code'] || '',
+        ean_no: record['EAN No.'] || '',
+        po_qty: parseInt(record['PO Qty']) || 0,
+        asn_qty: parseInt(record['ASN Qty']) || 0,
+        grn_qty: parseInt(record['GRN Qty']) || 0,
+        remaining_qty: parseInt(record['Remaining Qty']) || 0,
+        cost_price: parseDecimal(record['Cost Price']),
+        cgst: parseDecimal(record['CGST']),
+        sgst: parseDecimal(record['SGST']),
+        igst: parseDecimal(record['IGST']),
+        cess: parseDecimal(record['CESS']),
+        mrp: parseDecimal(record['MRP']),
+        total_value: parseDecimal(record['Total Value']),
+        status: 'Pending',
+        created_by: uploadedBy
+      };
+
+      lines.push(line);
+
+      // Add brand to set
+      if (line.brand) {
+        brands.add(line.brand);
+      }
+
+      // Update totals
+      totalQuantity += line.po_qty || 0;
+      totalCostValue += Number(line.cost_price || 0) * (line.po_qty || 0);
+      totalTaxAmount += (Number(line.cgst || 0) + Number(line.sgst || 0) + Number(line.igst || 0) + Number(line.cess || 0)) * (line.po_qty || 0);
+      totalAmount += Number(line.total_value) || 0;
+
+    } catch (error) {
+      console.warn(`Error parsing Zepto PO line ${index + 1}:`, error);
+    }
+  });
+
+  const header: InsertZeptoPoHeader = {
+    po_number: poNumber,
+    status: 'Open',
+    total_quantity: totalQuantity,
+    total_cost_value: totalCostValue.toString(),
+    total_tax_amount: totalTaxAmount.toString(),
+    total_amount: totalAmount.toString(),
+    unique_brands: Array.from(brands),
+    created_by: uploadedBy,
+    uploaded_by: uploadedBy
+  };
+
+  return { header, lines };
 }

@@ -39,6 +39,20 @@ const navigation = [
     description: "View imported Flipkart grocery POs"
   },
   {
+    name: "Zepto Import",
+    href: "/zepto-upload",
+    icon: Upload,
+    active: true,
+    description: "Import Zepto purchase orders"
+  },
+  {
+    name: "Zepto POs",
+    href: "/zepto-pos",
+    icon: Package,
+    active: true,
+    description: "View imported Zepto POs"
+  },
+  {
     name: "Distributor PO",
     href: "/distributor-po",
     icon: Truck,
