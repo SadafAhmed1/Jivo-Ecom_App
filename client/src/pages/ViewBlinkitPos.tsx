@@ -138,7 +138,7 @@ export default function ViewBlinkitPos() {
               
               <div className="space-y-2">
                 <p className="text-sm font-medium text-muted-foreground">Created By</p>
-                <span>{selectedPo.created_by}</span>
+                <span>{selectedPo.created_by || 'N/A'}</span>
               </div>
             </div>
             
@@ -147,7 +147,7 @@ export default function ViewBlinkitPos() {
                 <p className="text-sm font-medium text-muted-foreground mb-2">HSN Codes</p>
                 <div className="flex flex-wrap gap-2">
                   {selectedPo.unique_hsn_codes.map((hsn, index) => (
-                    <Badge key={index} variant="outline">{hsn}</Badge>
+                    <Badge key={index} variant="outline">{hsn || 'N/A'}</Badge>
                   ))}
                 </div>
               </div>

@@ -131,7 +131,7 @@ export function Sidebar() {
                     {item.children?.map((child) => {
                       const isChildActive = location === child.href;
                       return (
-                        <Link key={child.name} href={child.href}>
+                        <Link key={child.name} href={child.href || '#'}>
                           <div className={cn(
                             "ml-8 px-4 py-2 text-sm rounded-lg transition-colors duration-200 cursor-pointer",
                             isChildActive ? "text-primary bg-blue-50 border border-blue-200 font-medium" : "text-gray-600 hover:bg-gray-50 hover:text-primary"
