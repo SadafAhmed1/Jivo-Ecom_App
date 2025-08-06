@@ -17,6 +17,8 @@ import ZeptoPoDetails from "@/pages/zepto-po-details";
 import CityMallPoUpload from "@/pages/city-mall-po-upload";
 import CityMallPOs from "@/pages/city-mall-pos";
 import CityMallPoDetails from "@/pages/city-mall-po-details";
+import UploadBlinkitPo from "./pages/upload/UploadBlinkitPo";
+import ViewBlinkitPos from "./pages/ViewBlinkitPos";
 
 import NotFound from "@/pages/not-found";
 
@@ -39,6 +41,8 @@ function Router() {
           <Route path="/city-mall-upload" component={CityMallPoUpload} />
           <Route path="/city-mall-pos" component={CityMallPOs} />
           <Route path="/city-mall-pos/:id" component={CityMallPoDetails} />
+          <Route path="/blinkit-upload" component={UploadBlinkitPo} />
+          <Route path="/blinkit-pos" component={ViewBlinkitPos} />
 
           <Route component={NotFound} />
         </Switch>

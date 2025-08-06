@@ -383,3 +383,79 @@ export type CityMallPoHeader = typeof cityMallPoHeader.$inferSelect;
 export type InsertCityMallPoHeader = z.infer<typeof insertCityMallPoHeaderSchema>;
 export type CityMallPoLines = typeof cityMallPoLines.$inferSelect;
 export type InsertCityMallPoLines = z.infer<typeof insertCityMallPoLinesSchema>;
+
+// Blinkit PO Tables
+export const blinkitPoHeader = pgTable("blinkit_po_header", {
+  id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
+  po_number: varchar("po_number", { length: 50 }).notNull(),
+  status: varchar("status", { length: 20 }).default("Open"),
+  total_quantity: integer("total_quantity").default(0),
+  total_items: integer("total_items").default(0),
+  total_basic_cost: decimal("total_basic_cost", { precision: 15, scale: 2 }).default("0"),
+  total_tax_amount: decimal("total_tax_amount", { precision: 15, scale: 2 }).default("0"),
+  total_landing_rate: decimal("total_landing_rate", { precision: 15, scale: 2 }).default("0"),
+  cart_discount: decimal("cart_discount", { precision: 15, scale: 2 }).default("0"),
+  net_amount: decimal("net_amount", { precision: 15, scale: 2 }).default("0"),
+  unique_hsn_codes: text("unique_hsn_codes").array(),
+  created_by: varchar("created_by", { length: 100 }),
+  uploaded_by: varchar("uploaded_by", { length: 100 }),
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow(),
+});
+
+export const blinkitPoLines = pgTable("blinkit_po_lines", {
+  id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
+  po_header_id: integer("po_header_id").references(() => blinkitPoHeader.id, { onDelete: "cascade" }),
+  line_number: integer("line_number").notNull(),
+  item_code: varchar("item_code", { length: 50 }),
+  hsn_code: varchar("hsn_code", { length: 20 }),
+  product_upc: varchar("product_upc", { length: 50 }),
+  product_description: text("product_description"),
+  grammage: varchar("grammage", { length: 50 }),
+  basic_cost_price: decimal("basic_cost_price", { precision: 10, scale: 2 }),
+  cgst_percent: decimal("cgst_percent", { precision: 5, scale: 2 }),
+  sgst_percent: decimal("sgst_percent", { precision: 5, scale: 2 }),
+  igst_percent: decimal("igst_percent", { precision: 5, scale: 2 }),
+  cess_percent: decimal("cess_percent", { precision: 5, scale: 2 }),
+  additional_cess: decimal("additional_cess", { precision: 10, scale: 2 }),
+  tax_amount: decimal("tax_amount", { precision: 10, scale: 2 }),
+  landing_rate: decimal("landing_rate", { precision: 10, scale: 2 }),
+  quantity: integer("quantity").default(0),
+  mrp: decimal("mrp", { precision: 10, scale: 2 }),
+  margin_percent: decimal("margin_percent", { precision: 5, scale: 2 }),
+  total_amount: decimal("total_amount", { precision: 15, scale: 2 }),
+  status: varchar("status", { length: 20 }).default("Active"),
+  created_by: varchar("created_by", { length: 100 }),
+  created_at: timestamp("created_at").defaultNow(),
+});
+
+// Relations for Blinkit PO tables
+export const blinkitPoHeaderRelations = relations(blinkitPoHeader, ({ many }) => ({
+  poLines: many(blinkitPoLines)
+}));
+
+export const blinkitPoLinesRelations = relations(blinkitPoLines, ({ one }) => ({
+  header: one(blinkitPoHeader, {
+    fields: [blinkitPoLines.po_header_id],
+    references: [blinkitPoHeader.id]
+  })
+}));
+
+// Insert schemas for Blinkit PO tables
+export const insertBlinkitPoHeaderSchema = createInsertSchema(blinkitPoHeader).omit({
+  id: true,
+  created_at: true,
+  updated_at: true
+});
+
+export const insertBlinkitPoLinesSchema = createInsertSchema(blinkitPoLines).omit({
+  id: true,
+  po_header_id: true,
+  created_at: true
+});
+
+// Types for Blinkit PO tables
+export type BlinkitPoHeader = typeof blinkitPoHeader.$inferSelect;
+export type InsertBlinkitPoHeader = z.infer<typeof insertBlinkitPoHeaderSchema>;
+export type BlinkitPoLines = typeof blinkitPoLines.$inferSelect;
+export type InsertBlinkitPoLines = z.infer<typeof insertBlinkitPoLinesSchema>;

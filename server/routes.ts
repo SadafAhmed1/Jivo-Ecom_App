@@ -4,7 +4,7 @@ import { storage } from "./storage";
 import { insertPfPoSchema, insertPfOrderItemsSchema, insertFlipkartGroceryPoHeaderSchema, insertFlipkartGroceryPoLinesSchema } from "@shared/schema";
 import { z } from "zod";
 import { seedTestData } from "./seed-data";
-import { parseFlipkartGroceryPO, parseZeptoPO, parseCityMallPO } from "./csv-parser";
+import { parseFlipkartGroceryPO, parseZeptoPO, parseCityMallPO, parseBlinkitPO } from "./csv-parser";
 import multer from 'multer';
 
 const createPoSchema = z.object({
@@ -453,6 +453,99 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(204).send();
     } catch (error) {
       console.error("Error deleting City Mall PO:", error);
+      res.status(500).json({ error: "Failed to delete PO" });
+    }
+  });
+
+  // Blinkit PO upload and management endpoints
+  app.post("/api/blinkit-po/upload", upload.single("file"), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: "No file uploaded" });
+      }
+
+      const { header, lines } = parseBlinkitPO(req.file.buffer, "system");
+      const createdPo = await storage.createBlinkitPo(header, lines);
+      
+      res.status(201).json({
+        message: "Blinkit PO uploaded successfully",
+        po: createdPo,
+        totalItems: lines.length
+      });
+    } catch (error) {
+      console.error("Error uploading Blinkit PO:", error);
+      res.status(500).json({ 
+        error: "Failed to process file", 
+        details: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+
+  app.get("/api/blinkit-pos", async (_req, res) => {
+    try {
+      const pos = await storage.getAllBlinkitPos();
+      res.json(pos);
+    } catch (error) {
+      console.error("Error fetching Blinkit POs:", error);
+      res.status(500).json({ error: "Failed to fetch Blinkit POs" });
+    }
+  });
+
+  app.get("/api/blinkit-pos/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ error: "Invalid ID" });
+      }
+      
+      const blinkitPo = await storage.getBlinkitPoById(id);
+      if (!blinkitPo) {
+        return res.status(404).json({ error: "Blinkit PO not found" });
+      }
+      
+      res.json(blinkitPo);
+    } catch (error) {
+      console.error("Error fetching Blinkit PO:", error);
+      res.status(500).json({ error: "Failed to fetch Blinkit PO" });
+    }
+  });
+
+  app.post("/api/blinkit-pos", async (req, res) => {
+    try {
+      const { header, lines } = req.body;
+      
+      if (!header || !lines) {
+        return res.status(400).json({ error: "Header and lines are required" });
+      }
+      
+      const createdPo = await storage.createBlinkitPo(header, lines);
+      res.status(201).json(createdPo);
+    } catch (error) {
+      console.error("Error creating Blinkit PO:", error);
+      res.status(500).json({ error: "Failed to create PO" });
+    }
+  });
+
+  app.put("/api/blinkit-pos/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const { header, lines } = req.body;
+      
+      const updatedPo = await storage.updateBlinkitPo(id, header, lines);
+      res.json(updatedPo);
+    } catch (error) {
+      console.error("Error updating Blinkit PO:", error);
+      res.status(500).json({ error: "Failed to update PO" });
+    }
+  });
+
+  app.delete("/api/blinkit-pos/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      await storage.deleteBlinkitPo(id);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting Blinkit PO:", error);
       res.status(500).json({ error: "Failed to delete PO" });
     }
   });

@@ -23,6 +23,10 @@ import {
   type InsertCityMallPoHeader,
   type CityMallPoLines,
   type InsertCityMallPoLines,
+  type BlinkitPoHeader,
+  type InsertBlinkitPoHeader,
+  type BlinkitPoLines,
+  type InsertBlinkitPoLines,
   users,
   pfMst,
   sapItemMst,
@@ -34,7 +38,9 @@ import {
   zeptoPoHeader,
   zeptoPoLines,
   cityMallPoHeader,
-  cityMallPoLines
+  cityMallPoLines,
+  blinkitPoHeader,
+  blinkitPoLines
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, ilike } from "drizzle-orm";
@@ -87,6 +93,13 @@ export interface IStorage {
   createCityMallPo(header: InsertCityMallPoHeader, lines: InsertCityMallPoLines[]): Promise<CityMallPoHeader>;
   updateCityMallPo(id: number, header: Partial<InsertCityMallPoHeader>, lines?: InsertCityMallPoLines[]): Promise<CityMallPoHeader>;
   deleteCityMallPo(id: number): Promise<void>;
+
+  // Blinkit PO methods
+  getAllBlinkitPos(): Promise<(BlinkitPoHeader & { poLines: BlinkitPoLines[] })[]>;
+  getBlinkitPoById(id: number): Promise<(BlinkitPoHeader & { poLines: BlinkitPoLines[] }) | undefined>;
+  createBlinkitPo(header: InsertBlinkitPoHeader, lines: InsertBlinkitPoLines[]): Promise<BlinkitPoHeader>;
+  updateBlinkitPo(id: number, header: Partial<InsertBlinkitPoHeader>, lines?: InsertBlinkitPoLines[]): Promise<BlinkitPoHeader>;
+  deleteBlinkitPo(id: number): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -559,6 +572,71 @@ export class DatabaseStorage implements IStorage {
 
   async deleteCityMallPo(id: number): Promise<void> {
     await db.delete(cityMallPoHeader).where(eq(cityMallPoHeader.id, id));
+  }
+
+  // Blinkit PO methods
+  async getAllBlinkitPos(): Promise<(BlinkitPoHeader & { poLines: BlinkitPoLines[] })[]> {
+    const pos = await db.select().from(blinkitPoHeader).orderBy(desc(blinkitPoHeader.created_at));
+    
+    const posWithLines = await Promise.all(
+      pos.map(async (po) => {
+        const lines = await db.select().from(blinkitPoLines).where(eq(blinkitPoLines.po_header_id, po.id));
+        return { ...po, poLines: lines };
+      })
+    );
+    
+    return posWithLines;
+  }
+
+  async getBlinkitPoById(id: number): Promise<(BlinkitPoHeader & { poLines: BlinkitPoLines[] }) | undefined> {
+    const [po] = await db.select().from(blinkitPoHeader).where(eq(blinkitPoHeader.id, id));
+    if (!po) return undefined;
+    
+    const lines = await db.select().from(blinkitPoLines).where(eq(blinkitPoLines.po_header_id, id));
+    return { ...po, poLines: lines };
+  }
+
+  async createBlinkitPo(header: InsertBlinkitPoHeader, lines: InsertBlinkitPoLines[]): Promise<BlinkitPoHeader> {
+    return await db.transaction(async (tx) => {
+      const [createdHeader] = await tx.insert(blinkitPoHeader).values(header).returning();
+      
+      if (lines.length > 0) {
+        const linesWithHeaderId = lines.map(line => ({
+          ...line,
+          po_header_id: createdHeader.id
+        }));
+        await tx.insert(blinkitPoLines).values(linesWithHeaderId);
+      }
+      
+      return createdHeader;
+    });
+  }
+
+  async updateBlinkitPo(id: number, header: Partial<InsertBlinkitPoHeader>, lines?: InsertBlinkitPoLines[]): Promise<BlinkitPoHeader> {
+    return await db.transaction(async (tx) => {
+      const [updatedHeader] = await tx
+        .update(blinkitPoHeader)
+        .set({ ...header, updated_at: new Date() })
+        .where(eq(blinkitPoHeader.id, id))
+        .returning();
+      
+      if (lines) {
+        await tx.delete(blinkitPoLines).where(eq(blinkitPoLines.po_header_id, id));
+        if (lines.length > 0) {
+          const linesWithHeaderId = lines.map(line => ({
+            ...line,
+            po_header_id: id
+          }));
+          await tx.insert(blinkitPoLines).values(linesWithHeaderId);
+        }
+      }
+      
+      return updatedHeader;
+    });
+  }
+
+  async deleteBlinkitPo(id: number): Promise<void> {
+    await db.delete(blinkitPoHeader).where(eq(blinkitPoHeader.id, id));
   }
 }
 

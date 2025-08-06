@@ -1,5 +1,6 @@
 import { parse } from 'csv-parse/sync';
-import type { InsertFlipkartGroceryPoHeader, InsertFlipkartGroceryPoLines, InsertZeptoPoHeader, InsertZeptoPoLines, InsertCityMallPoHeader, InsertCityMallPoLines } from '@shared/schema';
+import XLSX from 'xlsx';
+import type { InsertFlipkartGroceryPoHeader, InsertFlipkartGroceryPoLines, InsertZeptoPoHeader, InsertZeptoPoLines, InsertCityMallPoHeader, InsertCityMallPoLines, InsertBlinkitPoHeader, InsertBlinkitPoLines } from '@shared/schema';
 
 interface ParsedFlipkartPO {
   header: InsertFlipkartGroceryPoHeader;
@@ -473,4 +474,128 @@ export function parseCityMallPO(csvContent: string, uploadedBy: string): ParsedC
   };
 
   return { header, lines };
+}
+
+export function parseBlinkitPO(fileContent: Buffer, uploadedBy: string): {
+  header: InsertBlinkitPoHeader;
+  lines: InsertBlinkitPoLines[];
+} {
+  const workbook = XLSX.read(fileContent, { type: 'buffer' });
+  const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+  const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+
+  if (jsonData.length < 2) {
+    throw new Error('Excel file appears to be empty or invalid');
+  }
+
+  const headers = jsonData[0] as string[];
+  
+  // Validate expected headers
+  const expectedHeaders = ['#', 'Item Code', 'HSN Code', 'Product UPC', 'Product Description'];
+  const missingHeaders = expectedHeaders.filter(header => !headers.includes(header));
+  if (missingHeaders.length > 0) {
+    throw new Error(`Missing required headers: ${missingHeaders.join(', ')}`);
+  }
+
+  // Extract data rows (skip header and summary rows)
+  const dataRows = jsonData.slice(1).filter((row: any[]) => {
+    return row[0] && typeof row[0] === 'number' && row[1]; // Must have line number and item code
+  });
+
+  if (dataRows.length === 0) {
+    throw new Error('No valid data rows found in Excel file');
+  }
+
+  // Find summary data from the last few rows
+  const summaryRows = jsonData.slice(-3); // Last 3 rows usually contain totals
+  let totalQuantity = 0;
+  let totalItems = 0;
+  let netAmount = 0;
+  let cartDiscount = 0;
+
+  summaryRows.forEach((row: any[]) => {
+    if (row.includes('Total Quantity')) {
+      const qtyIndex = row.indexOf('Total Quantity') + 1;
+      totalQuantity = Number(row[qtyIndex]) || 0;
+    }
+    if (row.includes('Total Items')) {
+      const itemsIndex = row.indexOf('Total Items') + 1;
+      totalItems = Number(row[itemsIndex]) || 0;
+    }
+    if (row.includes('Net amount')) {
+      const netIndex = row.indexOf('Net amount') + 1;
+      netAmount = Number(row[netIndex]) || 0;
+    }
+    if (row.includes('Cart Discount')) {
+      const discountIndex = row.indexOf('Cart Discount') + 1;
+      cartDiscount = Number(row[discountIndex]) || 0;
+    }
+  });
+
+  // Extract unique HSN codes
+  const uniqueHsnCodes = [...new Set(dataRows.map((row: any[]) => String(row[2] || '')).filter(Boolean))];
+
+  // Calculate totals from line items
+  let calculatedTotalBasicCost = 0;
+  let calculatedTotalTaxAmount = 0;
+  let calculatedTotalLandingRate = 0;
+  let calculatedTotalAmount = 0;
+
+  const blinkitLines: InsertBlinkitPoLines[] = dataRows.map((row: any[], index: number) => {
+    const basicCostPrice = Number(row[6]) || 0;
+    const quantity = Number(row[14]) || 0;
+    const totalAmount = Number(row[17]) || 0;
+
+    calculatedTotalBasicCost += basicCostPrice * quantity;
+    calculatedTotalTaxAmount += Number(row[12]) || 0;
+    calculatedTotalLandingRate += (Number(row[13]) || 0) * quantity;
+    calculatedTotalAmount += totalAmount;
+
+    return {
+      line_number: index + 1,
+      item_code: String(row[1] || ''),
+      hsn_code: String(row[2] || ''),
+      product_upc: String(row[3] || ''),
+      product_description: String(row[4] || ''),
+      grammage: String(row[5] || ''),
+      basic_cost_price: (Number(row[6]) || 0).toString(),
+      cgst_percent: (Number(row[7]) || 0).toString(),
+      sgst_percent: (Number(row[8]) || 0).toString(),
+      igst_percent: (Number(row[9]) || 0).toString(),
+      cess_percent: (Number(row[10]) || 0).toString(),
+      additional_cess: (Number(row[11]) || 0).toString(),
+      tax_amount: (Number(row[12]) || 0).toString(),
+      landing_rate: (Number(row[13]) || 0).toString(),
+      quantity: quantity,
+      mrp: (Number(row[15]) || 0).toString(),
+      margin_percent: (Number(row[16]) || 0).toString(),
+      total_amount: totalAmount.toString(),
+      status: "Active",
+      created_by: uploadedBy
+    };
+  });
+
+  // Generate PO number from timestamp
+  const timestamp = new Date().toISOString().slice(0, 19).replace(/[-:]/g, '').replace('T', '_');
+  const poNumber = `BK_${timestamp}`;
+
+  const blinkitHeader: InsertBlinkitPoHeader = {
+    po_number: poNumber,
+    status: "Open",
+    total_quantity: totalQuantity || blinkitLines.reduce((sum, line) => sum + line.quantity, 0),
+    total_items: totalItems || blinkitLines.length,
+    total_basic_cost: calculatedTotalBasicCost.toString(),
+    total_tax_amount: calculatedTotalTaxAmount.toString(),
+    total_landing_rate: calculatedTotalLandingRate.toString(),
+    cart_discount: cartDiscount.toString(),
+    net_amount: (netAmount || calculatedTotalAmount).toString(),
+    unique_hsn_codes: uniqueHsnCodes,
+    created_by: uploadedBy,
+    uploaded_by: uploadedBy
+  };
+
+  return {
+    header: blinkitHeader,
+    lines: blinkitLines
+  };
 }

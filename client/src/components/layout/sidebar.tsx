@@ -48,6 +48,11 @@ const navigation = [
         name: "City Mall",
         href: "/city-mall-upload",
         description: "Import City Mall POs"
+      },
+      {
+        name: "Blinkit",
+        href: "/blinkit-upload",
+        description: "Import Blinkit POs"
       }
     ]
   },
@@ -71,6 +76,13 @@ const navigation = [
     icon: Package,
     active: true,
     description: "View imported City Mall POs"
+  },
+  {
+    name: "Blinkit POs",
+    href: "/blinkit-pos",
+    icon: Package,
+    active: true,
+    description: "View imported Blinkit POs"
   },
   {
     name: "Distributor PO",
