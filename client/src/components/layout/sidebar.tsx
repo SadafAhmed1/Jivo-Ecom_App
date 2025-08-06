@@ -25,6 +25,20 @@ const navigation = [
     description: "Create & manage platform orders"
   },
   {
+    name: "Flipkart Grocery Import",
+    href: "/flipkart-grocery-upload",
+    icon: Upload,
+    active: true,
+    description: "Import Flipkart grocery purchase orders"
+  },
+  {
+    name: "Flipkart Grocery POs",
+    href: "/flipkart-grocery-pos",
+    icon: Package,
+    active: true,
+    description: "View imported Flipkart grocery POs"
+  },
+  {
     name: "Distributor PO",
     href: "/distributor-po",
     icon: Truck,

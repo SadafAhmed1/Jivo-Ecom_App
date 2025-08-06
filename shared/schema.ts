@@ -140,3 +140,103 @@ export const insertUserSchema = createInsertSchema(users).pick({
 
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
+
+// Flipkart Grocery PO Header Table
+export const flipkartGroceryPoHeader = pgTable("flipkart_grocery_po_header", {
+  id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
+  po_number: varchar("po_number", { length: 50 }).notNull().unique(),
+  supplier_name: text("supplier_name").notNull(),
+  supplier_address: text("supplier_address"),
+  supplier_contact: varchar("supplier_contact", { length: 20 }),
+  supplier_email: varchar("supplier_email", { length: 100 }),
+  supplier_gstin: varchar("supplier_gstin", { length: 20 }),
+  billed_to_address: text("billed_to_address"),
+  billed_to_gstin: varchar("billed_to_gstin", { length: 20 }),
+  shipped_to_address: text("shipped_to_address"),
+  shipped_to_gstin: varchar("shipped_to_gstin", { length: 20 }),
+  nature_of_supply: varchar("nature_of_supply", { length: 50 }),
+  nature_of_transaction: varchar("nature_of_transaction", { length: 50 }),
+  po_expiry_date: timestamp("po_expiry_date"),
+  category: varchar("category", { length: 100 }),
+  order_date: timestamp("order_date").notNull(),
+  mode_of_payment: varchar("mode_of_payment", { length: 50 }),
+  contract_ref_id: varchar("contract_ref_id", { length: 100 }),
+  contract_version: varchar("contract_version", { length: 10 }),
+  credit_term: varchar("credit_term", { length: 100 }),
+  total_quantity: integer("total_quantity"),
+  total_taxable_value: decimal("total_taxable_value", { precision: 12, scale: 2 }),
+  total_tax_amount: decimal("total_tax_amount", { precision: 12, scale: 2 }),
+  total_amount: decimal("total_amount", { precision: 12, scale: 2 }),
+  status: varchar("status", { length: 20 }).notNull().default('Open'),
+  created_by: varchar("created_by", { length: 100 }),
+  uploaded_by: varchar("uploaded_by", { length: 100 }),
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow()
+});
+
+// Flipkart Grocery PO Lines Table
+export const flipkartGroceryPoLines = pgTable("flipkart_grocery_po_lines", {
+  id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
+  header_id: integer("header_id").notNull().references(() => flipkartGroceryPoHeader.id, { onDelete: "cascade" }),
+  line_number: integer("line_number").notNull(),
+  hsn_code: varchar("hsn_code", { length: 20 }),
+  fsn_isbn: varchar("fsn_isbn", { length: 50 }),
+  quantity: integer("quantity").notNull(),
+  pending_quantity: integer("pending_quantity"),
+  uom: varchar("uom", { length: 20 }),
+  title: text("title").notNull(),
+  brand: varchar("brand", { length: 100 }),
+  type: varchar("type", { length: 100 }),
+  ean: varchar("ean", { length: 20 }),
+  vertical: varchar("vertical", { length: 100 }),
+  required_by_date: timestamp("required_by_date"),
+  supplier_mrp: decimal("supplier_mrp", { precision: 10, scale: 2 }),
+  supplier_price: decimal("supplier_price", { precision: 10, scale: 2 }),
+  taxable_value: decimal("taxable_value", { precision: 10, scale: 2 }),
+  igst_rate: decimal("igst_rate", { precision: 5, scale: 2 }),
+  igst_amount_per_unit: decimal("igst_amount_per_unit", { precision: 10, scale: 2 }),
+  sgst_rate: decimal("sgst_rate", { precision: 5, scale: 2 }),
+  sgst_amount_per_unit: decimal("sgst_amount_per_unit", { precision: 10, scale: 2 }),
+  cgst_rate: decimal("cgst_rate", { precision: 5, scale: 2 }),
+  cgst_amount_per_unit: decimal("cgst_amount_per_unit", { precision: 10, scale: 2 }),
+  cess_rate: decimal("cess_rate", { precision: 5, scale: 2 }),
+  cess_amount_per_unit: decimal("cess_amount_per_unit", { precision: 10, scale: 2 }),
+  tax_amount: decimal("tax_amount", { precision: 10, scale: 2 }),
+  total_amount: decimal("total_amount", { precision: 10, scale: 2 }),
+  status: varchar("status", { length: 50 }).default('Pending'),
+  created_by: varchar("created_by", { length: 100 }),
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow()
+});
+
+// Relations for Flipkart Grocery PO tables
+export const flipkartGroceryPoHeaderRelations = relations(flipkartGroceryPoHeader, ({ many }) => ({
+  poLines: many(flipkartGroceryPoLines)
+}));
+
+export const flipkartGroceryPoLinesRelations = relations(flipkartGroceryPoLines, ({ one }) => ({
+  header: one(flipkartGroceryPoHeader, {
+    fields: [flipkartGroceryPoLines.header_id],
+    references: [flipkartGroceryPoHeader.id]
+  })
+}));
+
+// Insert schemas for Flipkart Grocery PO tables
+export const insertFlipkartGroceryPoHeaderSchema = createInsertSchema(flipkartGroceryPoHeader).omit({ 
+  id: true, 
+  created_at: true, 
+  updated_at: true 
+});
+
+export const insertFlipkartGroceryPoLinesSchema = createInsertSchema(flipkartGroceryPoLines).omit({ 
+  id: true, 
+  header_id: true, 
+  created_at: true, 
+  updated_at: true 
+});
+
+// Types for Flipkart Grocery PO tables
+export type FlipkartGroceryPoHeader = typeof flipkartGroceryPoHeader.$inferSelect;
+export type InsertFlipkartGroceryPoHeader = z.infer<typeof insertFlipkartGroceryPoHeaderSchema>;
+export type FlipkartGroceryPoLines = typeof flipkartGroceryPoLines.$inferSelect;
+export type InsertFlipkartGroceryPoLines = z.infer<typeof insertFlipkartGroceryPoLinesSchema>;

@@ -1,9 +1,11 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertPfPoSchema, insertPfOrderItemsSchema } from "@shared/schema";
+import { insertPfPoSchema, insertPfOrderItemsSchema, insertFlipkartGroceryPoHeaderSchema, insertFlipkartGroceryPoLinesSchema } from "@shared/schema";
 import { z } from "zod";
 import { seedTestData } from "./seed-data";
+import { parseFlipkartGroceryPO } from "./csv-parser";
+import multer from 'multer';
 
 const createPoSchema = z.object({
   po: insertPfPoSchema.extend({
@@ -21,6 +23,32 @@ const updatePoSchema = z.object({
     appointment_date: z.string().optional().transform(str => str ? new Date(str) : undefined),
   }),
   items: z.array(insertPfOrderItemsSchema).optional()
+});
+
+const createFlipkartGroceryPoSchema = z.object({
+  header: insertFlipkartGroceryPoHeaderSchema.extend({
+    order_date: z.string().transform(str => new Date(str)),
+    po_expiry_date: z.string().optional().transform(str => str ? new Date(str) : undefined),
+  }),
+  lines: z.array(insertFlipkartGroceryPoLinesSchema.extend({
+    required_by_date: z.string().optional().transform(str => str ? new Date(str) : undefined),
+  }))
+});
+
+const updateFlipkartGroceryPoSchema = z.object({
+  header: insertFlipkartGroceryPoHeaderSchema.partial().extend({
+    order_date: z.string().optional().transform(str => str ? new Date(str) : undefined),
+    po_expiry_date: z.string().optional().transform(str => str ? new Date(str) : undefined),
+  }),
+  lines: z.array(insertFlipkartGroceryPoLinesSchema.extend({
+    required_by_date: z.string().optional().transform(str => str ? new Date(str) : undefined),
+  })).optional()
+});
+
+// Configure multer for file uploads
+const upload = multer({ 
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 5 * 1024 * 1024 } // 5MB limit
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -152,6 +180,94 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(orderItems);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch order items" });
+    }
+  });
+
+  // CSV parsing endpoint
+  app.post("/api/parse-flipkart-csv", upload.single('file'), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ message: "No file uploaded" });
+      }
+
+      const csvContent = req.file.buffer.toString('utf-8');
+      const uploadedBy = req.body.uploadedBy || 'system';
+      
+      const parsedData = parseFlipkartGroceryPO(csvContent, uploadedBy);
+      res.json(parsedData);
+    } catch (error) {
+      console.error('CSV parsing error:', error);
+      res.status(500).json({ message: "Failed to parse CSV file" });
+    }
+  });
+
+  // Flipkart Grocery PO routes
+  app.get("/api/flipkart-grocery-pos", async (_req, res) => {
+    try {
+      const pos = await storage.getAllFlipkartGroceryPos();
+      res.json(pos);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch Flipkart grocery POs" });
+    }
+  });
+
+  app.get("/api/flipkart-grocery-pos/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const po = await storage.getFlipkartGroceryPoById(id);
+      if (!po) {
+        return res.status(404).json({ message: "Flipkart grocery PO not found" });
+      }
+      res.json(po);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch Flipkart grocery PO" });
+    }
+  });
+
+  app.post("/api/flipkart-grocery-pos", async (req, res) => {
+    try {
+      const validatedData = createFlipkartGroceryPoSchema.parse(req.body);
+      const po = await storage.createFlipkartGroceryPo(validatedData.header, validatedData.lines);
+      res.status(201).json(po);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid input", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create Flipkart grocery PO" });
+    }
+  });
+
+  app.put("/api/flipkart-grocery-pos/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const validatedData = updateFlipkartGroceryPoSchema.parse(req.body);
+      const po = await storage.updateFlipkartGroceryPo(id, validatedData.header, validatedData.lines);
+      res.json(po);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid input", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to update Flipkart grocery PO" });
+    }
+  });
+
+  app.delete("/api/flipkart-grocery-pos/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      await storage.deleteFlipkartGroceryPo(id);
+      res.status(204).send();
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete Flipkart grocery PO" });
+    }
+  });
+
+  app.get("/api/flipkart-grocery-pos/:id/lines", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const lines = await storage.getFlipkartGroceryPoLines(id);
+      res.json(lines);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch Flipkart grocery PO lines" });
     }
   });
 

@@ -11,12 +11,18 @@ import {
   type InsertPfPo,
   type PfOrderItems,
   type InsertPfOrderItems,
+  type FlipkartGroceryPoHeader,
+  type InsertFlipkartGroceryPoHeader,
+  type FlipkartGroceryPoLines,
+  type InsertFlipkartGroceryPoLines,
   users,
   pfMst,
   sapItemMst,
   pfItemMst,
   pfPo,
-  pfOrderItems
+  pfOrderItems,
+  flipkartGroceryPoHeader,
+  flipkartGroceryPoLines
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, ilike } from "drizzle-orm";
@@ -48,6 +54,13 @@ export interface IStorage {
   
   // Order Items methods
   getAllOrderItems(): Promise<(PfOrderItems & { po_number: string; platform_name: string; order_date: Date; expiry_date: Date | null; platform: PfMst })[]>;
+
+  // Flipkart Grocery PO methods
+  getAllFlipkartGroceryPos(): Promise<(FlipkartGroceryPoHeader & { poLines: FlipkartGroceryPoLines[] })[]>;
+  getFlipkartGroceryPoById(id: number): Promise<(FlipkartGroceryPoHeader & { poLines: FlipkartGroceryPoLines[] }) | undefined>;
+  createFlipkartGroceryPo(header: InsertFlipkartGroceryPoHeader, lines: InsertFlipkartGroceryPoLines[]): Promise<FlipkartGroceryPoHeader>;
+  updateFlipkartGroceryPo(id: number, header: Partial<InsertFlipkartGroceryPoHeader>, lines?: InsertFlipkartGroceryPoLines[]): Promise<FlipkartGroceryPoHeader>;
+  deleteFlipkartGroceryPo(id: number): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -285,6 +298,91 @@ export class DatabaseStorage implements IStorage {
       expiry_date: result.expiry_date,
       platform: result.platform
     }));
+  }
+
+  // Flipkart Grocery PO methods
+  async getAllFlipkartGroceryPos(): Promise<(FlipkartGroceryPoHeader & { poLines: FlipkartGroceryPoLines[] })[]> {
+    const headers = await db.select().from(flipkartGroceryPoHeader).orderBy(desc(flipkartGroceryPoHeader.created_at));
+    
+    const result = [];
+    for (const header of headers) {
+      const lines = await db.select().from(flipkartGroceryPoLines)
+        .where(eq(flipkartGroceryPoLines.header_id, header.id))
+        .orderBy(flipkartGroceryPoLines.line_number);
+      
+      result.push({
+        ...header,
+        poLines: lines
+      });
+    }
+    
+    return result;
+  }
+
+  async getFlipkartGroceryPoById(id: number): Promise<(FlipkartGroceryPoHeader & { poLines: FlipkartGroceryPoLines[] }) | undefined> {
+    const [header] = await db.select().from(flipkartGroceryPoHeader).where(eq(flipkartGroceryPoHeader.id, id));
+    
+    if (!header) {
+      return undefined;
+    }
+    
+    const lines = await db.select().from(flipkartGroceryPoLines)
+      .where(eq(flipkartGroceryPoLines.header_id, id))
+      .orderBy(flipkartGroceryPoLines.line_number);
+    
+    return {
+      ...header,
+      poLines: lines
+    };
+  }
+
+  async createFlipkartGroceryPo(header: InsertFlipkartGroceryPoHeader, lines: InsertFlipkartGroceryPoLines[]): Promise<FlipkartGroceryPoHeader> {
+    return await db.transaction(async (tx) => {
+      const [createdHeader] = await tx.insert(flipkartGroceryPoHeader).values(header).returning();
+      
+      if (lines.length > 0) {
+        const linesWithHeaderId = lines.map(line => ({
+          ...line,
+          header_id: createdHeader.id
+        }));
+        await tx.insert(flipkartGroceryPoLines).values(linesWithHeaderId);
+      }
+      
+      return createdHeader;
+    });
+  }
+
+  async updateFlipkartGroceryPo(id: number, header: Partial<InsertFlipkartGroceryPoHeader>, lines?: InsertFlipkartGroceryPoLines[]): Promise<FlipkartGroceryPoHeader> {
+    return await db.transaction(async (tx) => {
+      const [updatedHeader] = await tx.update(flipkartGroceryPoHeader)
+        .set({ ...header, updated_at: new Date() })
+        .where(eq(flipkartGroceryPoHeader.id, id))
+        .returning();
+
+      if (lines) {
+        // Delete existing lines
+        await tx.delete(flipkartGroceryPoLines).where(eq(flipkartGroceryPoLines.header_id, id));
+        
+        // Insert new lines
+        if (lines.length > 0) {
+          const linesWithHeaderId = lines.map(line => ({
+            ...line,
+            header_id: id
+          }));
+          await tx.insert(flipkartGroceryPoLines).values(linesWithHeaderId);
+        }
+      }
+
+      return updatedHeader;
+    });
+  }
+
+  async deleteFlipkartGroceryPo(id: number): Promise<void> {
+    await db.delete(flipkartGroceryPoHeader).where(eq(flipkartGroceryPoHeader.id, id));
+  }
+
+  async getFlipkartGroceryPoLines(poHeaderId: number): Promise<FlipkartGroceryPoLines[]> {
+    return await db.select().from(flipkartGroceryPoLines).where(eq(flipkartGroceryPoLines.po_header_id, poHeaderId));
   }
 }
 
