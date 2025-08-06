@@ -106,7 +106,7 @@ export function Sidebar() {
       </div>
 
       {/* Navigation Menu */}
-      <nav className="flex-1 p-4">
+      <nav className="flex-1 p-4 overflow-y-auto">
         <div className="space-y-2">
           {navigation.map((item) => {
             if (item.type === "group") {
