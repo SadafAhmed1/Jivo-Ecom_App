@@ -203,16 +203,17 @@ export default function UnifiedPOUpload() {
   };
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">Purchase Order Upload</h1>
-          <p className="text-gray-600">Upload, review, and import PO files from any vendor</p>
+    <div className="h-full overflow-y-auto">
+      <div className="container mx-auto p-6 space-y-6 max-w-6xl">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold">Purchase Order Upload</h1>
+            <p className="text-gray-600">Upload, review, and import PO files from any vendor</p>
+          </div>
         </div>
-      </div>
 
-      <div className="grid gap-6">
-        {/* File Upload Section */}
+        <div className="grid gap-6">
+          {/* File Upload Section */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -448,6 +449,7 @@ export default function UnifiedPOUpload() {
             </div>
           </CardContent>
         </Card>
+        </div>
       </div>
     </div>
   );
