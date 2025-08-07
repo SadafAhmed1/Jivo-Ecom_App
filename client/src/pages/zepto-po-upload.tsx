@@ -1,357 +1,416 @@
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
+import { Upload, FileText, CheckCircle, AlertCircle, Eye, Database } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Upload, FileText, AlertCircle, CheckCircle, Package, Loader2 } from "lucide-react";
-import { apiRequest } from "@/lib/queryClient";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
 
-interface ZeptoParsedData {
-  header: {
-    po_number: string;
-    status: string;
-    total_quantity: number;
-    total_cost_value: string;
-    total_tax_amount: string;
-    total_amount: string;
-    unique_brands: string[];
-    created_by: string;
-    uploaded_by: string;
-  };
-  lines: Array<{
-    line_number: number;
-    po_number: string;
-    sku: string;
-    brand: string;
-    sku_id: string;
-    sap_id: string;
-    hsn_code: string;
-    ean_no: string;
-    po_qty: number;
-    asn_qty: number;
-    grn_qty: number;
-    remaining_qty: number;
-    cost_price: string;
-    cgst: string;
-    sgst: string;
-    igst: string;
-    cess: string;
-    mrp: string;
-    total_value: string;
-    status: string;
-    created_by: string;
-  }>;
+interface ParsedPOData {
+  header: any;
+  lines: any[];
+  totalItems?: number;
+  totalQuantity?: number;
+  totalAmount?: string;
 }
 
 export default function ZeptoPoUpload() {
   const [file, setFile] = useState<File | null>(null);
-  const [parsedData, setParsedData] = useState<ZeptoParsedData | null>(null);
-  const [parseError, setParseError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [parsedData, setParsedData] = useState<ParsedPOData | null>(null);
+  const [showPreview, setShowPreview] = useState(false);
+  const [dragActive, setDragActive] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const createPOMutation = useMutation({
-    mutationFn: async (data: ZeptoParsedData) => {
-      return await apiRequest("/api/zepto-pos", {
-        method: "POST",
-        body: JSON.stringify(data),
-      });
-    },
-    onSuccess: () => {
-      toast({
-        title: "Success",
-        description: "Zepto PO imported successfully!",
+  const previewMutation = useMutation({
+    mutationFn: async (file: File) => {
+      const formData = new FormData();
+      formData.append('file', file);
+      
+      const response = await fetch('/api/po/preview', {
+        method: 'POST',
+        body: formData,
       });
       
-      // Reset form
-      setParsedData(null);
-      setFile(null);
-      setParseError(null);
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to preview file');
       }
       
-      // Invalidate cache
-      queryClient.invalidateQueries({ queryKey: ["/api/zepto-pos"] });
+      return response.json();
+    },
+    onSuccess: (data) => {
+      setParsedData(data);
+      setShowPreview(true);
+      toast({
+        title: "File previewed successfully",
+        description: `Found ${data.totalItems} items`,
+      });
     },
     onError: (error: Error) => {
       toast({
-        title: "Error",
-        description: error.message || "Failed to import PO",
+        title: "Preview failed",
+        description: error.message,
         variant: "destructive",
       });
     },
   });
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFile = event.target.files?.[0];
-    if (selectedFile) {
-      setFile(selectedFile);
-      setParsedData(null);
-      setParseError(null);
-    }
-  };
-
-  const parseFile = async () => {
-    if (!file) return;
-
-    setIsLoading(true);
-    setParseError(null);
-
-    try {
-      const text = await file.text();
-      
-      const response = await fetch("/api/parse-zepto-csv", {
-        method: "POST",
+  const importMutation = useMutation({
+    mutationFn: async (data: { header: any; lines: any[] }) => {
+      const response = await fetch('/api/po/import/zepto', {
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ csvContent: text }),
+        body: JSON.stringify(data),
       });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to parse CSV");
-      }
-
-      const data = await response.json();
-      setParsedData(data);
       
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to import PO');
+      }
+      
+      return response.json();
+    },
+    onSuccess: (data) => {
       toast({
-        title: "Success",
-        description: "CSV file parsed successfully!",
+        title: "PO imported successfully",
+        description: `PO ${data.po_number} has been created`,
       });
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Failed to parse CSV file";
-      setParseError(errorMessage);
+      setFile(null);
+      setParsedData(null);
+      setShowPreview(false);
+      queryClient.invalidateQueries({ queryKey: ["/api/zepto-pos"] });
+    },
+    onError: (error: Error) => {
       toast({
-        title: "Error",
-        description: errorMessage,
+        title: "Import failed",
+        description: error.message,
         variant: "destructive",
       });
-    } finally {
-      setIsLoading(false);
+    },
+  });
+
+  const handleDrag = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.type === "dragenter" || e.type === "dragover") {
+      setDragActive(true);
+    } else if (e.type === "dragleave") {
+      setDragActive(false);
     }
   };
 
-  const importPO = async () => {
-    if (!parsedData) return;
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+    
+    const files = e.dataTransfer.files;
+    if (files && files[0]) {
+      handleFileSelection(files[0]);
+    }
+  };
 
-    createPOMutation.mutate(parsedData);
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (files && files[0]) {
+      handleFileSelection(files[0]);
+    }
+  };
+
+  const handleFileSelection = (selectedFile: File) => {
+    const validTypes = [
+      "text/csv",
+      "application/vnd.ms-excel",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    ];
+    
+    const isValidFile = validTypes.includes(selectedFile.type) || 
+                       selectedFile.name.endsWith('.csv') || 
+                       selectedFile.name.endsWith('.xls') || 
+                       selectedFile.name.endsWith('.xlsx');
+
+    if (isValidFile) {
+      setFile(selectedFile);
+      setParsedData(null);
+      setShowPreview(false);
+    } else {
+      toast({
+        title: "Invalid file type",
+        description: "Please upload a CSV or Excel file",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handlePreview = () => {
+    if (!file) {
+      toast({
+        title: "No file selected",
+        description: "Please select a file to preview",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    previewMutation.mutate(file);
+  };
+
+  const handleImport = () => {
+    if (!parsedData) {
+      toast({
+        title: "No data to import",
+        description: "Please preview the file first",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    importMutation.mutate({ 
+      header: parsedData.header, 
+      lines: parsedData.lines 
+    });
   };
 
   return (
-    <div className="flex-1 flex flex-col overflow-hidden">
-      <div className="flex-shrink-0 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container mx-auto p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold">Import Zepto PO</h1>
-              <p className="text-muted-foreground">
-                Upload and import Zepto purchase orders from CSV files
-              </p>
-            </div>
+    <div className="h-full overflow-y-auto">
+      <div className="container mx-auto p-6 space-y-6 max-w-6xl">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold">Zepto PO Upload</h1>
+            <p className="text-gray-600">Upload, review, and import Zepto purchase orders</p>
           </div>
         </div>
-      </div>
 
-      <div className="flex-1 overflow-y-auto">
-        <div className="container mx-auto p-6 space-y-6">
-        {/* File Upload Section */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Upload className="h-5 w-5" />
-              Upload CSV File
-            </CardTitle>
-            <CardDescription>
-              Select a Zepto PO CSV file to upload and import
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="csv-file">CSV File</Label>
-              <Input
-                ref={fileInputRef}
-                id="csv-file"
-                type="file"
-                accept=".csv"
-                onChange={handleFileChange}
-                className="cursor-pointer"
-              />
-            </div>
-            
-            {file && (
-              <div className="flex items-center gap-2 p-3 bg-muted rounded-lg">
-                <FileText className="h-4 w-4" />
-                <span className="text-sm font-medium">{file.name}</span>
-                <span className="text-xs text-muted-foreground">
-                  ({(file.size / 1024).toFixed(1)} KB)
-                </span>
-              </div>
-            )}
-
-            <div className="flex gap-2">
-              <Button 
-                onClick={parseFile}
-                disabled={!file || isLoading}
-                className="flex items-center gap-2"
-              >
-                {isLoading ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <CheckCircle className="h-4 w-4" />
-                )}
-                Parse CSV
-              </Button>
-              
-              {parsedData && (
-                <Button 
-                  onClick={importPO}
-                  disabled={createPOMutation.isPending}
-                  className="flex items-center gap-2"
-                  variant="default"
-                >
-                  {createPOMutation.isPending ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <Package className="h-4 w-4" />
-                  )}
-                  Import PO
-                </Button>
-              )}
-            </div>
-            
-            {parseError && (
-              <Alert variant="destructive">
-                <AlertCircle className="h-4 w-4" />
-                <AlertDescription>{parseError}</AlertDescription>
-              </Alert>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Parsed Data Preview */}
-        {parsedData && (
+        <div className="grid gap-6">
+          {/* File Upload Section */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <CheckCircle className="h-5 w-5 text-green-600" />
-                Parsed Data Preview
+                <Upload className="h-5 w-5" />
+                Upload Zepto PO File
               </CardTitle>
               <CardDescription>
-                Review the imported data before saving to database
+                Upload CSV or Excel files containing Zepto purchase order data
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-6">
-              {/* Header Information */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                <div>
-                  <Label className="text-sm font-medium">PO Number</Label>
-                  <p className="text-lg font-semibold">{parsedData.header.po_number}</p>
+            <CardContent className="space-y-4">
+              <div
+                className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
+                  dragActive
+                    ? "border-blue-500 bg-blue-50"
+                    : "border-gray-300 hover:border-gray-400"
+                }`}
+                onDragEnter={handleDrag}
+                onDragLeave={handleDrag}
+                onDragOver={handleDrag}
+                onDrop={handleDrop}
+              >
+                <FileText className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+                <div className="space-y-2">
+                  <p className="text-lg font-medium">
+                    {file ? "File Selected" : "Drop your Zepto CSV/Excel file here"}
+                  </p>
+                  <p className="text-sm text-gray-500">
+                    or{" "}
+                    <Label htmlFor="file-upload" className="text-blue-600 hover:underline cursor-pointer">
+                      browse to choose a file
+                    </Label>
+                  </p>
+                  <p className="text-xs text-gray-400">
+                    Supports .csv, .xls, and .xlsx files
+                  </p>
                 </div>
-                <div>
-                  <Label className="text-sm font-medium">Total Quantity</Label>
-                  <p className="text-lg">{parsedData.header.total_quantity.toLocaleString()}</p>
-                </div>
-                <div>
-                  <Label className="text-sm font-medium">Total Amount</Label>
-                  <p className="text-lg font-semibold">₹{Number(parsedData.header.total_amount).toLocaleString()}</p>
-                </div>
-                <div>
-                  <Label className="text-sm font-medium">Status</Label>
-                  <Badge variant="secondary">{parsedData.header.status}</Badge>
-                </div>
-                <div>
-                  <Label className="text-sm font-medium">Number of Line Items</Label>
-                  <p className="text-lg">{parsedData.lines.length}</p>
-                </div>
-                <div>
-                  <Label className="text-sm font-medium">Unique Brands</Label>
-                  <p className="text-lg">{parsedData.header.unique_brands.length}</p>
-                </div>
+                <Input
+                  id="file-upload"
+                  type="file"
+                  accept=".csv,.xls,.xlsx,text/csv,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                  onChange={handleFileChange}
+                  className="hidden"
+                />
               </div>
 
-              {/* Brands */}
-              <div>
-                <Label className="text-sm font-medium mb-2 block">Brands</Label>
-                <div className="flex flex-wrap gap-2">
-                  {parsedData.header.unique_brands.map((brand, index) => (
-                    <Badge key={index} variant="outline">{brand}</Badge>
-                  ))}
-                </div>
-              </div>
-
-              {/* Line Items Preview */}
-              <div>
-                <Label className="text-sm font-medium mb-3 block">
-                  Line Items Preview (showing first 10 items)
-                </Label>
-                <div className="border rounded-lg overflow-hidden">
-                  <div className="grid grid-cols-6 gap-4 p-3 bg-muted font-medium text-sm">
-                    <div>SKU</div>
-                    <div>Brand</div>
-                    <div>Quantity</div>
-                    <div>Cost Price</div>
-                    <div>MRP</div>
-                    <div>Total</div>
+              {file && (
+                <div className="flex items-center gap-3 p-3 bg-green-50 border border-green-200 rounded-lg">
+                  <CheckCircle className="h-5 w-5 text-green-600" />
+                  <div className="flex-1">
+                    <p className="font-medium text-green-800">{file.name}</p>
+                    <p className="text-sm text-green-600">
+                      {(file.size / 1024 / 1024).toFixed(2)} MB
+                    </p>
                   </div>
-                  <div className="max-h-80 overflow-y-auto">
-                    {parsedData.lines.slice(0, 10).map((line, index) => (
-                      <div key={index} className="grid grid-cols-6 gap-4 p-3 border-t text-sm">
-                        <div className="truncate" title={line.sku}>{line.sku}</div>
-                        <div>{line.brand || '-'}</div>
-                        <div className="text-right">{line.po_qty.toLocaleString()}</div>
-                        <div className="text-right">₹{Number(line.cost_price).toFixed(2)}</div>
-                        <div className="text-right">₹{Number(line.mrp).toFixed(2)}</div>
-                        <div className="text-right font-medium">₹{Number(line.total_value).toFixed(2)}</div>
-                      </div>
-                    ))}
-                    {parsedData.lines.length > 10 && (
-                      <div className="p-3 text-center text-sm text-muted-foreground border-t">
-                        And {parsedData.lines.length - 10} more items...
-                      </div>
-                    )}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setFile(null);
+                      setParsedData(null);
+                      setShowPreview(false);
+                    }}
+                  >
+                    Remove
+                  </Button>
+                </div>
+              )}
+
+              <div className="flex gap-3">
+                <Button
+                  onClick={handlePreview}
+                  disabled={!file || previewMutation.isPending}
+                  className="flex-1"
+                  variant="outline"
+                >
+                  <Eye className="h-4 w-4 mr-2" />
+                  {previewMutation.isPending ? "Analyzing..." : "Preview & Review"}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Preview Section */}
+          {showPreview && parsedData && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Eye className="h-5 w-5" />
+                  File Preview & Review
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {/* Summary Information */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className="p-3 bg-blue-50 rounded-lg">
+                    <p className="text-sm font-medium text-blue-800">PO Number</p>
+                    <p className="text-lg font-bold text-blue-900">
+                      {parsedData.header?.po_number || "N/A"}
+                    </p>
+                  </div>
+                  <div className="p-3 bg-green-50 rounded-lg">
+                    <p className="text-sm font-medium text-green-800">Total Items</p>
+                    <p className="text-lg font-bold text-green-900">{parsedData.totalItems || 0}</p>
+                  </div>
+                  <div className="p-3 bg-purple-50 rounded-lg">
+                    <p className="text-sm font-medium text-purple-800">Total Quantity</p>
+                    <p className="text-lg font-bold text-purple-900">{parsedData.totalQuantity || 0}</p>
+                  </div>
+                  <div className="p-3 bg-yellow-50 rounded-lg">
+                    <p className="text-sm font-medium text-yellow-800">Total Amount</p>
+                    <p className="text-lg font-bold text-yellow-900">₹{parsedData.totalAmount || "0"}</p>
+                  </div>
+                </div>
+
+                {/* PO Header Preview */}
+                <div className="space-y-2">
+                  <h4 className="font-medium">PO Header Information</h4>
+                  <div className="bg-gray-50 p-3 rounded-lg">
+                    <div className="grid grid-cols-2 gap-2 text-sm">
+                      <div><strong>PO Number:</strong> {parsedData.header?.po_number || "N/A"}</div>
+                      <div><strong>PO Date:</strong> {parsedData.header?.po_date || "N/A"}</div>
+                      <div><strong>Status:</strong> <Badge variant="outline">{parsedData.header?.status || "Open"}</Badge></div>
+                      <div><strong>Vendor:</strong> Zepto</div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Line Items Preview */}
+                <div className="space-y-2">
+                  <h4 className="font-medium">Line Items Preview (First 5 items)</h4>
+                  <div className="border rounded-lg overflow-hidden">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Item Code</TableHead>
+                          <TableHead>Description</TableHead>
+                          <TableHead>Quantity</TableHead>
+                          <TableHead>Unit Price</TableHead>
+                          <TableHead>Total</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {parsedData.lines.slice(0, 5).map((line, index) => (
+                          <TableRow key={index}>
+                            <TableCell className="font-medium">{line.item_code || "N/A"}</TableCell>
+                            <TableCell>{line.item_name || line.product_description || "N/A"}</TableCell>
+                            <TableCell>{line.quantity || "N/A"}</TableCell>
+                            <TableCell>₹{line.unit_price || line.basic_cost_price || "N/A"}</TableCell>
+                            <TableCell>₹{line.total_amount || line.line_total || "N/A"}</TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                  {parsedData.lines.length > 5 && (
+                    <p className="text-sm text-gray-500 text-center">
+                      Showing 5 of {parsedData.lines.length} items
+                    </p>
+                  )}
+                </div>
+
+                {/* Import Action */}
+                <div className="flex gap-3 pt-4 border-t">
+                  <Button
+                    onClick={handleImport}
+                    disabled={importMutation.isPending}
+                    className="flex-1"
+                  >
+                    <Database className="h-4 w-4 mr-2" />
+                    {importMutation.isPending ? "Importing..." : "Import to Database"}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Instructions */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Instructions</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3 text-sm">
+                <div className="flex items-start gap-3">
+                  <div className="w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-xs font-bold">1</div>
+                  <div>
+                    <h4 className="font-medium mb-1">Upload File</h4>
+                    <p className="text-gray-600">Upload your Zepto CSV or Excel file</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-start gap-3">
+                  <div className="w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-xs font-bold">2</div>
+                  <div>
+                    <h4 className="font-medium mb-1">Preview & Review</h4>
+                    <p className="text-gray-600">Review the parsed data to ensure accuracy</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3">
+                  <div className="w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-xs font-bold">3</div>
+                  <div>
+                    <h4 className="font-medium mb-1">Import to Database</h4>
+                    <p className="text-gray-600">Import the validated data into the system</p>
+                  </div>
+                </div>
+
+                <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg mt-4">
+                  <div className="flex items-start gap-2">
+                    <AlertCircle className="h-4 w-4 text-blue-600 mt-0.5" />
+                    <div>
+                      <p className="text-blue-800 text-sm">
+                        <strong>Note:</strong> Please ensure your CSV file follows the standard Zepto format.
+                        Review all data before importing to maintain data integrity.
+                      </p>
+                    </div>
                   </div>
                 </div>
               </div>
             </CardContent>
           </Card>
-        )}
-
-        {/* Instructions */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <AlertCircle className="h-5 w-5 text-blue-600" />
-              Import Instructions
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3 text-sm text-muted-foreground">
-            <div>
-              <p className="font-medium mb-1">Supported Format:</p>
-              <p>• Zepto purchase order CSV format (PO_Items format)</p>
-              <p>• File must contain line-item data with PO number, SKU details, and pricing</p>
-            </div>
-            <div>
-              <p className="font-medium mb-1">Required Fields:</p>
-              <p>• PO No., SKU, Brand, quantities, and pricing information</p>
-              <p>• Cost Price, CGST, SGST, IGST, CESS, MRP, Total Value</p>
-            </div>
-            <div>
-              <p className="font-medium mb-1">Import Process:</p>
-              <p>1. Select and upload your CSV file</p>
-              <p>2. Review the parsed data for accuracy</p>
-              <p>3. Click Import PO to save to the database</p>
-            </div>
-          </CardContent>
-        </Card>
         </div>
       </div>
     </div>
