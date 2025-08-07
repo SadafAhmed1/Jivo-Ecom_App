@@ -1,0 +1,1 @@
+id,header_id,line_number,hsn_code,fsn_isbn,quantity,pending_quantity,uom,title,brand,type,ean,vertical,required_by_date,supplier_mrp,supplier_price,taxable_value,igst_rate,igst_amount_per_unit,sgst_rate,sgst_amount_per_unit,cgst_rate,cgst_amount_per_unit,cess_rate,cess_amount_per_unit,tax_amount,total_amount,status,created_by,created_at,updated_at

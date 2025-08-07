@@ -1,0 +1,10 @@
+id,po_id,item_name,quantity,sap_code,category,subcategory,basic_rate,gst_rate,landing_rate,status,total_litres
+11,1,Coca Cola 600ml,100,SAP001,Beverages,Soft Drinks,25.00,4.50,29.50,Pending,
+12,1,Lays Classic 52g,200,SAP002,Snacks,Chips,20.00,3.60,23.60,Pending,
+13,2,Coca Cola 600ml,150,SAP001,Beverages,Soft Drinks,25.00,4.50,29.50,Confirmed,
+14,2,Amul Milk 1L,80,SAP003,Dairy,Milk,60.00,3.00,63.00,Confirmed,
+15,3,Lays Classic 52g,300,SAP002,Snacks,Chips,20.00,3.60,23.60,Pending,
+16,3,Amul Milk 1L,120,SAP003,Dairy,Milk,60.00,3.00,63.00,Pending,
+17,9,fortune,0,"","","",0.00,0.00,0.00,Pending,
+21,13,Fortune Refined Sunflower Oil 1L Bottle,5,OIL001,Cooking Oil,Refined Oil,150.00,5.00,157.50,Pending,
+22,13,"",0,"","","",0.00,0.00,0.00,Pending,

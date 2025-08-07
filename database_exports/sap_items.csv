@@ -1,0 +1,19 @@
+id,itemcode,itemname,type,itemgroup,variety,subgroup,brand,uom,taxrate,unitsize,is_litre,case_pack
+1,AATA001,Aashirvaad Atta 5Kg,Finished Good,Flour & Grains,Wheat Flour,Packaged Atta,Aashirvaad,KG,5.00,5Kg,f,8
+2,RICE001,India Gate Basmati Rice 1Kg,Finished Good,Rice & Pulses,Basmati Rice,Premium Rice,India Gate,KG,5.00,1Kg,f,20
+3,OIL001,Fortune Sunflower Oil 1L,Finished Good,Cooking Oil,Sunflower Oil,Refined Oil,Fortune,LTR,5.00,1L,t,15
+4,PULSES001,Toor Dal 1Kg,Finished Good,Rice & Pulses,Dal,Arhar Dal,Tata Sampann,KG,5.00,1Kg,f,25
+5,BISCUIT001,Parle-G Biscuits 200g,Finished Good,Snacks,Biscuits,Glucose Biscuits,Parle,PCS,12.00,200g,f,24
+6,SOAP001,Lifebuoy Soap 125g,Finished Good,Personal Care,Bath Soap,Antibacterial Soap,Lifebuoy,PCS,18.00,125g,f,48
+7,DETERGENT001,Surf Excel 1Kg,Finished Good,Home Care,Detergent,Washing Powder,Surf Excel,KG,18.00,1Kg,f,12
+8,TEA001,Tata Tea Premium 250g,Finished Good,Beverages,Tea,Black Tea,Tata Tea,GM,5.00,250g,f,20
+9,SAP001,Coca Cola 600ml,Beverage,Soft Drinks,Cola,,Coca-Cola,Bottle,18.00,600ml,f,24
+10,SAP002,Lays Classic 52g,Snacks,Chips,Classic,,Lays,Packet,18.00,52g,f,48
+11,SAP003,Amul Milk 1L,Dairy,Milk,Full Cream,,Amul,Pack,5.00,1L,t,12
+19,SAP004,T-Shirt - Cotton Blue,,Apparel,,Men's Clothing,,,5.00,,f,
+20,SAP005,Running Shoes - Nike Air Max,,Footwear,,Sports Shoes,,,12.00,,f,
+21,SAP006,Coffee Maker - Nespresso,,Home Appliances,,Kitchen,,,18.00,,f,
+22,SAP007,Yoga Mat - Premium,,Sports,,Fitness,,,12.00,,f,
+23,SAP008,Book - Programming Guide,,Books,,Technical,,,0.00,,f,
+24,SAP009,Watch - Casio Digital,,Accessories,,Watches,,,18.00,,f,
+25,SAP010,Backpack - Travel 40L,,Bags,,Travel,,,18.00,,f,

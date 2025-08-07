@@ -1,0 +1,2 @@
+id,po_number,status,total_quantity,total_items,total_basic_cost,total_tax_amount,total_landing_rate,cart_discount,net_amount,unique_hsn_codes,created_by,uploaded_by,created_at,updated_at
+1,BK_20250807_045848,Open,122,3,35561.92,43.19,37340.00,0.00,37340.00,"{151491,15141920,15091000}",system,system,2025-08-07 04:58:48.703607,2025-08-07 04:58:48.703607

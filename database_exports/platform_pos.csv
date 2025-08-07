@@ -1,0 +1,11 @@
+id,po_number,platform,serving_distributor,order_date,expiry_date,appointment_date,region,state,city,area,status,attachment,created_at,updated_at
+1,PO001-BLK-20250103,1,Delhi Metro Foods,2025-01-03 00:00:00,2025-01-10 00:00:00,,North India,Delhi,New Delhi,Connaught Place,Open,,2025-08-03 22:19:04.973745,2025-08-03 22:19:04.973745
+2,PO002-SWG-20250103,2,Karnataka Distributors Pvt Ltd,2025-01-03 00:00:00,2025-01-08 00:00:00,,South India,Karnataka,Bangalore,Koramangala,Open,,2025-08-03 22:19:15.974344,2025-08-03 22:19:15.974344
+3,PO003-ZPT-20250103,3,Mumbai Quick Supply Co,2025-01-03 00:00:00,2025-01-05 00:00:00,2025-01-04 00:00:00,West India,Maharashtra,Mumbai,Andheri West,Open,,2025-08-03 22:19:25.433961,2025-08-03 22:19:25.433961
+4,PO004-FKG-20250103,4,Mumbai Express Logistics,2025-01-03 00:00:00,2025-01-12 00:00:00,,West India,Maharashtra,Mumbai,Bandra East,Open,,2025-08-03 22:22:00.559167,2025-08-03 22:22:00.559167
+5,99999,1,,2025-08-03 00:00:00,2025-08-09 00:00:00,2025-08-08 00:00:00,North India,Punjab,Chandigarh,,Open,,2025-08-03 22:24:06.337357,2025-08-03 22:24:06.337357
+6,PO-AMZ-001,1,Mumbai Distributors Ltd,2024-08-01 10:00:00,2024-08-15 23:59:59,,West,Maharashtra,Mumbai,Andheri,Open,,2025-08-04 18:18:04.032966,2025-08-04 18:18:04.032966
+7,PO-FLP-002,2,Delhi Supply Chain,2024-08-02 14:30:00,2024-08-20 23:59:59,,North,Delhi,New Delhi,CP,Closed,,2025-08-04 18:18:04.032966,2025-08-04 18:18:04.032966
+8,PO-AMZ-003,1,Bangalore Logistics,2024-08-03 09:15:00,2024-08-25 23:59:59,,South,Karnataka,Bangalore,Koramangala,Open,,2025-08-04 18:18:04.032966,2025-08-04 18:18:04.032966
+9,68799,1,"",2025-08-03 00:00:00,2025-08-08 00:00:00,2025-08-07 00:00:00,North India,Karnataka,New Delhi,"",Open,"",2025-08-04 18:24:36.095311,2025-08-04 18:24:36.095311
+13,3456,1,"",2025-08-04 00:00:00,2025-08-12 00:00:00,2025-08-11 00:00:00,North India,Delhi,New Delhi,"",Open,"",2025-08-05 09:11:56.247968,2025-08-05 09:11:56.247968

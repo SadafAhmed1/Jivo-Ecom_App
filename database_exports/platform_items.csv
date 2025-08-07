@@ -1,0 +1,42 @@
+id,pf_itemcode,pf_itemname,pf_id,sap_id
+1,BLK-AATA001,Aashirvaad Wheat Flour 5kg Pack,1,1
+2,BLK-RICE001,India Gate Premium Basmati Rice 1kg,1,2
+3,BLK-OIL001,Fortune Refined Sunflower Oil 1L Bottle,1,3
+4,SWG-AATA001,Aashirvaad Atta 5Kg Family Pack,2,1
+5,SWG-PULSES001,Tata Sampann Arhar Dal 1kg Premium,2,4
+6,ZPT-BISCUIT001,Parle-G Original Glucose Biscuits 200g,3,5
+7,ZPT-SOAP001,Lifebuoy Total Protection Soap 125g,3,6
+8,FKG-DETERGENT001,Surf Excel Easy Wash Detergent 1kg,4,7
+9,FKG-TEA001,Tata Tea Premium Leaf Tea 250g,4,8
+10,ZHP-RICE001,India Gate Basmati Rice Premium 1kg,5,2
+11,ZHP-OIL001,Fortune Sunflower Oil Pure 1L,5,3
+12,AMZ-AATA001,Aashirvaad Select Atta 5kg,6,1
+13,AMZ-COKE-600,Coca Cola 600ml Bottle,1,1
+14,AMZ-LAYS-52,Lays Classic Chips 52g,1,2
+15,AMZ-AMUL-1L,Amul Fresh Milk 1 Litre,1,3
+16,FLP-COKE-600,Coca Cola Original 600ml,2,1
+17,FLP-LAYS-52,Lays Classic Salted 52g,2,2
+18,AMZ-LAP-001,"Dell Inspiron 15 Laptop (8GB RAM, 512GB SSD)",6,9
+19,AMZ-MOB-001,"Samsung Galaxy S21 5G (128GB, Phantom Gray)",6,10
+20,AMZ-AUD-001,Sony WH-1000XM4 Wireless Noise Cancelling Headphones,6,11
+21,AMZ-APP-001,Nespresso Vertuo Coffee Machine,6,21
+22,FK-LAP-001,DELL Inspiron Core i5 11th Gen Laptop,10,9
+23,FK-MOB-001,"SAMSUNG Galaxy S21 5G (Phantom Gray, 128 GB)",10,10
+24,FK-CLO-001,"Men's Cotton T-Shirt (Blue, Size L)",10,19
+25,FK-SHO-001,NIKE Air Max Running Shoes For Men,10,20
+26,BLK-FOOD-001,Premium Yoga Mat - 6mm Thick,1,22
+27,BLK-BOOK-001,Programming Guide - Learn Python,1,23
+28,BLK-CLO-001,Men's Cotton T-Shirt - Blue XL,1,19
+29,BLK-SHO-001,Nike Running Shoes - Size 10,1,20
+30,AMZ-LAP-001,"Dell Inspiron 15 Laptop (8GB RAM, 512GB SSD)",6,9
+31,AMZ-MOB-001,"Samsung Galaxy S21 5G (128GB, Phantom Gray)",6,10
+32,AMZ-AUD-001,Sony WH-1000XM4 Wireless Noise Cancelling Headphones,6,11
+33,AMZ-APP-001,Nespresso Vertuo Coffee Machine,6,21
+34,FK-LAP-001,DELL Inspiron Core i5 11th Gen Laptop,10,9
+35,FK-MOB-001,"SAMSUNG Galaxy S21 5G (Phantom Gray, 128 GB)",10,10
+36,FK-CLO-001,"Men's Cotton T-Shirt (Blue, Size L)",10,19
+37,FK-SHO-001,NIKE Air Max Running Shoes For Men,10,20
+38,BLK-FOOD-001,Premium Yoga Mat - 6mm Thick,1,22
+39,BLK-BOOK-001,Programming Guide - Learn Python,1,23
+40,BLK-CLO-001,Men's Cotton T-Shirt - Blue XL,1,19
+41,BLK-SHO-001,Nike Running Shoes - Size 10,1,20
