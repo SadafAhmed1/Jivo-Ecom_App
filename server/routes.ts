@@ -632,6 +632,125 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Unified PO upload and preview routes
+  app.post("/api/po/preview", upload.single('file'), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: "No file uploaded" });
+      }
+
+      const uploadedBy = "system";
+      let parsedData;
+      let detectedVendor = "";
+
+      // Try to detect vendor and parse accordingly
+      const filename = req.file.originalname.toLowerCase();
+      
+      try {
+        if (filename.includes('flipkart') || filename.includes('grocery')) {
+          detectedVendor = "flipkart";
+          parsedData = await parseFlipkartGroceryPO(req.file.buffer, uploadedBy);
+        } else if (filename.includes('zepto')) {
+          detectedVendor = "zepto";
+          parsedData = await parseZeptoPO(req.file.buffer, uploadedBy);
+        } else if (filename.includes('city') || filename.includes('mall')) {
+          detectedVendor = "citymall";
+          parsedData = await parseCityMallPO(req.file.buffer, uploadedBy);
+        } else if (filename.includes('blinkit')) {
+          detectedVendor = "blinkit";
+          parsedData = await parseBlinkitPO(req.file.buffer, uploadedBy);
+        } else if (filename.includes('swiggy') || filename.includes('soty')) {
+          detectedVendor = "swiggy";
+          parsedData = await parseSwiggyPO(req.file.buffer, uploadedBy);
+        } else {
+          // Try different parsers until one works
+          const parsers = [
+            { name: "flipkart", parser: parseFlipkartGroceryPO },
+            { name: "zepto", parser: parseZeptoPO },
+            { name: "citymall", parser: parseCityMallPO },
+            { name: "blinkit", parser: parseBlinkitPO },
+            { name: "swiggy", parser: parseSwiggyPO }
+          ];
+
+          for (const { name, parser } of parsers) {
+            try {
+              parsedData = await parser(req.file.buffer, uploadedBy);
+              detectedVendor = name;
+              break;
+            } catch (error) {
+              // Continue to next parser
+            }
+          }
+
+          if (!parsedData) {
+            throw new Error("Unable to parse file format");
+          }
+        }
+
+        const totalQuantity = parsedData.lines.reduce((sum: number, line: any) => sum + (line.quantity || 0), 0);
+        const totalAmount = parsedData.lines.reduce((sum: number, line: any) => {
+          const amount = parseFloat(line.total_amount || line.line_total || '0');
+          return sum + amount;
+        }, 0);
+
+        res.json({
+          header: parsedData.header,
+          lines: parsedData.lines,
+          detectedVendor: detectedVendor,
+          totalItems: parsedData.lines.length,
+          totalQuantity: totalQuantity,
+          totalAmount: totalAmount.toFixed(2)
+        });
+
+      } catch (parseError) {
+        console.error("Error parsing file:", parseError);
+        res.status(400).json({ error: "Failed to parse file. Please check the format." });
+      }
+
+    } catch (error) {
+      console.error("Error previewing PO:", error);
+      res.status(500).json({ error: "Failed to preview file" });
+    }
+  });
+
+  app.post("/api/po/import/:vendor", async (req, res) => {
+    try {
+      const vendor = req.params.vendor;
+      const { header, lines } = req.body;
+
+      if (!header || !lines) {
+        return res.status(400).json({ error: "Header and lines are required" });
+      }
+
+      let createdPo;
+
+      switch (vendor) {
+        case "flipkart":
+          createdPo = await storage.createFlipkartGroceryPo(header, lines);
+          break;
+        case "zepto":
+          createdPo = await storage.createZeptoPo(header, lines);
+          break;
+        case "citymall":
+          createdPo = await storage.createCityMallPo(header, lines);
+          break;
+        case "blinkit":
+          createdPo = await storage.createBlinkitPo(header, lines);
+          break;
+        case "swiggy":
+          createdPo = await storage.createSwiggyPo(header, lines);
+          break;
+        default:
+          return res.status(400).json({ error: "Unsupported vendor" });
+      }
+
+      res.status(201).json(createdPo);
+    } catch (error) {
+      console.error("Error importing PO:", error);
+      res.status(500).json({ error: "Failed to import PO data" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
