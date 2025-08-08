@@ -12,11 +12,21 @@ export function parseSwiggyPO(fileBuffer: Buffer, uploadedBy: string): ParsedSwi
     const workbook = XLSX.read(fileBuffer, { type: 'buffer' });
     const worksheet = workbook.Sheets[workbook.SheetNames[0]];
     
-    // Convert to JSON to get all data
+    // Convert to JSON to get all data - use different options to handle merged cells
     const jsonData = XLSX.utils.sheet_to_json(worksheet, { 
       header: 1, 
       defval: '',
-      range: 0 
+      range: 0,
+      raw: false,
+      dateNF: 'mmm d, yyyy'
+    }) as any[][];
+    
+    // Also try to get raw cell data to find dates
+    const rawData = XLSX.utils.sheet_to_json(worksheet, { 
+      header: 1, 
+      defval: '',
+      range: 0,
+      raw: true
     }) as any[][];
 
     // Initialize header variables
@@ -33,7 +43,7 @@ export function parseSwiggyPO(fileBuffer: Buffer, uploadedBy: string): ParsedSwi
     let shippingAddress = '';
 
     // Extract header information from the first rows
-    for (let i = 0; i < Math.min(20, jsonData.length); i++) {
+    for (let i = 0; i < Math.min(25, jsonData.length); i++) {
       const row = jsonData[i];
       if (!row) continue;
 
@@ -42,6 +52,8 @@ export function parseSwiggyPO(fileBuffer: Buffer, uploadedBy: string): ParsedSwi
         if (!cell) continue;
         
         const cellStr = cell.toString().trim();
+        
+
         
 
         
@@ -64,18 +76,62 @@ export function parseSwiggyPO(fileBuffer: Buffer, uploadedBy: string): ParsedSwi
           poNumber = cellStr;
         }
         
-        // Extract dates
-        if (cellStr === 'PO Date :' && j + 1 < row.length && row[j + 1]) {
-          poDate = parseSwiggyDate(row[j + 1].toString());
+        // Extract dates - look in next several cells for the date value
+        if (cellStr === 'PO Date :') {
+          for (let k = j + 1; k < Math.min(j + 15, row.length); k++) {
+            if (row[k] && row[k].toString().trim()) {
+              const dateStr = row[k].toString().trim();
+              if (dateStr.includes('Aug') || dateStr.includes('2024') || dateStr.includes('2025')) {
+                poDate = parseSwiggyDate(dateStr);
+                break;
+              }
+            }
+          }
+          // Also check raw data for the same position
+          if (!poDate && rawData[i]) {
+            for (let k = j + 1; k < Math.min(j + 15, rawData[i].length); k++) {
+              if (rawData[i][k] && rawData[i][k].toString().trim()) {
+                const dateStr = rawData[i][k].toString().trim();
+                if (dateStr.includes('Aug') || dateStr.includes('2024') || dateStr.includes('2025')) {
+                  poDate = parseSwiggyDate(dateStr);
+                  break;
+                }
+              }
+            }
+          }
         }
-        if (cellStr === 'PO Release Date :' && j + 1 < row.length && row[j + 1]) {
-          poReleaseDate = parseSwiggyDate(row[j + 1].toString());
+        if (cellStr === 'PO Release Date :') {
+          for (let k = j + 1; k < Math.min(j + 15, row.length); k++) {
+            if (row[k] && row[k].toString().trim()) {
+              const dateStr = row[k].toString().trim();
+              if (dateStr.includes('Aug') || dateStr.includes('2024') || dateStr.includes('2025')) {
+                poReleaseDate = parseSwiggyDate(dateStr);
+                break;
+              }
+            }
+          }
         }
-        if (cellStr === 'Expected Delivery Date:' && j + 1 < row.length && row[j + 1]) {
-          expectedDeliveryDate = parseSwiggyDate(row[j + 1].toString());
+        if (cellStr === 'Expected Delivery Date:') {
+          for (let k = j + 1; k < Math.min(j + 15, row.length); k++) {
+            if (row[k] && row[k].toString().trim()) {
+              const dateStr = row[k].toString().trim();
+              if (dateStr.includes('Aug') || dateStr.includes('2024') || dateStr.includes('2025')) {
+                expectedDeliveryDate = parseSwiggyDate(dateStr);
+                break;
+              }
+            }
+          }
         }
-        if (cellStr === 'PO Expiry Date: ' && j + 1 < row.length && row[j + 1]) {
-          poExpiryDate = parseSwiggyDate(row[j + 1].toString());
+        if (cellStr === 'PO Expiry Date: ') {
+          for (let k = j + 1; k < Math.min(j + 15, row.length); k++) {
+            if (row[k] && row[k].toString().trim()) {
+              const dateStr = row[k].toString().trim();
+              if (dateStr.includes('Aug') || dateStr.includes('2024') || dateStr.includes('2025')) {
+                poExpiryDate = parseSwiggyDate(dateStr);
+                break;
+              }
+            }
+          }
         }
         
         // Extract payment terms - check multiple approaches
@@ -181,10 +237,10 @@ export function parseSwiggyPO(fileBuffer: Buffer, uploadedBy: string): ParsedSwi
             line_number: serialNumber,
             item_code: row[1]?.toString() || '',
             item_description: row[2]?.toString().replace(/\n/g, ' ') || '',
-            hsn_code: row[4]?.toString().trim() || null,
+            hsn_code: findHsnCode(row),
             quantity: parseInt(row[5]?.toString() || '0'),
             mrp: parseDecimal(row[6]?.toString()),
-            unit_base_cost: parseDecimal(row[8]?.toString()),
+            unit_base_cost: findUnitCost(row)?.toString() || null,
             taxable_value: parseDecimal(row[9]?.toString()),
             cgst_rate: parseDecimal(row[10]?.toString()),
             cgst_amount: parseDecimal(row[12]?.toString()),
@@ -234,10 +290,10 @@ export function parseSwiggyPO(fileBuffer: Buffer, uploadedBy: string): ParsedSwi
 
     const header: InsertSwiggyPo = {
       po_number: poNumber,
-      po_date: poDate || null,
-      po_release_date: poReleaseDate || null,
-      expected_delivery_date: expectedDeliveryDate || null,
-      po_expiry_date: poExpiryDate || null,
+      po_date: poDate ? new Date(poDate + 'T00:00:00Z') : null,
+      po_release_date: poReleaseDate ? new Date(poReleaseDate + 'T00:00:00Z') : null,
+      expected_delivery_date: expectedDeliveryDate ? new Date(expectedDeliveryDate + 'T00:00:00Z') : null,
+      po_expiry_date: poExpiryDate ? new Date(poExpiryDate + 'T00:00:00Z') : null,
       vendor_name: vendorName && vendorName !== "N/A" && vendorName !== "Aug 4, 2025" ? vendorName : null,
       payment_terms: paymentTerms || null,
       total_items: filteredLines.length,
@@ -256,23 +312,70 @@ export function parseSwiggyPO(fileBuffer: Buffer, uploadedBy: string): ParsedSwi
   }
 }
 
-function parseSwiggyDate(dateStr: string | undefined): Date | undefined {
-  if (!dateStr) return undefined;
+function parseSwiggyDate(dateStr: string | undefined): string | null {
+  if (!dateStr) return null;
   
   try {
     const cleanDateStr = dateStr.toString().trim();
     
     // Handle Excel date format (e.g., "Aug 4, 2025")
-    if (cleanDateStr.includes(',')) {
-      return new Date(cleanDateStr);
+    const date = new Date(cleanDateStr);
+    
+    if (!isNaN(date.getTime())) {
+      return date.toISOString().split('T')[0]; // Return YYYY-MM-DD format
     }
     
-    // Handle other date formats
-    return new Date(cleanDateStr);
+    return null;
   } catch (error) {
     console.warn('Error parsing Swiggy date:', dateStr, error);
-    return undefined;
+    return null;
   }
+}
+
+// Helper function to find HSN code in a row (could be in different columns)
+function findHsnCode(row: any[]): string | null {
+  // Common positions for HSN codes in Swiggy files
+  const possibleIndexes = [3, 4, 5];
+  
+  for (const index of possibleIndexes) {
+    if (row[index]) {
+      const value = row[index].toString().trim();
+      // HSN codes are typically 8-digit numbers
+      if (/^\d{8}$/.test(value)) {
+        return value;
+      }
+    }
+  }
+  
+  // Also check for HSN codes anywhere in the row
+  for (let i = 0; i < row.length; i++) {
+    if (row[i]) {
+      const value = row[i].toString().trim();
+      if (/^\d{8}$/.test(value) && !isNaN(Number(value))) {
+        return value;
+      }
+    }
+  }
+  
+  return null;
+}
+
+// Helper function to find unit cost in a row (could be in different columns)
+function findUnitCost(row: any[]): number | null {
+  // Common positions for unit cost in Swiggy files
+  const possibleIndexes = [7, 8, 9];
+  
+  for (const index of possibleIndexes) {
+    if (row[index]) {
+      const value = parseDecimal(row[index].toString());
+      // Unit costs are typically reasonable decimal values
+      if (value && Number(value) > 0 && Number(value) < 10000) {
+        return Number(value);
+      }
+    }
+  }
+  
+  return null;
 }
 
 function parseDecimal(value: string | undefined): string | null {
