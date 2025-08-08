@@ -732,6 +732,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Header and lines are required" });
       }
 
+      // Check if PO number exists
+      if (!header.po_number) {
+        return res.status(400).json({ error: "po no is not available please check you upload po" });
+      }
+
+      // Check for duplicate PO numbers
+      let existingPo;
+      try {
+        switch (vendor) {
+          case "flipkart":
+            existingPo = await storage.getFlipkartGroceryPoByNumber(header.po_number);
+            break;
+          case "zepto":
+            existingPo = await storage.getZeptoPoByNumber(header.po_number);
+            break;
+          case "citymall":
+            existingPo = await storage.getCityMallPoByNumber(header.po_number);
+            break;
+          case "blinkit":
+            existingPo = await storage.getBlinkitPoByNumber(header.po_number);
+            break;
+          case "swiggy":
+            existingPo = await storage.getSwiggyPoByNumber(header.po_number);
+            break;
+        }
+        
+        if (existingPo) {
+          return res.status(400).json({ error: "po is already exist" });
+        }
+      } catch (error) {
+        // If the method doesn't exist, continue - it means no duplicate check is implemented yet
+      }
+
       // Clean and convert dates to proper Date objects
       const cleanHeader = { ...header };
       if (cleanHeader.order_date && typeof cleanHeader.order_date === 'string') {
@@ -741,7 +774,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         cleanHeader.po_expiry_date = new Date(cleanHeader.po_expiry_date);
       }
       if (cleanHeader.po_date && typeof cleanHeader.po_date === 'string') {
-        cleanHeader.po_date = new Date(cleanHeader.po_date);
+        const dateStr = cleanHeader.po_date;
+        // Only convert if it's not already a Date object
+        if (dateStr && !isNaN(Date.parse(dateStr))) {
+          cleanHeader.po_date = new Date(dateStr);
+        } else {
+          cleanHeader.po_date = null; // Set to null if invalid date
+        }
       }
 
       // Clean lines data

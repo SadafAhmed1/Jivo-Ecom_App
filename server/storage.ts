@@ -82,6 +82,7 @@ export interface IStorage {
   // Flipkart Grocery PO methods
   getAllFlipkartGroceryPos(): Promise<(FlipkartGroceryPoHeader & { poLines: FlipkartGroceryPoLines[] })[]>;
   getFlipkartGroceryPoById(id: number): Promise<(FlipkartGroceryPoHeader & { poLines: FlipkartGroceryPoLines[] }) | undefined>;
+  getFlipkartGroceryPoByNumber(poNumber: string): Promise<FlipkartGroceryPoHeader | undefined>;
   createFlipkartGroceryPo(header: InsertFlipkartGroceryPoHeader, lines: InsertFlipkartGroceryPoLines[]): Promise<FlipkartGroceryPoHeader>;
   updateFlipkartGroceryPo(id: number, header: Partial<InsertFlipkartGroceryPoHeader>, lines?: InsertFlipkartGroceryPoLines[]): Promise<FlipkartGroceryPoHeader>;
   deleteFlipkartGroceryPo(id: number): Promise<void>;
@@ -89,6 +90,7 @@ export interface IStorage {
   // Zepto PO methods
   getAllZeptoPos(): Promise<(ZeptoPoHeader & { poLines: ZeptoPoLines[] })[]>;
   getZeptoPOById(id: number): Promise<(ZeptoPoHeader & { poLines: ZeptoPoLines[] }) | undefined>;
+  getZeptoPoByNumber(poNumber: string): Promise<ZeptoPoHeader | undefined>;
   createZeptoPo(header: InsertZeptoPoHeader, lines: InsertZeptoPoLines[]): Promise<ZeptoPoHeader>;
   updateZeptoPo(id: number, header: Partial<InsertZeptoPoHeader>, lines?: InsertZeptoPoLines[]): Promise<ZeptoPoHeader>;
   deleteZeptoPo(id: number): Promise<void>;
@@ -96,6 +98,7 @@ export interface IStorage {
   // City Mall PO methods
   getAllCityMallPos(): Promise<(CityMallPoHeader & { poLines: CityMallPoLines[] })[]>;
   getCityMallPoById(id: number): Promise<(CityMallPoHeader & { poLines: CityMallPoLines[] }) | undefined>;
+  getCityMallPoByNumber(poNumber: string): Promise<CityMallPoHeader | undefined>;
   createCityMallPo(header: InsertCityMallPoHeader, lines: InsertCityMallPoLines[]): Promise<CityMallPoHeader>;
   updateCityMallPo(id: number, header: Partial<InsertCityMallPoHeader>, lines?: InsertCityMallPoLines[]): Promise<CityMallPoHeader>;
   deleteCityMallPo(id: number): Promise<void>;
@@ -103,6 +106,7 @@ export interface IStorage {
   // Blinkit PO methods
   getAllBlinkitPos(): Promise<(BlinkitPoHeader & { poLines: BlinkitPoLines[] })[]>;
   getBlinkitPoById(id: number): Promise<(BlinkitPoHeader & { poLines: BlinkitPoLines[] }) | undefined>;
+  getBlinkitPoByNumber(poNumber: string): Promise<BlinkitPoHeader | undefined>;
   createBlinkitPo(header: InsertBlinkitPoHeader, lines: InsertBlinkitPoLines[]): Promise<BlinkitPoHeader>;
   updateBlinkitPo(id: number, header: Partial<InsertBlinkitPoHeader>, lines?: InsertBlinkitPoLines[]): Promise<BlinkitPoHeader>;
   deleteBlinkitPo(id: number): Promise<void>;
@@ -110,6 +114,7 @@ export interface IStorage {
   // Swiggy PO methods
   getAllSwiggyPos(): Promise<(SwiggyPo & { poLines: SwiggyPoLine[] })[]>;
   getSwiggyPoById(id: number): Promise<(SwiggyPo & { poLines: SwiggyPoLine[] }) | undefined>;
+  getSwiggyPoByNumber(poNumber: string): Promise<SwiggyPo | undefined>;
   createSwiggyPo(po: InsertSwiggyPo, lines: InsertSwiggyPoLine[]): Promise<SwiggyPo>;
   updateSwiggyPo(id: number, po: Partial<InsertSwiggyPo>): Promise<SwiggyPo | undefined>;
   deleteSwiggyPo(id: number): Promise<void>;
@@ -388,6 +393,11 @@ export class DatabaseStorage implements IStorage {
     };
   }
 
+  async getFlipkartGroceryPoByNumber(poNumber: string): Promise<FlipkartGroceryPoHeader | undefined> {
+    const [header] = await db.select().from(flipkartGroceryPoHeader).where(eq(flipkartGroceryPoHeader.po_number, poNumber));
+    return header || undefined;
+  }
+
   async createFlipkartGroceryPo(header: InsertFlipkartGroceryPoHeader, lines: InsertFlipkartGroceryPoLines[]): Promise<FlipkartGroceryPoHeader> {
     return await db.transaction(async (tx) => {
       const [createdHeader] = await tx.insert(flipkartGroceryPoHeader).values(header).returning();
@@ -522,6 +532,11 @@ export class DatabaseStorage implements IStorage {
     await db.delete(zeptoPoHeader).where(eq(zeptoPoHeader.id, id));
   }
 
+  async getZeptoPoByNumber(poNumber: string): Promise<ZeptoPoHeader | undefined> {
+    const [header] = await db.select().from(zeptoPoHeader).where(eq(zeptoPoHeader.po_number, poNumber));
+    return header || undefined;
+  }
+
   // City Mall PO methods
   async getAllCityMallPos(): Promise<(CityMallPoHeader & { poLines: CityMallPoLines[] })[]> {
     const pos = await db.select().from(cityMallPoHeader).orderBy(desc(cityMallPoHeader.created_at));
@@ -585,6 +600,11 @@ export class DatabaseStorage implements IStorage {
 
   async deleteCityMallPo(id: number): Promise<void> {
     await db.delete(cityMallPoHeader).where(eq(cityMallPoHeader.id, id));
+  }
+
+  async getCityMallPoByNumber(poNumber: string): Promise<CityMallPoHeader | undefined> {
+    const [header] = await db.select().from(cityMallPoHeader).where(eq(cityMallPoHeader.po_number, poNumber));
+    return header || undefined;
   }
 
   // Blinkit PO methods
@@ -652,6 +672,11 @@ export class DatabaseStorage implements IStorage {
     await db.delete(blinkitPoHeader).where(eq(blinkitPoHeader.id, id));
   }
 
+  async getBlinkitPoByNumber(poNumber: string): Promise<BlinkitPoHeader | undefined> {
+    const [header] = await db.select().from(blinkitPoHeader).where(eq(blinkitPoHeader.po_number, poNumber));
+    return header || undefined;
+  }
+
   // Swiggy PO methods
   async getAllSwiggyPos(): Promise<(SwiggyPo & { poLines: SwiggyPoLine[] })[]> {
     const pos = await db
@@ -686,6 +711,15 @@ export class DatabaseStorage implements IStorage {
       .orderBy(swiggyPoLines.line_number);
 
     return { ...po, poLines: lines };
+  }
+
+  async getSwiggyPoByNumber(poNumber: string): Promise<SwiggyPo | undefined> {
+    const [po] = await db
+      .select()
+      .from(swiggyPos)
+      .where(eq(swiggyPos.po_number, poNumber));
+
+    return po || undefined;
   }
 
   async createSwiggyPo(po: InsertSwiggyPo, lines: InsertSwiggyPoLine[]): Promise<SwiggyPo> {

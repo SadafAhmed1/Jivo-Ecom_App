@@ -271,7 +271,12 @@ export function parseSwiggyPO(fileBuffer: Buffer, uploadedBy: string): ParsedSwi
       }
     }
 
-    // Generate PO number if not found
+    // Check if PO number was found
+    if (!poNumber) {
+      throw new Error('po no is not available please check you upload po');
+    }
+
+    // Generate PO number if not found (this line should never be reached now)
     if (!poNumber) {
       const timestamp = Date.now();
       poNumber = `SW_${timestamp}`;
