@@ -6,7 +6,7 @@ This is a comprehensive e-commerce purchase order management web application des
 
 The application is built as a full-stack solution with a React frontend and Express backend, designed to replace manual data entry processes with an automated, API-driven system. Currently focused on Platform PO management with plans to expand to distributor POs, secondary sales tracking, and inventory management.
 
-**Recent Major Update (August 2025):** Enhanced individual vendor PO upload pages with preview and review workflow. Each vendor now has dedicated upload interface with file preview, validation, and import capabilities.
+**Recent Major Update (August 2025):** Implemented unified PO upload system that supports all vendor formats through a single interface with platform selection, file upload, preview and import workflow. Users first select platform, then upload file, preview data, and import to database.
 
 ## User Preferences
 
@@ -63,7 +63,7 @@ Preferred communication style: Simple, everyday language.
 - **Platform Management**: CRUD operations for e-commerce platforms
 - **Item Management**: SAP item synchronization and platform mapping
 - **PO Management**: Full lifecycle PO creation, editing, and status tracking
-- **Enhanced Vendor PO Uploads**: Individual vendor pages with preview, validation and import workflow
+- **Unified PO Upload**: Single endpoint for uploading any vendor PO with platform selection and preview capabilities
 - **Search & Filtering**: Dynamic item search across platforms and categories
 
 ### File Organization

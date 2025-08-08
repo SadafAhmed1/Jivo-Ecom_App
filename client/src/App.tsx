@@ -20,7 +20,7 @@ import CityMallPoDetails from "@/pages/city-mall-po-details";
 import UploadBlinkitPo from "./pages/upload/UploadBlinkitPo";
 import ViewBlinkitPos from "./pages/ViewBlinkitPos";
 import SwiggyUpload from "./pages/SwiggyUpload";
-import UnifiedPOUpload from "./pages/UnifiedPOUpload";
+import UnifiedPOUpload from "./pages/unified-po-upload";
 
 import NotFound from "@/pages/not-found";
 
@@ -46,7 +46,7 @@ function Router() {
           <Route path="/blinkit-upload" component={UploadBlinkitPo} />
           <Route path="/blinkit-pos" component={ViewBlinkitPos} />
           <Route path="/swiggy-upload" component={SwiggyUpload} />
-          <Route path="/upload-po" component={UnifiedPOUpload} />
+          <Route path="/po-upload" component={UnifiedPOUpload} />
 
           <Route component={NotFound} />
         </Switch>

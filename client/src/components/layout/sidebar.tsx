@@ -6,13 +6,9 @@ import {
   Upload, 
   Package, 
   Store, 
-  User,
-  ChevronDown,
-  ChevronRight
+  User
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { useState } from "react";
 
 const navigation = [
   {
@@ -29,37 +25,11 @@ const navigation = [
     description: "Create & manage platform orders"
   },
   {
-    type: "group",
     name: "Upload PO",
+    href: "/po-upload",
     icon: Upload,
     active: true,
-    children: [
-      {
-        name: "Flipkart Grocery",
-        href: "/flipkart-grocery-upload",
-        description: "Import Flipkart grocery POs"
-      },
-      {
-        name: "Zepto",
-        href: "/zepto-upload",
-        description: "Import Zepto POs"
-      },
-      {
-        name: "City Mall",
-        href: "/city-mall-upload",
-        description: "Import City Mall POs"
-      },
-      {
-        name: "Blinkit",
-        href: "/blinkit-upload",
-        description: "Import Blinkit POs"
-      },
-      {
-        name: "Swiggy",
-        href: "/swiggy-upload",
-        description: "Import Swiggy POs"
-      }
-    ]
+    description: "Upload purchase orders from all platforms"
   },
   {
     name: "Distributor PO",
@@ -86,9 +56,6 @@ const navigation = [
 
 export function Sidebar() {
   const [location] = useLocation();
-  const [uploadPoOpen, setUploadPoOpen] = useState(false);
-
-  const isUploadActive = location.includes('-upload');
 
   return (
     <div className="w-64 bg-white shadow-lg border-r border-gray-200 flex flex-col">
@@ -105,100 +72,42 @@ export function Sidebar() {
         </div>
       </div>
 
-      {/* Navigation Menu */}
-      <nav className="flex-1 p-4 overflow-y-auto">
-        <div className="space-y-2">
-          {navigation.map((item) => {
-            if (item.type === "group") {
-              return (
-                <Collapsible
-                  key={item.name}
-                  open={uploadPoOpen || isUploadActive}
-                  onOpenChange={setUploadPoOpen}
-                >
-                  <CollapsibleTrigger className="w-full">
-                    <div className={cn(
-                      "flex items-center justify-between px-4 py-3 font-medium rounded-lg transition-colors duration-200 group cursor-pointer w-full",
-                      isUploadActive ? "text-primary bg-blue-50 border border-blue-200" : "text-gray-600 hover:bg-gray-50 hover:text-primary"
-                    )}>
-                      <div className="flex items-center space-x-3">
-                        <item.icon size={20} />
-                        <span>{item.name}</span>
-                      </div>
-                      {uploadPoOpen || isUploadActive ? (
-                        <ChevronDown size={16} />
-                      ) : (
-                        <ChevronRight size={16} />
-                      )}
-                    </div>
-                  </CollapsibleTrigger>
-                  <CollapsibleContent className="space-y-1 mt-1">
-                    {item.children?.map((child) => {
-                      const isChildActive = location === child.href;
-                      return (
-                        <Link key={child.name} to={child.href || '#'}>
-                          <div className={cn(
-                            "ml-8 px-4 py-2 text-sm rounded-lg transition-colors duration-200 cursor-pointer",
-                            isChildActive ? "text-primary bg-blue-50 border border-blue-200 font-medium" : "text-gray-600 hover:bg-gray-50 hover:text-primary"
-                          )}>
-                            <div className="flex items-center justify-between">
-                              <span>{child.name}</span>
-                              {child.description && (
-                                <span className="text-xs text-gray-400">{child.description}</span>
-                              )}
-                            </div>
-                          </div>
-                        </Link>
-                      );
-                    })}
-                  </CollapsibleContent>
-                </Collapsible>
-              );
-            }
+      {/* Navigation Section */}
+      <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
+        {navigation.map((item) => {
+          const isActive = location === item.href;
+          const Icon = item.icon;
 
-            const isActive = location === item.href;
-            
-            if (item.comingSoon) {
-              return (
-                <div key={item.name} className="opacity-50">
-                  <div className="flex items-center justify-between px-4 py-3 text-gray-400 cursor-not-allowed">
-                    <div className="flex items-center space-x-3">
-                      <item.icon size={20} />
-                      <span className="font-medium">{item.name}</span>
-                    </div>
-                    <span className="text-xs bg-gray-200 px-2 py-1 rounded-full">Soon</span>
+          return (
+            <Link key={item.name} to={item.href}>
+              <div className={cn(
+                "flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors duration-200",
+                isActive ? "text-primary bg-blue-50 border border-blue-200 font-medium" : "text-gray-700 hover:bg-gray-50 hover:text-primary",
+                !item.active && "opacity-50 pointer-events-none"
+              )}>
+                <Icon size={20} />
+                <div className="flex-1">
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium">{item.name}</span>
+                    {item.comingSoon && (
+                      <span className="px-2 py-1 text-xs bg-gray-100 text-gray-600 rounded-full">Coming Soon</span>
+                    )}
                   </div>
-                </div>
-              );
-            }
-
-            return (
-              <Link key={item.name} href={item.href}>
-                <div className={cn(
-                  "flex items-center justify-between px-4 py-3 font-medium rounded-lg transition-colors duration-200 group cursor-pointer",
-                  isActive ? "text-primary bg-blue-50 border border-blue-200" : "text-gray-600 hover:bg-gray-50 hover:text-primary"
-                )}>
-                  <div className="flex items-center space-x-3">
-                    <item.icon size={20} />
-                    <span>{item.name}</span>
-                  </div>
-                  {'description' in item && (
-                    <span className="text-xs text-gray-400 group-hover:text-gray-600 max-w-24 truncate">
-                      {item.description}
-                    </span>
+                  {item.description && (
+                    <p className="text-xs text-gray-500 mt-1">{item.description}</p>
                   )}
                 </div>
-              </Link>
-            );
-          })}
-        </div>
+              </div>
+            </Link>
+          );
+        })}
       </nav>
 
-      {/* User Profile */}
+      {/* User Section */}
       <div className="p-4 border-t border-gray-200">
-        <div className="flex items-center space-x-3">
+        <div className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50 cursor-pointer">
           <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center">
-            <User className="text-gray-600" size={16} />
+            <User size={16} className="text-gray-600" />
           </div>
           <div>
             <p className="text-sm font-medium text-gray-900">Admin User</p>
