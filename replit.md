@@ -6,7 +6,7 @@ This is a comprehensive e-commerce purchase order management web application des
 
 The application is built as a full-stack solution with a React frontend and Express backend, designed to replace manual data entry processes with an automated, API-driven system. Currently focused on Platform PO management with plans to expand to distributor POs, secondary sales tracking, and inventory management.
 
-**Recent Major Update (August 2025):** Implemented unified PO upload system that supports all vendor formats through a single interface with platform selection, file upload, preview and import workflow. Users first select platform, then upload file, preview data, and import to database.
+**Recent Major Update (August 2025):** Completed comprehensive unified PO upload system supporting all 5 platforms (Flipkart Grocery, Zepto, City Mall, Blinkit, and Swiggy Instamart) with custom preview displays and unified workflow. Each platform has specialized parsing (CSV for most, XML for Swiggy) and custom preview showing platform-specific fields while maintaining consistent 3-step workflow: platform selection → file upload → preview & review → database import.
 
 ## User Preferences
 
