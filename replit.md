@@ -8,6 +8,8 @@ The application is built as a full-stack solution with a React frontend and Expr
 
 **Recent Major Update (August 2025):** Completed comprehensive unified PO upload system supporting all 5 platforms (Flipkart Grocery, Zepto, City Mall, Blinkit, and Swiggy Instamart) with custom preview displays and unified workflow. Each platform has specialized parsing (CSV for most, XML for Swiggy) and custom preview showing platform-specific fields while maintaining consistent 3-step workflow: platform selection → file upload → preview & review → database import.
 
+**Critical Database Fix (August 8, 2025):** Resolved major Swiggy PO data persistence issue where multiple fields were not saving properly to database tables. Fixed null value handling so empty fields save as NULL instead of placeholder values like "0 days" or empty strings. Corrected data mapping for: hsn_code, unit_base_cost, taxable_value, po_date, po_release_date, expected_delivery_date, po_expiry_date, total_items, grand_total, and vendor_name. All fields now save correctly with proper null handling and accurate data extraction matching original PO files.
+
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.

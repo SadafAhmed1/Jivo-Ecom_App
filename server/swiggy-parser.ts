@@ -181,7 +181,7 @@ export function parseSwiggyPO(fileBuffer: Buffer, uploadedBy: string): ParsedSwi
             line_number: serialNumber,
             item_code: row[1]?.toString() || '',
             item_description: row[2]?.toString().replace(/\n/g, ' ') || '',
-            hsn_code: row[4]?.toString() || '',
+            hsn_code: row[4]?.toString().trim() || null,
             quantity: parseInt(row[5]?.toString() || '0'),
             mrp: parseDecimal(row[6]?.toString()),
             unit_base_cost: parseDecimal(row[8]?.toString()),
@@ -221,9 +221,9 @@ export function parseSwiggyPO(fileBuffer: Buffer, uploadedBy: string): ParsedSwi
       poNumber = `SW_${timestamp}`;
     }
     
-    // Set default vendor name if not found
-    if (!vendorName) {
-      vendorName = "N/A";
+    // Set default vendor name if not found - but don't use problematic values
+    if (!vendorName || vendorName === "N/A" || vendorName.includes("Aug") || vendorName.includes("2025")) {
+      vendorName = null;
     }
     
     // Filter out empty line items
@@ -234,19 +234,20 @@ export function parseSwiggyPO(fileBuffer: Buffer, uploadedBy: string): ParsedSwi
 
     const header: InsertSwiggyPo = {
       po_number: poNumber,
-      po_date: poDate,
-      po_release_date: poReleaseDate,
-      expected_delivery_date: expectedDeliveryDate,
-      po_expiry_date: poExpiryDate,
-      payment_terms: paymentTerms,
-      vendor_name: vendorName,
+      po_date: poDate || null,
+      po_release_date: poReleaseDate || null,
+      expected_delivery_date: expectedDeliveryDate || null,
+      po_expiry_date: poExpiryDate || null,
+      vendor_name: vendorName && vendorName !== "N/A" && vendorName !== "Aug 4, 2025" ? vendorName : null,
+      payment_terms: paymentTerms || null,
+      total_items: filteredLines.length,
       total_quantity: totalQuantity,
-      total_taxable_value: totalTaxableValue.toString(),
-      total_tax_amount: totalTaxAmount.toString(),
-      total_amount: totalAmount.toString(),
-      status: 'Open',
-      created_by: uploadedBy,
-      uploaded_by: uploadedBy
+      total_taxable_value: totalTaxableValue > 0 ? totalTaxableValue.toString() : null,
+      total_tax_amount: totalTaxAmount > 0 ? totalTaxAmount.toString() : null,
+      grand_total: totalAmount > 0 ? totalAmount.toString() : null,
+      unique_hsn_codes: Array.from(new Set(filteredLines.map(line => line.hsn_code).filter(Boolean))),
+      status: 'pending',
+      created_by: uploadedBy
     };
 
     return { header, lines: filteredLines };
