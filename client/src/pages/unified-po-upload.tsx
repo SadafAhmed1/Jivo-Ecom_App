@@ -382,37 +382,77 @@ export default function UnifiedPOUpload() {
             </CardHeader>
             <CardContent className="space-y-4">
               {/* Summary Information */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="p-3 bg-blue-50 rounded-lg">
-                  <p className="text-sm font-medium text-blue-800">PO Number</p>
-                  <p className="text-lg font-bold text-blue-900">
-                    {parsedData.header?.po_number || "N/A"}
-                  </p>
+              {selectedPlatform === 'flipkart' ? (
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                  <div className="p-3 bg-blue-50 rounded-lg">
+                    <p className="text-sm font-medium text-blue-800">PO Number</p>
+                    <p className="text-lg font-bold text-blue-900">
+                      {parsedData.header?.po_number || "N/A"}
+                    </p>
+                  </div>
+                  <div className="p-3 bg-green-50 rounded-lg">
+                    <p className="text-sm font-medium text-green-800">Total Items</p>
+                    <p className="text-lg font-bold text-green-900">{parsedData.totalItems || 0}</p>
+                  </div>
+                  <div className="p-3 bg-purple-50 rounded-lg">
+                    <p className="text-sm font-medium text-purple-800">Total Quantity</p>
+                    <p className="text-lg font-bold text-purple-900">{parsedData.totalQuantity || 0}</p>
+                  </div>
+                  <div className="p-3 bg-yellow-50 rounded-lg">
+                    <p className="text-sm font-medium text-yellow-800">Total Amount</p>
+                    <p className="text-lg font-bold text-yellow-900">₹{parsedData.totalAmount || "0"}</p>
+                  </div>
+                  <div className="p-3 bg-orange-50 rounded-lg">
+                    <p className="text-sm font-medium text-orange-800">PO Date</p>
+                    <p className="text-lg font-bold text-orange-900">
+                      {parsedData.header?.order_date ? new Date(parsedData.header.order_date).toLocaleDateString() : "N/A"}
+                    </p>
+                  </div>
                 </div>
-                <div className="p-3 bg-green-50 rounded-lg">
-                  <p className="text-sm font-medium text-green-800">Total Items</p>
-                  <p className="text-lg font-bold text-green-900">{parsedData.totalItems || 0}</p>
+              ) : (
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className="p-3 bg-blue-50 rounded-lg">
+                    <p className="text-sm font-medium text-blue-800">PO Number</p>
+                    <p className="text-lg font-bold text-blue-900">
+                      {parsedData.header?.po_number || "N/A"}
+                    </p>
+                  </div>
+                  <div className="p-3 bg-green-50 rounded-lg">
+                    <p className="text-sm font-medium text-green-800">Total Items</p>
+                    <p className="text-lg font-bold text-green-900">{parsedData.totalItems || 0}</p>
+                  </div>
+                  <div className="p-3 bg-purple-50 rounded-lg">
+                    <p className="text-sm font-medium text-purple-800">Total Quantity</p>
+                    <p className="text-lg font-bold text-purple-900">{parsedData.totalQuantity || 0}</p>
+                  </div>
+                  <div className="p-3 bg-yellow-50 rounded-lg">
+                    <p className="text-sm font-medium text-yellow-800">Total Amount</p>
+                    <p className="text-lg font-bold text-yellow-900">₹{parsedData.totalAmount || "0"}</p>
+                  </div>
                 </div>
-                <div className="p-3 bg-purple-50 rounded-lg">
-                  <p className="text-sm font-medium text-purple-800">Total Quantity</p>
-                  <p className="text-lg font-bold text-purple-900">{parsedData.totalQuantity || 0}</p>
-                </div>
-                <div className="p-3 bg-yellow-50 rounded-lg">
-                  <p className="text-sm font-medium text-yellow-800">Total Amount</p>
-                  <p className="text-lg font-bold text-yellow-900">₹{parsedData.totalAmount || "0"}</p>
-                </div>
-              </div>
+              )}
 
               {/* PO Header Preview */}
               <div className="space-y-2">
                 <h4 className="font-medium">PO Header Information</h4>
                 <div className="bg-gray-50 p-3 rounded-lg">
-                  <div className="grid grid-cols-2 gap-2 text-sm">
-                    <div><strong>PO Number:</strong> {parsedData.header?.po_number || "N/A"}</div>
-                    <div><strong>PO Date:</strong> {parsedData.header?.po_date || "N/A"}</div>
-                    <div><strong>Status:</strong> <Badge variant="outline">{parsedData.header?.status || "Open"}</Badge></div>
-                    <div><strong>Platform:</strong> {selectedPlatformData?.name}</div>
-                  </div>
+                  {selectedPlatform === 'flipkart' ? (
+                    <div className="grid grid-cols-2 gap-2 text-sm">
+                      <div><strong>PO Number:</strong> {parsedData.header?.po_number || "N/A"}</div>
+                      <div><strong>PO Date:</strong> {parsedData.header?.order_date ? new Date(parsedData.header.order_date).toLocaleDateString() : "N/A"}</div>
+                      <div><strong>Total Amount:</strong> ₹{parsedData.totalAmount || "0"}</div>
+                      <div><strong>Order Date:</strong> {parsedData.header?.order_date ? new Date(parsedData.header.order_date).toLocaleDateString() : "N/A"}</div>
+                      <div><strong>Status:</strong> <Badge variant="outline">{parsedData.header?.status || "Open"}</Badge></div>
+                      <div><strong>Platform:</strong> {selectedPlatformData?.name}</div>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-2 gap-2 text-sm">
+                      <div><strong>PO Number:</strong> {parsedData.header?.po_number || "N/A"}</div>
+                      <div><strong>PO Date:</strong> {parsedData.header?.po_date || parsedData.header?.order_date || "N/A"}</div>
+                      <div><strong>Status:</strong> <Badge variant="outline">{parsedData.header?.status || "Open"}</Badge></div>
+                      <div><strong>Platform:</strong> {selectedPlatformData?.name}</div>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -423,21 +463,49 @@ export default function UnifiedPOUpload() {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Item Code</TableHead>
-                        <TableHead>Description</TableHead>
-                        <TableHead>Quantity</TableHead>
-                        <TableHead>Unit Price</TableHead>
-                        <TableHead>Total</TableHead>
+                        {selectedPlatform === 'flipkart' ? (
+                          <>
+                            <TableHead>Title (Item Name)</TableHead>
+                            <TableHead>Tax Amount</TableHead>
+                            <TableHead>Total Amount</TableHead>
+                            <TableHead>Pending Quantity</TableHead>
+                            <TableHead>Quantity</TableHead>
+                            <TableHead>UOM</TableHead>
+                            <TableHead>HSN Code</TableHead>
+                          </>
+                        ) : (
+                          <>
+                            <TableHead>Item Code</TableHead>
+                            <TableHead>Description</TableHead>
+                            <TableHead>Quantity</TableHead>
+                            <TableHead>Unit Price</TableHead>
+                            <TableHead>Total</TableHead>
+                          </>
+                        )}
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {parsedData.lines.slice(0, 5).map((line, index) => (
                         <TableRow key={index}>
-                          <TableCell className="font-medium">{line.item_code || "N/A"}</TableCell>
-                          <TableCell>{line.item_name || line.product_description || "N/A"}</TableCell>
-                          <TableCell>{line.quantity || "N/A"}</TableCell>
-                          <TableCell>₹{line.unit_price || line.basic_cost_price || "N/A"}</TableCell>
-                          <TableCell>₹{line.total_amount || line.line_total || "N/A"}</TableCell>
+                          {selectedPlatform === 'flipkart' ? (
+                            <>
+                              <TableCell className="font-medium">{line.title || line.item_name || "N/A"}</TableCell>
+                              <TableCell>₹{line.tax_amount || "N/A"}</TableCell>
+                              <TableCell>₹{line.total_amount || "N/A"}</TableCell>
+                              <TableCell>{line.pending_quantity || "N/A"}</TableCell>
+                              <TableCell>{line.quantity || "N/A"}</TableCell>
+                              <TableCell>{line.uom || "N/A"}</TableCell>
+                              <TableCell>{line.hsn_code || "N/A"}</TableCell>
+                            </>
+                          ) : (
+                            <>
+                              <TableCell className="font-medium">{line.item_code || "N/A"}</TableCell>
+                              <TableCell>{line.item_name || line.product_description || "N/A"}</TableCell>
+                              <TableCell>{line.quantity || "N/A"}</TableCell>
+                              <TableCell>₹{line.unit_price || line.basic_cost_price || "N/A"}</TableCell>
+                              <TableCell>₹{line.total_amount || line.line_total || "N/A"}</TableCell>
+                            </>
+                          )}
                         </TableRow>
                       ))}
                     </TableBody>

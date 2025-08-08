@@ -722,23 +722,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Header and lines are required" });
       }
 
+      // Clean and convert dates to proper Date objects
+      const cleanHeader = { ...header };
+      if (cleanHeader.order_date && typeof cleanHeader.order_date === 'string') {
+        cleanHeader.order_date = new Date(cleanHeader.order_date);
+      }
+      if (cleanHeader.po_expiry_date && typeof cleanHeader.po_expiry_date === 'string') {
+        cleanHeader.po_expiry_date = new Date(cleanHeader.po_expiry_date);
+      }
+      if (cleanHeader.po_date && typeof cleanHeader.po_date === 'string') {
+        cleanHeader.po_date = new Date(cleanHeader.po_date);
+      }
+
+      // Clean lines data
+      const cleanLines = lines.map((line: any) => {
+        const cleanLine = { ...line };
+        if (cleanLine.required_by_date && typeof cleanLine.required_by_date === 'string') {
+          cleanLine.required_by_date = new Date(cleanLine.required_by_date);
+        }
+        if (cleanLine.po_expiry_date && typeof cleanLine.po_expiry_date === 'string') {
+          cleanLine.po_expiry_date = new Date(cleanLine.po_expiry_date);
+        }
+        return cleanLine;
+      });
+
       let createdPo;
 
       switch (vendor) {
         case "flipkart":
-          createdPo = await storage.createFlipkartGroceryPo(header, lines);
+          createdPo = await storage.createFlipkartGroceryPo(cleanHeader, cleanLines);
           break;
         case "zepto":
-          createdPo = await storage.createZeptoPo(header, lines);
+          createdPo = await storage.createZeptoPo(cleanHeader, cleanLines);
           break;
         case "citymall":
-          createdPo = await storage.createCityMallPo(header, lines);
+          createdPo = await storage.createCityMallPo(cleanHeader, cleanLines);
           break;
         case "blinkit":
-          createdPo = await storage.createBlinkitPo(header, lines);
+          createdPo = await storage.createBlinkitPo(cleanHeader, cleanLines);
           break;
         case "swiggy":
-          createdPo = await storage.createSwiggyPo(header, lines);
+          createdPo = await storage.createSwiggyPo(cleanHeader, cleanLines);
           break;
         default:
           return res.status(400).json({ error: "Unsupported vendor" });
