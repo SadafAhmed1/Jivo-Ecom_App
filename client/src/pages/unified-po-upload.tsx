@@ -1,14 +1,42 @@
 import { useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Upload, FileText, CheckCircle, AlertCircle, Eye, Database, ArrowRight, ArrowLeft } from "lucide-react";
+import {
+  Upload,
+  FileText,
+  CheckCircle,
+  AlertCircle,
+  Eye,
+  Database,
+  ArrowRight,
+  ArrowLeft,
+} from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface ParsedPOData {
   header: any;
@@ -19,45 +47,72 @@ interface ParsedPOData {
 }
 
 const PLATFORMS = [
-  { id: 'flipkart', name: 'Flipkart Grocery', endpoint: '/api/po/import/flipkart', queryKey: '/api/flipkart-grocery-pos' },
-  { id: 'zepto', name: 'Zepto', endpoint: '/api/po/import/zepto', queryKey: '/api/zepto-pos' },
-  { id: 'citymall', name: 'City Mall', endpoint: '/api/po/import/citymall', queryKey: '/api/city-mall-pos' },
-  { id: 'blinkit', name: 'Blinkit', endpoint: '/api/po/import/blinkit', queryKey: '/api/blinkit-pos' },
-  { id: 'swiggy', name: 'Swiggy Instamart', endpoint: '/api/po/import/swiggy', queryKey: '/api/swiggy-pos' }
+  {
+    id: "flipkart",
+    name: "Flipkart Grocery",
+    endpoint: "/api/po/import/flipkart",
+    queryKey: "/api/flipkart-grocery-pos",
+  },
+  {
+    id: "zepto",
+    name: "Zepto",
+    endpoint: "/api/po/import/zepto",
+    queryKey: "/api/zepto-pos",
+  },
+  {
+    id: "citymall",
+    name: "City Mall",
+    endpoint: "/api/po/import/citymall",
+    queryKey: "/api/city-mall-pos",
+  },
+  {
+    id: "blinkit",
+    name: "Blinkit",
+    endpoint: "/api/po/import/blinkit",
+    queryKey: "/api/blinkit-pos",
+  },
+  {
+    id: "swiggy",
+    name: "Swiggy Instamart",
+    endpoint: "/api/po/import/swiggy",
+    queryKey: "/api/swiggy-pos",
+  },
 ];
 
 export default function UnifiedPOUpload() {
-  const [currentStep, setCurrentStep] = useState<'platform' | 'upload' | 'preview'>('platform');
-  const [selectedPlatform, setSelectedPlatform] = useState<string>('');
+  const [currentStep, setCurrentStep] = useState<
+    "platform" | "upload" | "preview"
+  >("platform");
+  const [selectedPlatform, setSelectedPlatform] = useState<string>("");
   const [file, setFile] = useState<File | null>(null);
   const [parsedData, setParsedData] = useState<ParsedPOData | null>(null);
   const [dragActive, setDragActive] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const selectedPlatformData = PLATFORMS.find(p => p.id === selectedPlatform);
+  const selectedPlatformData = PLATFORMS.find((p) => p.id === selectedPlatform);
 
   const previewMutation = useMutation({
     mutationFn: async (file: File) => {
       const formData = new FormData();
-      formData.append('file', file);
-      formData.append('platform', selectedPlatform);
-      
-      const response = await fetch('/api/po/preview', {
-        method: 'POST',
+      formData.append("file", file);
+      formData.append("platform", selectedPlatform);
+
+      const response = await fetch("/api/po/preview", {
+        method: "POST",
         body: formData,
       });
-      
+
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.error || 'Failed to preview file');
+        throw new Error(error.error || "Failed to preview file");
       }
-      
+
       return response.json();
     },
     onSuccess: (data) => {
       setParsedData(data);
-      setCurrentStep('preview');
+      setCurrentStep("preview");
       toast({
         title: "File previewed successfully",
         description: `Found ${data.totalItems} items`,
@@ -75,18 +130,18 @@ export default function UnifiedPOUpload() {
   const importMutation = useMutation({
     mutationFn: async (data: { header: any; lines: any[] }) => {
       const response = await fetch(selectedPlatformData!.endpoint, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(data),
       });
-      
+
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.error || 'Failed to import PO');
+        throw new Error(error.error || "Failed to import PO");
       }
-      
+
       return response.json();
     },
     onSuccess: (data) => {
@@ -95,7 +150,9 @@ export default function UnifiedPOUpload() {
         description: `PO ${data.po_number} has been created`,
       });
       resetForm();
-      queryClient.invalidateQueries({ queryKey: [selectedPlatformData!.queryKey] });
+      queryClient.invalidateQueries({
+        queryKey: [selectedPlatformData!.queryKey],
+      });
     },
     onError: (error: Error) => {
       toast({
@@ -120,7 +177,7 @@ export default function UnifiedPOUpload() {
     e.preventDefault();
     e.stopPropagation();
     setDragActive(false);
-    
+
     const files = e.dataTransfer.files;
     if (files && files[0]) {
       handleFileSelection(files[0]);
@@ -138,13 +195,14 @@ export default function UnifiedPOUpload() {
     const validTypes = [
       "text/csv",
       "application/vnd.ms-excel",
-      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     ];
-    
-    const isValidFile = validTypes.includes(selectedFile.type) || 
-                       selectedFile.name.endsWith('.csv') || 
-                       selectedFile.name.endsWith('.xls') || 
-                       selectedFile.name.endsWith('.xlsx');
+
+    const isValidFile =
+      validTypes.includes(selectedFile.type) ||
+      selectedFile.name.endsWith(".csv") ||
+      selectedFile.name.endsWith(".xls") ||
+      selectedFile.name.endsWith(".xlsx");
 
     if (isValidFile) {
       setFile(selectedFile);
@@ -160,7 +218,7 @@ export default function UnifiedPOUpload() {
 
   const handlePlatformSelect = (platform: string) => {
     setSelectedPlatform(platform);
-    setCurrentStep('upload');
+    setCurrentStep("upload");
   };
 
   const handlePreview = () => {
@@ -186,25 +244,25 @@ export default function UnifiedPOUpload() {
       return;
     }
 
-    importMutation.mutate({ 
-      header: parsedData.header, 
-      lines: parsedData.lines 
+    importMutation.mutate({
+      header: parsedData.header,
+      lines: parsedData.lines,
     });
   };
 
   const resetForm = () => {
-    setCurrentStep('platform');
-    setSelectedPlatform('');
+    setCurrentStep("platform");
+    setSelectedPlatform("");
     setFile(null);
     setParsedData(null);
   };
 
   const goBack = () => {
-    if (currentStep === 'upload') {
-      setCurrentStep('platform');
+    if (currentStep === "upload") {
+      setCurrentStep("platform");
       setFile(null);
-    } else if (currentStep === 'preview') {
-      setCurrentStep('upload');
+    } else if (currentStep === "preview") {
+      setCurrentStep("upload");
       setParsedData(null);
     }
   };
@@ -215,7 +273,9 @@ export default function UnifiedPOUpload() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold">Purchase Order Upload</h1>
-            <p className="text-gray-600">Upload and import purchase orders from all platforms</p>
+            <p className="text-gray-600">
+              Upload and import purchase orders from all platforms
+            </p>
           </div>
         </div>
 
@@ -223,26 +283,38 @@ export default function UnifiedPOUpload() {
         <Card>
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
-              <div className={`flex items-center gap-2 ${currentStep === 'platform' ? 'text-blue-600' : currentStep === 'upload' || currentStep === 'preview' ? 'text-green-600' : 'text-gray-400'}`}>
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${currentStep === 'platform' ? 'bg-blue-100 text-blue-600' : currentStep === 'upload' || currentStep === 'preview' ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-400'}`}>
+              <div
+                className={`flex items-center gap-2 ${currentStep === "platform" ? "text-blue-600" : currentStep === "upload" || currentStep === "preview" ? "text-green-600" : "text-gray-400"}`}
+              >
+                <div
+                  className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${currentStep === "platform" ? "bg-blue-100 text-blue-600" : currentStep === "upload" || currentStep === "preview" ? "bg-green-100 text-green-600" : "bg-gray-100 text-gray-400"}`}
+                >
                   1
                 </div>
                 <span className="font-medium">Select Platform</span>
               </div>
-              
+
               <ArrowRight className="h-5 w-5 text-gray-400" />
-              
-              <div className={`flex items-center gap-2 ${currentStep === 'upload' ? 'text-blue-600' : currentStep === 'preview' ? 'text-green-600' : 'text-gray-400'}`}>
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${currentStep === 'upload' ? 'bg-blue-100 text-blue-600' : currentStep === 'preview' ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-400'}`}>
+
+              <div
+                className={`flex items-center gap-2 ${currentStep === "upload" ? "text-blue-600" : currentStep === "preview" ? "text-green-600" : "text-gray-400"}`}
+              >
+                <div
+                  className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${currentStep === "upload" ? "bg-blue-100 text-blue-600" : currentStep === "preview" ? "bg-green-100 text-green-600" : "bg-gray-100 text-gray-400"}`}
+                >
                   2
                 </div>
                 <span className="font-medium">Upload File</span>
               </div>
-              
+
               <ArrowRight className="h-5 w-5 text-gray-400" />
-              
-              <div className={`flex items-center gap-2 ${currentStep === 'preview' ? 'text-blue-600' : 'text-gray-400'}`}>
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${currentStep === 'preview' ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-400'}`}>
+
+              <div
+                className={`flex items-center gap-2 ${currentStep === "preview" ? "text-blue-600" : "text-gray-400"}`}
+              >
+                <div
+                  className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${currentStep === "preview" ? "bg-blue-100 text-blue-600" : "bg-gray-100 text-gray-400"}`}
+                >
                   3
                 </div>
                 <span className="font-medium">Preview & Import</span>
@@ -252,7 +324,7 @@ export default function UnifiedPOUpload() {
         </Card>
 
         {/* Step 1: Platform Selection */}
-        {currentStep === 'platform' && (
+        {currentStep === "platform" && (
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -273,8 +345,12 @@ export default function UnifiedPOUpload() {
                     onClick={() => handlePlatformSelect(platform.id)}
                   >
                     <div>
-                      <div className="font-medium text-base">{platform.name}</div>
-                      <div className="text-sm text-gray-500 mt-1">Upload {platform.name} PO files</div>
+                      <div className="font-medium text-base">
+                        {platform.name}
+                      </div>
+                      <div className="text-sm text-gray-500 mt-1">
+                        Upload {platform.name} PO files
+                      </div>
                     </div>
                   </Button>
                 ))}
@@ -284,7 +360,7 @@ export default function UnifiedPOUpload() {
         )}
 
         {/* Step 2: File Upload */}
-        {currentStep === 'upload' && (
+        {currentStep === "upload" && (
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -292,7 +368,8 @@ export default function UnifiedPOUpload() {
                 Upload {selectedPlatformData?.name} PO File
               </CardTitle>
               <CardDescription>
-                Upload CSV or Excel files containing {selectedPlatformData?.name} purchase order data
+                Upload CSV or Excel files containing{" "}
+                {selectedPlatformData?.name} purchase order data
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -310,11 +387,16 @@ export default function UnifiedPOUpload() {
                 <FileText className="mx-auto h-12 w-12 text-gray-400 mb-4" />
                 <div className="space-y-2">
                   <p className="text-lg font-medium">
-                    {file ? "File Selected" : `Drop your ${selectedPlatformData?.name} CSV/Excel file here`}
+                    {file
+                      ? "File Selected"
+                      : `Drop your ${selectedPlatformData?.name} CSV/Excel file here`}
                   </p>
                   <p className="text-sm text-gray-500">
                     or{" "}
-                    <Label htmlFor="file-upload" className="text-blue-600 hover:underline cursor-pointer">
+                    <Label
+                      htmlFor="file-upload"
+                      className="text-blue-600 hover:underline cursor-pointer"
+                    >
                       browse to choose a file
                     </Label>
                   </p>
@@ -351,10 +433,7 @@ export default function UnifiedPOUpload() {
               )}
 
               <div className="flex gap-3">
-                <Button
-                  variant="outline"
-                  onClick={goBack}
-                >
+                <Button variant="outline" onClick={goBack}>
                   <ArrowLeft className="h-4 w-4 mr-2" />
                   Back
                 </Button>
@@ -364,7 +443,9 @@ export default function UnifiedPOUpload() {
                   className="flex-1"
                 >
                   <Eye className="h-4 w-4 mr-2" />
-                  {previewMutation.isPending ? "Analyzing..." : "Preview & Review"}
+                  {previewMutation.isPending
+                    ? "Analyzing..."
+                    : "Preview & Review"}
                 </Button>
               </div>
             </CardContent>
@@ -372,7 +453,7 @@ export default function UnifiedPOUpload() {
         )}
 
         {/* Step 3: Preview & Import */}
-        {currentStep === 'preview' && parsedData && (
+        {currentStep === "preview" && parsedData && (
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -382,52 +463,133 @@ export default function UnifiedPOUpload() {
             </CardHeader>
             <CardContent className="space-y-4">
               {/* Summary Information */}
-              {selectedPlatform === 'flipkart' ? (
+              {selectedPlatform === "flipkart" ? (
                 <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
                   <div className="p-3 bg-blue-50 rounded-lg">
-                    <p className="text-sm font-medium text-blue-800">PO Number</p>
+                    <p className="text-sm font-medium text-blue-800">
+                      PO Number
+                    </p>
                     <p className="text-lg font-bold text-blue-900">
                       {parsedData.header?.po_number || "N/A"}
                     </p>
                   </div>
                   <div className="p-3 bg-green-50 rounded-lg">
-                    <p className="text-sm font-medium text-green-800">Total Items</p>
-                    <p className="text-lg font-bold text-green-900">{parsedData.totalItems || 0}</p>
+                    <p className="text-sm font-medium text-green-800">
+                      Total Items
+                    </p>
+                    <p className="text-lg font-bold text-green-900">
+                      {parsedData.totalItems || 0}
+                    </p>
                   </div>
                   <div className="p-3 bg-purple-50 rounded-lg">
-                    <p className="text-sm font-medium text-purple-800">Total Quantity</p>
-                    <p className="text-lg font-bold text-purple-900">{parsedData.totalQuantity || 0}</p>
+                    <p className="text-sm font-medium text-purple-800">
+                      Total Quantity
+                    </p>
+                    <p className="text-lg font-bold text-purple-900">
+                      {parsedData.totalQuantity || 0}
+                    </p>
                   </div>
                   <div className="p-3 bg-yellow-50 rounded-lg">
-                    <p className="text-sm font-medium text-yellow-800">Total Amount</p>
-                    <p className="text-lg font-bold text-yellow-900">₹{parsedData.totalAmount || "0"}</p>
+                    <p className="text-sm font-medium text-yellow-800">
+                      Total Amount
+                    </p>
+                    <p className="text-lg font-bold text-yellow-900">
+                      ₹{parsedData.totalAmount || "0"}
+                    </p>
                   </div>
                   <div className="p-3 bg-orange-50 rounded-lg">
-                    <p className="text-sm font-medium text-orange-800">PO Date</p>
+                    <p className="text-sm font-medium text-orange-800">
+                      PO Date
+                    </p>
                     <p className="text-lg font-bold text-orange-900">
-                      {parsedData.header?.order_date ? new Date(parsedData.header.order_date).toLocaleDateString() : "N/A"}
+                      {parsedData.header?.order_date
+                        ? new Date(
+                            parsedData.header.order_date,
+                          ).toLocaleDateString()
+                        : "N/A"}
+                    </p>
+                  </div>
+                </div>
+              ) : selectedPlatform === "swiggy" ? (
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                  <div className="p-3 bg-blue-50 rounded-lg">
+                    <p className="text-sm font-medium text-blue-800">
+                      PO Number
+                    </p>
+                    <p className="text-lg font-bold text-blue-900">
+                      {parsedData.header?.po_number || "N/A"}
+                    </p>
+                  </div>
+                  <div className="p-3 bg-green-50 rounded-lg">
+                    <p className="text-sm font-medium text-green-800">
+                      Total Items
+                    </p>
+                    <p className="text-lg font-bold text-green-900">
+                      {parsedData.totalItems || 0}
+                    </p>
+                  </div>
+                  <div className="p-3 bg-purple-50 rounded-lg">
+                    <p className="text-sm font-medium text-purple-800">
+                      Total Quantity
+                    </p>
+                    <p className="text-lg font-bold text-purple-900">
+                      {parsedData.totalQuantity || 0}
+                    </p>
+                  </div>
+                  <div className="p-3 bg-yellow-50 rounded-lg">
+                    <p className="text-sm font-medium text-yellow-800">
+                      Total Amount
+                    </p>
+                    <p className="text-lg font-bold text-yellow-900">
+                      ₹{parsedData.totalAmount || "0"}
+                    </p>
+                  </div>
+                  <div className="p-3 bg-orange-50 rounded-lg">
+                    <p className="text-sm font-medium text-orange-800">
+                      PO Date
+                    </p>
+                    <p className="text-lg font-bold text-orange-900">
+                      {parsedData.header?.po_date
+                        ? new Date(
+                            parsedData.header.po_date,
+                          ).toLocaleDateString()
+                        : "N/A"}
                     </p>
                   </div>
                 </div>
               ) : (
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   <div className="p-3 bg-blue-50 rounded-lg">
-                    <p className="text-sm font-medium text-blue-800">PO Number</p>
+                    <p className="text-sm font-medium text-blue-800">
+                      PO Number
+                    </p>
                     <p className="text-lg font-bold text-blue-900">
                       {parsedData.header?.po_number || "N/A"}
                     </p>
                   </div>
                   <div className="p-3 bg-green-50 rounded-lg">
-                    <p className="text-sm font-medium text-green-800">Total Items</p>
-                    <p className="text-lg font-bold text-green-900">{parsedData.totalItems || 0}</p>
+                    <p className="text-sm font-medium text-green-800">
+                      Total Items
+                    </p>
+                    <p className="text-lg font-bold text-green-900">
+                      {parsedData.totalItems || 0}
+                    </p>
                   </div>
                   <div className="p-3 bg-purple-50 rounded-lg">
-                    <p className="text-sm font-medium text-purple-800">Total Quantity</p>
-                    <p className="text-lg font-bold text-purple-900">{parsedData.totalQuantity || 0}</p>
+                    <p className="text-sm font-medium text-purple-800">
+                      Total Quantity
+                    </p>
+                    <p className="text-lg font-bold text-purple-900">
+                      {parsedData.totalQuantity || 0}
+                    </p>
                   </div>
                   <div className="p-3 bg-yellow-50 rounded-lg">
-                    <p className="text-sm font-medium text-yellow-800">Total Amount</p>
-                    <p className="text-lg font-bold text-yellow-900">₹{parsedData.totalAmount || "0"}</p>
+                    <p className="text-sm font-medium text-yellow-800">
+                      Total Amount
+                    </p>
+                    <p className="text-lg font-bold text-yellow-900">
+                      ₹{parsedData.totalAmount || "0"}
+                    </p>
                   </div>
                 </div>
               )}
@@ -436,21 +598,80 @@ export default function UnifiedPOUpload() {
               <div className="space-y-2">
                 <h4 className="font-medium">PO Header Information</h4>
                 <div className="bg-gray-50 p-3 rounded-lg">
-                  {selectedPlatform === 'flipkart' ? (
+                  {selectedPlatform === "flipkart" ? (
                     <div className="grid grid-cols-2 gap-2 text-sm">
-                      <div><strong>PO Number:</strong> {parsedData.header?.po_number || "N/A"}</div>
+                      {/* <div><strong>PO Number:</strong> {parsedData.header?.po_number || "N/A"}</div>
                       <div><strong>PO Date:</strong> {parsedData.header?.order_date ? new Date(parsedData.header.order_date).toLocaleDateString() : "N/A"}</div>
-                      <div><strong>Total Amount:</strong> ₹{parsedData.totalAmount || "0"}</div>
-                      <div><strong>Order Date:</strong> {parsedData.header?.order_date ? new Date(parsedData.header.order_date).toLocaleDateString() : "N/A"}</div>
-                      <div><strong>Status:</strong> <Badge variant="outline">{parsedData.header?.status || "Open"}</Badge></div>
-                      <div><strong>Platform:</strong> {selectedPlatformData?.name}</div>
+                      <div><strong>Total Amount:</strong> ₹{parsedData.totalAmount || "0"}</div> */}
+                      <div>
+                        <strong>Order Date:</strong>{" "}
+                        {parsedData.header?.order_date
+                          ? new Date(
+                              parsedData.header.order_date,
+                            ).toLocaleDateString()
+                          : "N/A"}
+                      </div>
+                      <div>
+                        <strong>Status:</strong>{" "}
+                        <Badge variant="outline">
+                          {parsedData.header?.status || "Open"}
+                        </Badge>
+                      </div>
+                      <div>
+                        <strong>Platform:</strong> {selectedPlatformData?.name}
+                      </div>
+                    </div>
+                  ) : selectedPlatform === "swiggy" ? (
+                    <div className="grid grid-cols-2 gap-2 text-sm">
+                      <div>
+                        <strong>PO Number:</strong>{" "}
+                        {parsedData.header?.po_number || "N/A"}
+                      </div>
+                      <div>
+                        <strong>PO Date:</strong>{" "}
+                        {parsedData.header?.po_date
+                          ? new Date(parsedData.header.po_date).toLocaleDateString()
+                          : "N/A"}
+                      </div>
+                      <div>
+                        <strong>Vendor Name:</strong>{" "}
+                        {parsedData.header?.vendor_name || "N/A"}
+                      </div>
+                      <div>
+                        <strong>Payment Terms:</strong>{" "}
+                        {parsedData.header?.payment_terms || "N/A"}
+                      </div>
+                      <div>
+                        <strong>Status:</strong>{" "}
+                        <Badge variant="outline">
+                          {parsedData.header?.status || "Open"}
+                        </Badge>
+                      </div>
+                      <div>
+                        <strong>Platform:</strong> {selectedPlatformData?.name}
+                      </div>
                     </div>
                   ) : (
                     <div className="grid grid-cols-2 gap-2 text-sm">
-                      <div><strong>PO Number:</strong> {parsedData.header?.po_number || "N/A"}</div>
-                      <div><strong>PO Date:</strong> {parsedData.header?.po_date || parsedData.header?.order_date || "N/A"}</div>
-                      <div><strong>Status:</strong> <Badge variant="outline">{parsedData.header?.status || "Open"}</Badge></div>
-                      <div><strong>Platform:</strong> {selectedPlatformData?.name}</div>
+                      <div>
+                        <strong>PO Number:</strong>{" "}
+                        {parsedData.header?.po_number || "N/A"}
+                      </div>
+                      <div>
+                        <strong>PO Date:</strong>{" "}
+                        {parsedData.header?.po_date ||
+                          parsedData.header?.order_date ||
+                          "N/A"}
+                      </div>
+                      <div>
+                        <strong>Status:</strong>{" "}
+                        <Badge variant="outline">
+                          {parsedData.header?.status || "Open"}
+                        </Badge>
+                      </div>
+                      <div>
+                        <strong>Platform:</strong> {selectedPlatformData?.name}
+                      </div>
                     </div>
                   )}
                 </div>
@@ -458,28 +679,42 @@ export default function UnifiedPOUpload() {
 
               {/* Line Items Preview */}
               <div className="space-y-2">
-                <h4 className="font-medium">Line Items Preview (First 5 items)</h4>
+                <h4 className="font-medium">
+                  Line Items Preview (First 5 items)
+                </h4>
                 <div className="border rounded-lg overflow-hidden">
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        {selectedPlatform === 'flipkart' ? (
+                        {selectedPlatform === "flipkart" ? (
                           <>
-                            <TableHead>Title (Item Name)</TableHead>
-                            <TableHead>Tax Amount</TableHead>
-                            <TableHead>Total Amount</TableHead>
+                            <TableHead>Item Name</TableHead>
+                            <TableHead>HSN Code</TableHead>
                             <TableHead>Pending Quantity</TableHead>
                             <TableHead>Quantity</TableHead>
                             <TableHead>UOM</TableHead>
+                            <TableHead>Tax Amount</TableHead>
+                            <TableHead>Total Amount</TableHead>
+                          </>
+                        ) : selectedPlatform === "swiggy" ? (
+                          <>
+                            <TableHead>Item Description</TableHead>
+                            <TableHead>Item Code</TableHead>
                             <TableHead>HSN Code</TableHead>
+                            <TableHead>Quantity</TableHead>
+                            <TableHead>MRP</TableHead>
+                            <TableHead>Unit Cost</TableHead>
+                            <TableHead>Taxable Value</TableHead>
                           </>
                         ) : (
                           <>
-                            <TableHead>Item Code</TableHead>
-                            <TableHead>Description</TableHead>
+                            <TableHead>Item Name</TableHead>
+                            <TableHead>HSN Code</TableHead>
+                            <TableHead>Pending Quantity</TableHead>
                             <TableHead>Quantity</TableHead>
-                            <TableHead>Unit Price</TableHead>
-                            <TableHead>Total</TableHead>
+                            <TableHead>UOM</TableHead>
+                            <TableHead>Tax Amount</TableHead>
+                            <TableHead>Total Amount</TableHead>
                           </>
                         )}
                       </TableRow>
@@ -487,23 +722,49 @@ export default function UnifiedPOUpload() {
                     <TableBody>
                       {parsedData.lines.slice(0, 5).map((line, index) => (
                         <TableRow key={index}>
-                          {selectedPlatform === 'flipkart' ? (
+                          {selectedPlatform === "flipkart" ? (
                             <>
-                              <TableCell className="font-medium">{line.title || line.item_name || "N/A"}</TableCell>
-                              <TableCell>₹{line.tax_amount || "N/A"}</TableCell>
-                              <TableCell>₹{line.total_amount || "N/A"}</TableCell>
-                              <TableCell>{line.pending_quantity || "N/A"}</TableCell>
+                              <TableCell className="font-medium">
+                                {line.title || line.item_name || "N/A"}
+                              </TableCell>
+                              <TableCell>{line.hsn_code || "N/A"}</TableCell>
+                              <TableCell>
+                                {line.pending_quantity || "N/A"}
+                              </TableCell>
                               <TableCell>{line.quantity || "N/A"}</TableCell>
                               <TableCell>{line.uom || "N/A"}</TableCell>
+                              <TableCell>₹{line.tax_amount || "N/A"}</TableCell>
+                              <TableCell>
+                                ₹{line.total_amount || "N/A"}
+                              </TableCell>
+                            </>
+                          ) : selectedPlatform === "swiggy" ? (
+                            <>
+                              <TableCell className="font-medium">
+                                {line.item_description || line.item_name || "N/A"}
+                              </TableCell>
+                              <TableCell>{line.item_code || "N/A"}</TableCell>
                               <TableCell>{line.hsn_code || "N/A"}</TableCell>
+                              <TableCell>{line.quantity || "N/A"}</TableCell>
+                              <TableCell>₹{line.mrp || "N/A"}</TableCell>
+                              <TableCell>₹{line.unit_base_cost || "N/A"}</TableCell>
+                              <TableCell>₹{line.taxable_value || "N/A"}</TableCell>
                             </>
                           ) : (
                             <>
-                              <TableCell className="font-medium">{line.item_code || "N/A"}</TableCell>
-                              <TableCell>{line.item_name || line.product_description || "N/A"}</TableCell>
+                              <TableCell className="font-medium">
+                                {line.title || line.item_name || "N/A"}
+                              </TableCell>
+                              <TableCell>{line.hsn_code || "N/A"}</TableCell>
+                              <TableCell>
+                                {line.pending_quantity || "N/A"}
+                              </TableCell>
                               <TableCell>{line.quantity || "N/A"}</TableCell>
-                              <TableCell>₹{line.unit_price || line.basic_cost_price || "N/A"}</TableCell>
-                              <TableCell>₹{line.total_amount || line.line_total || "N/A"}</TableCell>
+                              <TableCell>{line.uom || "N/A"}</TableCell>
+                              <TableCell>₹{line.tax_amount || "N/A"}</TableCell>
+                              <TableCell>
+                                ₹{line.total_amount || "N/A"}
+                              </TableCell>
                             </>
                           )}
                         </TableRow>
@@ -520,10 +781,7 @@ export default function UnifiedPOUpload() {
 
               {/* Import Actions */}
               <div className="flex gap-3 pt-4 border-t">
-                <Button
-                  variant="outline"
-                  onClick={goBack}
-                >
+                <Button variant="outline" onClick={goBack}>
                   <ArrowLeft className="h-4 w-4 mr-2" />
                   Back
                 </Button>
@@ -533,7 +791,9 @@ export default function UnifiedPOUpload() {
                   className="flex-1"
                 >
                   <Database className="h-4 w-4 mr-2" />
-                  {importMutation.isPending ? "Importing..." : "Import to Database"}
+                  {importMutation.isPending
+                    ? "Importing..."
+                    : "Import to Database"}
                 </Button>
               </div>
             </CardContent>
@@ -548,26 +808,40 @@ export default function UnifiedPOUpload() {
           <CardContent>
             <div className="space-y-3 text-sm">
               <div className="flex items-start gap-3">
-                <div className="w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-xs font-bold">1</div>
+                <div className="w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-xs font-bold">
+                  1
+                </div>
                 <div>
                   <h4 className="font-medium mb-1">Select Platform</h4>
-                  <p className="text-gray-600">Choose the e-commerce platform (Flipkart, Zepto, City Mall, Blinkit, or Swiggy)</p>
-                </div>
-              </div>
-              
-              <div className="flex items-start gap-3">
-                <div className="w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-xs font-bold">2</div>
-                <div>
-                  <h4 className="font-medium mb-1">Upload File</h4>
-                  <p className="text-gray-600">Upload your CSV or Excel file containing the purchase order data</p>
+                  <p className="text-gray-600">
+                    Choose the e-commerce platform (Flipkart, Zepto, City Mall,
+                    Blinkit, or Swiggy)
+                  </p>
                 </div>
               </div>
 
               <div className="flex items-start gap-3">
-                <div className="w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-xs font-bold">3</div>
+                <div className="w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-xs font-bold">
+                  2
+                </div>
+                <div>
+                  <h4 className="font-medium mb-1">Upload File</h4>
+                  <p className="text-gray-600">
+                    Upload your CSV or Excel file containing the purchase order
+                    data
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3">
+                <div className="w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-xs font-bold">
+                  3
+                </div>
                 <div>
                   <h4 className="font-medium mb-1">Preview & Import</h4>
-                  <p className="text-gray-600">Review the parsed data and import it into the database</p>
+                  <p className="text-gray-600">
+                    Review the parsed data and import it into the database
+                  </p>
                 </div>
               </div>
 
@@ -576,8 +850,9 @@ export default function UnifiedPOUpload() {
                   <AlertCircle className="h-4 w-4 text-blue-600 mt-0.5" />
                   <div>
                     <p className="text-blue-800 text-sm">
-                      <strong>Note:</strong> Make sure your files follow the standard format for each platform.
-                      Always review the preview before importing to ensure data accuracy.
+                      <strong>Note:</strong> Make sure your files follow the
+                      standard format for each platform. Always review the
+                      preview before importing to ensure data accuracy.
                     </p>
                   </div>
                 </div>

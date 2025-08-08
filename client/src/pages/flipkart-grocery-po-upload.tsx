@@ -1,12 +1,32 @@
 import { useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Upload, FileText, CheckCircle, AlertCircle, Eye, Database } from "lucide-react";
+import {
+  Upload,
+  FileText,
+  CheckCircle,
+  AlertCircle,
+  Eye,
+  Database,
+} from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 
 interface ParsedPOData {
@@ -28,18 +48,18 @@ export default function FlipkartGroceryPOUpload() {
   const previewMutation = useMutation({
     mutationFn: async (file: File) => {
       const formData = new FormData();
-      formData.append('file', file);
-      
-      const response = await fetch('/api/po/preview', {
-        method: 'POST',
+      formData.append("file", file);
+
+      const response = await fetch("/api/po/preview", {
+        method: "POST",
         body: formData,
       });
-      
+
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.error || 'Failed to preview file');
+        throw new Error(error.error || "Failed to preview file");
       }
-      
+
       return response.json();
     },
     onSuccess: (data) => {
@@ -61,19 +81,19 @@ export default function FlipkartGroceryPOUpload() {
 
   const importMutation = useMutation({
     mutationFn: async (data: { header: any; lines: any[] }) => {
-      const response = await fetch('/api/po/import/flipkart', {
-        method: 'POST',
+      const response = await fetch("/api/po/import/flipkart", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(data),
       });
-      
+
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.error || 'Failed to import PO');
+        throw new Error(error.error || "Failed to import PO");
       }
-      
+
       return response.json();
     },
     onSuccess: (data) => {
@@ -84,7 +104,9 @@ export default function FlipkartGroceryPOUpload() {
       setFile(null);
       setParsedData(null);
       setShowPreview(false);
-      queryClient.invalidateQueries({ queryKey: ["/api/flipkart-grocery-pos"] });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/flipkart-grocery-pos"],
+      });
     },
     onError: (error: Error) => {
       toast({
@@ -109,7 +131,7 @@ export default function FlipkartGroceryPOUpload() {
     e.preventDefault();
     e.stopPropagation();
     setDragActive(false);
-    
+
     const files = e.dataTransfer.files;
     if (files && files[0]) {
       handleFileSelection(files[0]);
@@ -127,13 +149,14 @@ export default function FlipkartGroceryPOUpload() {
     const validTypes = [
       "text/csv",
       "application/vnd.ms-excel",
-      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     ];
-    
-    const isValidFile = validTypes.includes(selectedFile.type) || 
-                       selectedFile.name.endsWith('.csv') || 
-                       selectedFile.name.endsWith('.xls') || 
-                       selectedFile.name.endsWith('.xlsx');
+
+    const isValidFile =
+      validTypes.includes(selectedFile.type) ||
+      selectedFile.name.endsWith(".csv") ||
+      selectedFile.name.endsWith(".xls") ||
+      selectedFile.name.endsWith(".xlsx");
 
     if (isValidFile) {
       setFile(selectedFile);
@@ -171,9 +194,9 @@ export default function FlipkartGroceryPOUpload() {
       return;
     }
 
-    importMutation.mutate({ 
-      header: parsedData.header, 
-      lines: parsedData.lines 
+    importMutation.mutate({
+      header: parsedData.header,
+      lines: parsedData.lines,
     });
   };
 
@@ -183,7 +206,9 @@ export default function FlipkartGroceryPOUpload() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold">Flipkart Grocery PO Upload</h1>
-            <p className="text-gray-600">Upload, review, and import Flipkart grocery purchase orders</p>
+            <p className="text-gray-600">
+              Upload, review, and import Flipkart grocery purchase orders
+            </p>
           </div>
         </div>
 
@@ -196,7 +221,8 @@ export default function FlipkartGroceryPOUpload() {
                 Upload Flipkart Grocery PO File
               </CardTitle>
               <CardDescription>
-                Upload CSV or Excel files containing Flipkart grocery purchase order data
+                Upload CSV or Excel files containing Flipkart grocery purchase
+                order data
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -214,11 +240,16 @@ export default function FlipkartGroceryPOUpload() {
                 <FileText className="mx-auto h-12 w-12 text-gray-400 mb-4" />
                 <div className="space-y-2">
                   <p className="text-lg font-medium">
-                    {file ? "File Selected" : "Drop your Flipkart CSV/Excel file here"}
+                    {file
+                      ? "File Selected"
+                      : "Drop your Flipkart CSV/Excel file here"}
                   </p>
                   <p className="text-sm text-gray-500">
                     or{" "}
-                    <Label htmlFor="file-upload" className="text-blue-600 hover:underline cursor-pointer">
+                    <Label
+                      htmlFor="file-upload"
+                      className="text-blue-600 hover:underline cursor-pointer"
+                    >
                       browse to choose a file
                     </Label>
                   </p>
@@ -266,7 +297,9 @@ export default function FlipkartGroceryPOUpload() {
                   variant="outline"
                 >
                   <Eye className="h-4 w-4 mr-2" />
-                  {previewMutation.isPending ? "Analyzing..." : "Preview & Review"}
+                  {previewMutation.isPending
+                    ? "Analyzing..."
+                    : "Preview & Review"}
                 </Button>
               </div>
             </CardContent>
@@ -285,22 +318,36 @@ export default function FlipkartGroceryPOUpload() {
                 {/* Summary Information */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   <div className="p-3 bg-blue-50 rounded-lg">
-                    <p className="text-sm font-medium text-blue-800">PO Number</p>
+                    <p className="text-sm font-medium text-blue-800">
+                      PO Number
+                    </p>
                     <p className="text-lg font-bold text-blue-900">
                       {parsedData.header?.po_number || "N/A"}
                     </p>
                   </div>
                   <div className="p-3 bg-green-50 rounded-lg">
-                    <p className="text-sm font-medium text-green-800">Total Items</p>
-                    <p className="text-lg font-bold text-green-900">{parsedData.totalItems || 0}</p>
+                    <p className="text-sm font-medium text-green-800">
+                      Total Items
+                    </p>
+                    <p className="text-lg font-bold text-green-900">
+                      {parsedData.totalItems || 0}
+                    </p>
                   </div>
                   <div className="p-3 bg-purple-50 rounded-lg">
-                    <p className="text-sm font-medium text-purple-800">Total Quantity</p>
-                    <p className="text-lg font-bold text-purple-900">{parsedData.totalQuantity || 0}</p>
+                    <p className="text-sm font-medium text-purple-800">
+                      Total Quantity
+                    </p>
+                    <p className="text-lg font-bold text-purple-900">
+                      {parsedData.totalQuantity || 0}
+                    </p>
                   </div>
                   <div className="p-3 bg-yellow-50 rounded-lg">
-                    <p className="text-sm font-medium text-yellow-800">Total Amount</p>
-                    <p className="text-lg font-bold text-yellow-900">₹{parsedData.totalAmount || "0"}</p>
+                    <p className="text-sm font-medium text-yellow-800">
+                      Total Amount
+                    </p>
+                    <p className="text-lg font-bold text-yellow-900">
+                      ₹{parsedData.totalAmount || "0"}
+                    </p>
                   </div>
                 </div>
 
@@ -309,17 +356,32 @@ export default function FlipkartGroceryPOUpload() {
                   <h4 className="font-medium">PO Header Information</h4>
                   <div className="bg-gray-50 p-3 rounded-lg">
                     <div className="grid grid-cols-2 gap-2 text-sm">
-                      <div><strong>PO Number:</strong> {parsedData.header?.po_number || "N/A"}</div>
-                      <div><strong>PO Date:</strong> {parsedData.header?.po_date || "N/A"}</div>
-                      <div><strong>Status:</strong> <Badge variant="outline">{parsedData.header?.status || "Open"}</Badge></div>
-                      <div><strong>Vendor:</strong> Flipkart Grocery</div>
+                      <div>
+                        <strong>PO Number:</strong>{" "}
+                        {parsedData.header?.po_number || "N/A"}
+                      </div>
+                      <div>
+                        <strong>PO Date:</strong>{" "}
+                        {parsedData.header?.po_date || "N/A"}
+                      </div>
+                      <div>
+                        <strong>Status:</strong>{" "}
+                        <Badge variant="outline">
+                          {parsedData.header?.status || "Open"}
+                        </Badge>
+                      </div>
+                      <div>
+                        <strong>Vendor:</strong> Flipkart Grocery
+                      </div>
                     </div>
                   </div>
                 </div>
 
                 {/* Line Items Preview */}
                 <div className="space-y-2">
-                  <h4 className="font-medium">Line Items Preview (First 5 items)</h4>
+                  <h4 className="font-medium">
+                    Line Items Preview (First 5 items)
+                  </h4>
                   <div className="border rounded-lg overflow-hidden">
                     <Table>
                       <TableHeader>
@@ -334,11 +396,24 @@ export default function FlipkartGroceryPOUpload() {
                       <TableBody>
                         {parsedData.lines.slice(0, 5).map((line, index) => (
                           <TableRow key={index}>
-                            <TableCell className="font-medium">{line.item_code || "N/A"}</TableCell>
-                            <TableCell>{line.item_name || line.product_description || "N/A"}</TableCell>
+                            <TableCell className="font-medium">
+                              {line.item_code || "N/A"}
+                            </TableCell>
+                            <TableCell>
+                              {line.item_name ||
+                                line.product_description ||
+                                "N/A"}
+                            </TableCell>
                             <TableCell>{line.quantity || "N/A"}</TableCell>
-                            <TableCell>₹{line.unit_price || line.basic_cost_price || "N/A"}</TableCell>
-                            <TableCell>₹{line.total_amount || line.line_total || "N/A"}</TableCell>
+                            <TableCell>
+                              ₹
+                              {line.unit_price ||
+                                line.basic_cost_price ||
+                                "N/A"}
+                            </TableCell>
+                            <TableCell>
+                              ₹{line.total_amount || line.line_total || "N/A"}
+                            </TableCell>
                           </TableRow>
                         ))}
                       </TableBody>
@@ -359,7 +434,9 @@ export default function FlipkartGroceryPOUpload() {
                     className="flex-1"
                   >
                     <Database className="h-4 w-4 mr-2" />
-                    {importMutation.isPending ? "Importing..." : "Import to Database"}
+                    {importMutation.isPending
+                      ? "Importing..."
+                      : "Import to Database"}
                   </Button>
                 </div>
               </CardContent>
@@ -374,26 +451,38 @@ export default function FlipkartGroceryPOUpload() {
             <CardContent>
               <div className="space-y-3 text-sm">
                 <div className="flex items-start gap-3">
-                  <div className="w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-xs font-bold">1</div>
+                  <div className="w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-xs font-bold">
+                    1
+                  </div>
                   <div>
                     <h4 className="font-medium mb-1">Upload File</h4>
-                    <p className="text-gray-600">Upload your Flipkart grocery CSV or Excel file</p>
-                  </div>
-                </div>
-                
-                <div className="flex items-start gap-3">
-                  <div className="w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-xs font-bold">2</div>
-                  <div>
-                    <h4 className="font-medium mb-1">Preview & Review</h4>
-                    <p className="text-gray-600">Review the parsed data to ensure accuracy</p>
+                    <p className="text-gray-600">
+                      Upload your Flipkart grocery CSV or Excel file
+                    </p>
                   </div>
                 </div>
 
                 <div className="flex items-start gap-3">
-                  <div className="w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-xs font-bold">3</div>
+                  <div className="w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-xs font-bold">
+                    2
+                  </div>
+                  <div>
+                    <h4 className="font-medium mb-1">Preview & Review</h4>
+                    <p className="text-gray-600">
+                      Review the parsed data to ensure accuracy
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3">
+                  <div className="w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-xs font-bold">
+                    3
+                  </div>
                   <div>
                     <h4 className="font-medium mb-1">Import to Database</h4>
-                    <p className="text-gray-600">Import the validated data into the system</p>
+                    <p className="text-gray-600">
+                      Import the validated data into the system
+                    </p>
                   </div>
                 </div>
 
@@ -402,8 +491,9 @@ export default function FlipkartGroceryPOUpload() {
                     <AlertCircle className="h-4 w-4 text-blue-600 mt-0.5" />
                     <div>
                       <p className="text-blue-800 text-sm">
-                        <strong>Note:</strong> Please ensure your CSV file follows the standard Flipkart grocery format.
-                        Review all data before importing to maintain data integrity.
+                        <strong>Note:</strong> Please ensure your CSV file
+                        follows the standard Flipkart grocery format. Review all
+                        data before importing to maintain data integrity.
                       </p>
                     </div>
                   </div>

@@ -1,0 +1,1584 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?mso-application progid="Excel.Sheet"?>
+
+<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet" xmlns:html="http://www.w3.org/TR/REC-html40">
+	<DocumentProperties xmlns="urn:schemas-microsoft-com:office:office">
+		<Author/>
+		<Title/>
+		<Description/>
+		<Subject/>
+	</DocumentProperties>
+	<Styles>
+		<Style ss:ID="HyperlinkId" ss:Name="Hyperlink">
+			<Font ss:Color="#0000ff"/>
+		</Style>
+		<Style ss:ID="23">
+			<Alignment ss:Horizontal="Left" ss:Vertical="Top" ss:WrapText="1"/>
+			<Borders>
+				<Border ss:Position="Bottom"/>
+				<Border ss:Position="Top"/>
+				<Border ss:Position="Left"/>
+				<Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#000000"/>
+				<Border ss:Position="DiagonalLeft"/>
+			</Borders>
+			<Font ss:FontName="sans-serif" ss:Size="10.0" ss:Color="#000000"/>
+		</Style>
+		<Style ss:ID="76">
+			<Alignment ss:Horizontal="Left" ss:Vertical="Top" ss:WrapText="1"/>
+			<Borders>
+				<Border ss:Position="Bottom"/>
+				<Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#000000"/>
+				<Border ss:Position="Left"/>
+				<Border ss:Position="Right"/>
+				<Border ss:Position="DiagonalLeft"/>
+			</Borders>
+			<Font ss:FontName="sans-serif" ss:Size="10.0" ss:Color="#000000"/>
+		</Style>
+		<Style ss:ID="34">
+			<Alignment ss:Horizontal="Left" ss:Vertical="Top" ss:WrapText="1"/>
+			<Borders>
+				<Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#000000"/>
+				<Border ss:Position="Top"/>
+				<Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#000000"/>
+				<Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#000000"/>
+				<Border ss:Position="DiagonalLeft"/>
+			</Borders>
+			<Font ss:FontName="sans-serif" ss:Size="7.5" ss:Color="#000000"/>
+		</Style>
+		<Style ss:ID="65">
+			<Alignment ss:Horizontal="Left" ss:Vertical="Top" ss:WrapText="1"/>
+			<Borders>
+				<Border ss:Position="Bottom"/>
+				<Border ss:Position="Top"/>
+				<Border ss:Position="Left"/>
+				<Border ss:Position="Right"/>
+				<Border ss:Position="DiagonalLeft"/>
+			</Borders>
+			<Font ss:FontName="sans-serif" ss:Size="10.0" ss:Color="#000000"/>
+		</Style>
+		<Style ss:ID="24">
+			<Alignment ss:Horizontal="Left" ss:Vertical="Top" ss:WrapText="1"/>
+			<Borders>
+				<Border ss:Position="Bottom"/>
+				<Border ss:Position="Top"/>
+				<Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#000000"/>
+				<Border ss:Position="Right"/>
+				<Border ss:Position="DiagonalLeft"/>
+			</Borders>
+			<Font ss:FontName="sans-serif" ss:Size="8.25" ss:Color="#000000"/>
+		</Style>
+		<Style ss:ID="44">
+			<Alignment ss:Horizontal="Center" ss:Vertical="Top" ss:WrapText="1"/>
+			<Borders>
+				<Border ss:Position="Bottom"/>
+				<Border ss:Position="Top"/>
+				<Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#000000"/>
+				<Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#000000"/>
+				<Border ss:Position="DiagonalLeft"/>
+			</Borders>
+			<Font ss:FontName="sans-serif" ss:Size="7.5" ss:Color="#000000"/>
+		</Style>
+		<Style ss:ID="71">
+			<Alignment ss:Horizontal="Right" ss:Vertical="Top" ss:WrapText="1"/>
+			<Borders>
+				<Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#000000"/>
+				<Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#000000"/>
+				<Border ss:Position="Left"/>
+				<Border ss:Position="Right"/>
+				<Border ss:Position="DiagonalLeft"/>
+			</Borders>
+			<Font ss:FontName="sans-serif" ss:Size="7.5" ss:Bold="1" ss:Color="#000000"/>
+			<Interior ss:Color="#dfe0e1" ss:Pattern="Solid"/>
+		</Style>
+		<Style ss:ID="21">
+			<Alignment ss:Horizontal="Center" ss:Vertical="Top" ss:WrapText="1"/>
+			<Borders>
+				<Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#000000"/>
+				<Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#000000"/>
+				<Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#000000"/>
+				<Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#000000"/>
+				<Border ss:Position="DiagonalLeft"/>
+			</Borders>
+			<Font ss:FontName="sans-serif" ss:Size="9.0" ss:Bold="1" ss:Color="#000000"/>
+			<Interior ss:Color="#dfe0e1" ss:Pattern="Solid"/>
+		</Style>
+		<Style ss:ID="47">
+			<Alignment ss:Horizontal="Center" ss:Vertical="Top" ss:WrapText="1"/>
+			<Borders>
+				<Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#000000"/>
+				<Border ss:Position="Top"/>
+				<Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#000000"/>
+				<Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#000000"/>
+				<Border ss:Position="DiagonalLeft"/>
+			</Borders>
+			<Font ss:FontName="sans-serif" ss:Size="7.5" ss:Color="#000000"/>
+		</Style>
+		<Style ss:ID="43">
+			<Alignment ss:Horizontal="Center" ss:Vertical="Top" ss:WrapText="1"/>
+			<Borders>
+				<Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#000000"/>
+				<Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#000000"/>
+				<Border ss:Position="Left"/>
+				<Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#000000"/>
+				<Border ss:Position="DiagonalLeft"/>
+			</Borders>
+			<Font ss:FontName="sans-serif" ss:Size="6.75" ss:Bold="1" ss:Color="#000000"/>
+			<Interior ss:Color="#dfe0e1" ss:Pattern="Solid"/>
+		</Style>
+		<Style ss:ID="79">
+			<Alignment ss:Horizontal="Left" ss:Vertical="Top" ss:WrapText="1"/>
+			<Borders>
+				<Border ss:Position="Bottom"/>
+				<Border ss:Position="Top"/>
+				<Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#000000"/>
+				<Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#000000"/>
+				<Border ss:Position="DiagonalLeft"/>
+			</Borders>
+			<Font ss:FontName="sans-serif" ss:Size="10.5" ss:Bold="1" ss:Color="#000000"/>
+		</Style>
+		<Style ss:ID="51">
+			<Alignment ss:Horizontal="Center" ss:Vertical="Top" ss:WrapText="1"/>
+			<Borders>
+				<Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#000000"/>
+				<Border ss:Position="Top"/>
+				<Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#000000"/>
+				<Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#000000"/>
+				<Border ss:Position="DiagonalLeft"/>
+			</Borders>
+			<Font ss:FontName="sans-serif" ss:Size="7.5" ss:Color="#000000"/>
+			<NumberFormat ss:Format="###0.000"/>
+		</Style>
+		<Style ss:ID="42">
+			<Alignment ss:Horizontal="Center" ss:Vertical="Top" ss:WrapText="1"/>
+			<Borders>
+				<Border ss:Position="Bottom"/>
+				<Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#000000"/>
+				<Border ss:Position="Left"/>
+				<Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#000000"/>
+				<Border ss:Position="DiagonalLeft"/>
+			</Borders>
+			<Font ss:FontName="sans-serif" ss:Size="6.75" ss:Bold="1" ss:Color="#000000"/>
+			<Interior ss:Color="#dfe0e1" ss:Pattern="Solid"/>
+		</Style>
+		<Style ss:ID="48">
+			<Alignment ss:Horizontal="Center" ss:Vertical="Top" ss:WrapText="1"/>
+			<Borders>
+				<Border ss:Position="Bottom"/>
+				<Border ss:Position="Top"/>
+				<Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#000000"/>
+				<Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#000000"/>
+				<Border ss:Position="DiagonalLeft"/>
+			</Borders>
+			<Font ss:FontName="sans-serif" ss:Size="7.5" ss:Color="#000000"/>
+			<NumberFormat ss:Format="###0.00"/>
+		</Style>
+		<Style ss:ID="70">
+			<Alignment ss:Horizontal="Right" ss:Vertical="Top" ss:WrapText="1"/>
+			<Borders>
+				<Border ss:Position="Bottom"/>
+				<Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#000000"/>
+				<Border ss:Position="Left"/>
+				<Border ss:Position="Right"/>
+				<Border ss:Position="DiagonalLeft"/>
+			</Borders>
+			<Font ss:FontName="sans-serif" ss:Size="7.5" ss:Bold="1" ss:Color="#000000"/>
+			<Interior ss:Color="#dfe0e1" ss:Pattern="Solid"/>
+		</Style>
+		<Style ss:ID="80">
+			<Alignment ss:Horizontal="Left" ss:Vertical="Top" ss:WrapText="1"/>
+			<Borders>
+				<Border ss:Position="Bottom"/>
+				<Border ss:Position="Top"/>
+				<Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#000000"/>
+				<Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#000000"/>
+				<Border ss:Position="DiagonalLeft"/>
+			</Borders>
+			<Font ss:FontName="Sans Serif" ss:Size="8.25" ss:Color="#000000"/>
+		</Style>
+		<Style ss:ID="73">
+			<Alignment ss:Horizontal="Left" ss:Vertical="Top" ss:WrapText="1"/>
+			<Borders>
+				<Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#000000"/>
+				<Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#000000"/>
+				<Border ss:Position="Left"/>
+				<Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#000000"/>
+				<Border ss:Position="DiagonalLeft"/>
+			</Borders>
+			<Font ss:FontName="sans-serif" ss:Size="7.5" ss:Bold="1" ss:Color="#000000"/>
+			<Interior ss:Color="#dfe0e1" ss:Pattern="Solid"/>
+		</Style>
+		<Style ss:ID="64">
+			<Alignment ss:Horizontal="Left" ss:Vertical="Top" ss:WrapText="1"/>
+			<Borders>
+				<Border ss:Position="Bottom"/>
+				<Border ss:Position="Top"/>
+				<Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#000000"/>
+				<Border ss:Position="Right"/>
+				<Border ss:Position="DiagonalLeft"/>
+			</Borders>
+			<Font ss:FontName="sans-serif" ss:Size="10.0" ss:Color="#000000"/>
+		</Style>
+		<Style ss:ID="50">
+			<Alignment ss:Horizontal="Center" ss:Vertical="Top" ss:WrapText="1"/>
+			<Borders>
+				<Border ss:Position="Bottom"/>
+				<Border ss:Position="Top"/>
+				<Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#000000"/>
+				<Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#000000"/>
+				<Border ss:Position="DiagonalLeft"/>
+			</Borders>
+			<Font ss:FontName="sans-serif" ss:Size="7.5" ss:Color="#000000"/>
+			<NumberFormat ss:Format="###0.000"/>
+		</Style>
+		<Style ss:ID="57">
+			<Alignment ss:Horizontal="Left" ss:Vertical="Top" ss:WrapText="1"/>
+			<Borders>
+				<Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#000000"/>
+				<Border ss:Position="Top"/>
+				<Border ss:Position="Left"/>
+				<Border ss:Position="Right"/>
+				<Border ss:Position="DiagonalLeft"/>
+			</Borders>
+			<Font ss:FontName="sans-serif" ss:Size="7.5" ss:Color="#000000"/>
+			<NumberFormat ss:Format="###0.00"/>
+		</Style>
+		<Style ss:ID="56">
+			<Alignment ss:Horizontal="Left" ss:Vertical="Top" ss:WrapText="1"/>
+			<Borders>
+				<Border ss:Position="Bottom"/>
+				<Border ss:Position="Top"/>
+				<Border ss:Position="Left"/>
+				<Border ss:Position="Right"/>
+				<Border ss:Position="DiagonalLeft"/>
+			</Borders>
+			<Font ss:FontName="sans-serif" ss:Size="7.5" ss:Color="#000000"/>
+			<NumberFormat ss:Format="###0.00"/>
+		</Style>
+		<Style ss:ID="35">
+			<Alignment ss:Horizontal="Left" ss:Vertical="Top" ss:WrapText="1"/>
+			<Borders>
+				<Border ss:Position="Bottom"/>
+				<Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#000000"/>
+				<Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#000000"/>
+				<Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#000000"/>
+				<Border ss:Position="DiagonalLeft"/>
+			</Borders>
+			<Font ss:FontName="sans-serif" ss:Size="7.5" ss:Bold="1" ss:Color="#000000"/>
+			<Interior ss:Color="#dfe0e1" ss:Pattern="Solid"/>
+		</Style>
+		<Style ss:ID="81">
+			<Alignment ss:Horizontal="Left" ss:Vertical="Top" ss:WrapText="1"/>
+			<Borders>
+				<Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#000000"/>
+				<Border ss:Position="Top"/>
+				<Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#000000"/>
+				<Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#000000"/>
+				<Border ss:Position="DiagonalLeft"/>
+			</Borders>
+			<Font ss:FontName="Sans Serif" ss:Size="8.25" ss:Color="#000000"/>
+		</Style>
+		<Style ss:ID="31">
+			<Alignment ss:Horizontal="Center" ss:Vertical="Top" ss:WrapText="1"/>
+			<Borders>
+				<Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#000000"/>
+				<Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#000000"/>
+				<Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#000000"/>
+				<Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#000000"/>
+				<Border ss:Position="DiagonalLeft"/>
+			</Borders>
+			<Font ss:FontName="sans-serif" ss:Size="8.25" ss:Color="#000000"/>
+			<Interior ss:Color="#dfe0e1" ss:Pattern="Solid"/>
+		</Style>
+		<Style ss:ID="28">
+			<Alignment ss:Horizontal="Center" ss:Vertical="Top" ss:WrapText="1"/>
+			<Borders>
+				<Border ss:Position="Bottom"/>
+				<Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#000000"/>
+				<Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#000000"/>
+				<Border ss:Position="Right"/>
+				<Border ss:Position="DiagonalLeft"/>
+			</Borders>
+			<Font ss:FontName="sans-serif" ss:Size="8.25" ss:Color="#000000"/>
+			<Interior ss:Color="#dfe0e1" ss:Pattern="Solid"/>
+		</Style>
+		<Style ss:ID="55">
+			<Alignment ss:Horizontal="Left" ss:Vertical="Top" ss:WrapText="1"/>
+			<Borders>
+				<Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#000000"/>
+				<Border ss:Position="Top"/>
+				<Border ss:Position="Left"/>
+				<Border ss:Position="Right"/>
+				<Border ss:Position="DiagonalLeft"/>
+			</Borders>
+			<Font ss:FontName="sans-serif" ss:Size="10.0" ss:Color="#000000"/>
+		</Style>
+		<Style ss:ID="27">
+			<Alignment ss:Horizontal="Left" ss:Vertical="Top" ss:WrapText="1"/>
+			<Borders>
+				<Border ss:Position="Bottom"/>
+				<Border ss:Position="Top"/>
+				<Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#000000"/>
+				<Border ss:Position="Right"/>
+				<Border ss:Position="DiagonalLeft"/>
+			</Borders>
+			<Font ss:FontName="sans-serif" ss:Size="7.5" ss:Color="#000000"/>
+		</Style>
+		<Style ss:ID="38">
+			<Alignment ss:Horizontal="Left" ss:Vertical="Top" ss:WrapText="1"/>
+			<Borders>
+				<Border ss:Position="Bottom"/>
+				<Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#000000"/>
+				<Border ss:Position="Left"/>
+				<Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#000000"/>
+				<Border ss:Position="DiagonalLeft"/>
+			</Borders>
+			<Font ss:FontName="sans-serif" ss:Size="7.5" ss:Bold="1" ss:Color="#000000"/>
+			<Interior ss:Color="#dfe0e1" ss:Pattern="Solid"/>
+		</Style>
+		<Style ss:ID="25">
+			<Alignment ss:Horizontal="Left" ss:Vertical="Top" ss:WrapText="1"/>
+			<Borders>
+				<Border ss:Position="Bottom"/>
+				<Border ss:Position="Top"/>
+				<Border ss:Position="Left"/>
+				<Border ss:Position="Right"/>
+				<Border ss:Position="DiagonalLeft"/>
+			</Borders>
+			<Font ss:FontName="sans-serif" ss:Size="7.5" ss:Color="#000000"/>
+		</Style>
+		<Style ss:ID="62">
+			<Alignment ss:Horizontal="Center" ss:Vertical="Top" ss:WrapText="1"/>
+			<Borders>
+				<Border ss:Position="Bottom"/>
+				<Border ss:Position="Top"/>
+				<Border ss:Position="Left"/>
+				<Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#000000"/>
+				<Border ss:Position="DiagonalLeft"/>
+			</Borders>
+			<Font ss:FontName="sans-serif" ss:Size="7.5" ss:Color="#000000"/>
+			<NumberFormat ss:Format="###0.00"/>
+		</Style>
+		<Style ss:ID="30">
+			<Alignment ss:Horizontal="Center" ss:Vertical="Top" ss:WrapText="1"/>
+			<Borders>
+				<Border ss:Position="Bottom"/>
+				<Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#000000"/>
+				<Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#000000"/>
+				<Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#000000"/>
+				<Border ss:Position="DiagonalLeft"/>
+			</Borders>
+			<Font ss:FontName="sans-serif" ss:Size="8.25" ss:Color="#000000"/>
+			<Interior ss:Color="#dfe0e1" ss:Pattern="Solid"/>
+		</Style>
+		<Style ss:ID="29">
+			<Alignment ss:Horizontal="Center" ss:Vertical="Top" ss:WrapText="1"/>
+			<Borders>
+				<Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#000000"/>
+				<Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#000000"/>
+				<Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#000000"/>
+				<Border ss:Position="Right"/>
+				<Border ss:Position="DiagonalLeft"/>
+			</Borders>
+			<Font ss:FontName="sans-serif" ss:Size="8.25" ss:Color="#000000"/>
+			<Interior ss:Color="#dfe0e1" ss:Pattern="Solid"/>
+		</Style>
+		<Style ss:ID="36">
+			<Alignment ss:Horizontal="Left" ss:Vertical="Top" ss:WrapText="1"/>
+			<Borders>
+				<Border ss:Position="Bottom"/>
+				<Border ss:Position="Top"/>
+				<Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#000000"/>
+				<Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#000000"/>
+				<Border ss:Position="DiagonalLeft"/>
+			</Borders>
+			<Font ss:FontName="sans-serif" ss:Size="7.5" ss:Bold="1" ss:Color="#000000"/>
+			<Interior ss:Color="#dfe0e1" ss:Pattern="Solid"/>
+		</Style>
+		<Style ss:ID="63">
+			<Alignment ss:Horizontal="Center" ss:Vertical="Top" ss:WrapText="1"/>
+			<Borders>
+				<Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#000000"/>
+				<Border ss:Position="Top"/>
+				<Border ss:Position="Left"/>
+				<Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#000000"/>
+				<Border ss:Position="DiagonalLeft"/>
+			</Borders>
+			<Font ss:FontName="sans-serif" ss:Size="7.5" ss:Color="#000000"/>
+			<NumberFormat ss:Format="###0.00"/>
+		</Style>
+		<Style ss:ID="59">
+			<Alignment ss:Horizontal="Right" ss:Vertical="Top" ss:WrapText="1"/>
+			<Borders>
+				<Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#000000"/>
+				<Border ss:Position="Top"/>
+				<Border ss:Position="Left"/>
+				<Border ss:Position="Right"/>
+				<Border ss:Position="DiagonalLeft"/>
+			</Borders>
+			<Font ss:FontName="sans-serif" ss:Size="7.5" ss:Color="#000000"/>
+			<NumberFormat ss:Format="###0.00"/>
+		</Style>
+		<Style ss:ID="61">
+			<Alignment ss:Horizontal="Center" ss:Vertical="Top" ss:WrapText="1"/>
+			<Borders>
+				<Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#000000"/>
+				<Border ss:Position="Top"/>
+				<Border ss:Position="Left"/>
+				<Border ss:Position="Right"/>
+				<Border ss:Position="DiagonalLeft"/>
+			</Borders>
+			<Font ss:FontName="sans-serif" ss:Size="7.5" ss:Color="#000000"/>
+			<NumberFormat ss:Format="###0.00"/>
+		</Style>
+		<Style ss:ID="40">
+			<Alignment ss:Horizontal="Center" ss:Vertical="Top" ss:WrapText="1"/>
+			<Borders>
+				<Border ss:Position="Bottom"/>
+				<Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#000000"/>
+				<Border ss:Position="Left"/>
+				<Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#000000"/>
+				<Border ss:Position="DiagonalLeft"/>
+			</Borders>
+			<Font ss:FontName="sans-serif" ss:Size="7.5" ss:Bold="1" ss:Color="#000000"/>
+			<Interior ss:Color="#dfe0e1" ss:Pattern="Solid"/>
+		</Style>
+		<Style ss:ID="33">
+			<Alignment ss:Horizontal="Left" ss:Vertical="Top" ss:WrapText="1"/>
+			<Borders>
+				<Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#000000"/>
+				<Border ss:Position="Top"/>
+				<Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#000000"/>
+				<Border ss:Position="Right"/>
+				<Border ss:Position="DiagonalLeft"/>
+			</Borders>
+			<Font ss:FontName="sans-serif" ss:Size="7.5" ss:Color="#000000"/>
+		</Style>
+		<Style ss:ID="41">
+			<Alignment ss:Horizontal="Center" ss:Vertical="Top" ss:WrapText="1"/>
+			<Borders>
+				<Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#000000"/>
+				<Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#000000"/>
+				<Border ss:Position="Left"/>
+				<Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#000000"/>
+				<Border ss:Position="DiagonalLeft"/>
+			</Borders>
+			<Font ss:FontName="sans-serif" ss:Size="7.5" ss:Bold="1" ss:Color="#000000"/>
+			<Interior ss:Color="#dfe0e1" ss:Pattern="Solid"/>
+		</Style>
+		<Style ss:ID="1">
+			<NumberFormat ss:Format="yyyy-M-d HH:mm:ss AM/PM"/>
+		</Style>
+		<Style ss:ID="37">
+			<Alignment ss:Horizontal="Left" ss:Vertical="Top" ss:WrapText="1"/>
+			<Borders>
+				<Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#000000"/>
+				<Border ss:Position="Top"/>
+				<Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#000000"/>
+				<Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#000000"/>
+				<Border ss:Position="DiagonalLeft"/>
+			</Borders>
+			<Font ss:FontName="sans-serif" ss:Size="7.5" ss:Bold="1" ss:Color="#000000"/>
+			<Interior ss:Color="#dfe0e1" ss:Pattern="Solid"/>
+		</Style>
+		<Style ss:ID="54">
+			<Alignment ss:Horizontal="Left" ss:Vertical="Top" ss:WrapText="1"/>
+			<Borders>
+				<Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#000000"/>
+				<Border ss:Position="Top"/>
+				<Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#000000"/>
+				<Border ss:Position="Right"/>
+				<Border ss:Position="DiagonalLeft"/>
+			</Borders>
+			<Font ss:FontName="sans-serif" ss:Size="10.0" ss:Color="#000000"/>
+		</Style>
+		<Style ss:ID="75">
+			<Alignment ss:Horizontal="Left" ss:Vertical="Top" ss:WrapText="1"/>
+			<Borders>
+				<Border ss:Position="Bottom"/>
+				<Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#000000"/>
+				<Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#000000"/>
+				<Border ss:Position="Right"/>
+				<Border ss:Position="DiagonalLeft"/>
+			</Borders>
+			<Font ss:FontName="sans-serif" ss:Size="10.0" ss:Color="#000000"/>
+		</Style>
+		<Style ss:ID="20">
+			<Alignment ss:Horizontal="Center" ss:Vertical="Top" ss:WrapText="1"/>
+			<Borders>
+				<Border ss:Position="Bottom"/>
+				<Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#000000"/>
+				<Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#000000"/>
+				<Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#000000"/>
+				<Border ss:Position="DiagonalLeft"/>
+			</Borders>
+			<Font ss:FontName="sans-serif" ss:Size="9.0" ss:Bold="1" ss:Color="#000000"/>
+			<Interior ss:Color="#dfe0e1" ss:Pattern="Solid"/>
+		</Style>
+		<Style ss:ID="22">
+			<Alignment ss:Horizontal="Left" ss:Vertical="Top" ss:WrapText="1"/>
+			<Borders>
+				<Border ss:Position="Bottom"/>
+				<Border ss:Position="Top"/>
+				<Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#000000"/>
+				<Border ss:Position="Right"/>
+				<Border ss:Position="DiagonalLeft"/>
+			</Borders>
+			<Font ss:FontName="sans-serif" ss:Size="8.25" ss:Bold="1" ss:Color="#000000"/>
+		</Style>
+		<Style ss:ID="39">
+			<Alignment ss:Horizontal="Left" ss:Vertical="Top" ss:WrapText="1"/>
+			<Borders>
+				<Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#000000"/>
+				<Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#000000"/>
+				<Border ss:Position="Left"/>
+				<Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#000000"/>
+				<Border ss:Position="DiagonalLeft"/>
+			</Borders>
+			<Font ss:FontName="sans-serif" ss:Size="7.5" ss:Bold="1" ss:Color="#000000"/>
+			<Interior ss:Color="#dfe0e1" ss:Pattern="Solid"/>
+		</Style>
+		<Style ss:ID="26">
+			<Alignment ss:Horizontal="Left" ss:Vertical="Top" ss:WrapText="1"/>
+			<Borders>
+				<Border ss:Position="Bottom"/>
+				<Border ss:Position="Top"/>
+				<Border ss:Position="Left"/>
+				<Border ss:Position="Right"/>
+				<Border ss:Position="DiagonalLeft"/>
+			</Borders>
+			<Font ss:FontName="sans-serif" ss:Size="7.5" ss:Color="#000000"/>
+			<NumberFormat ss:Format="MMM dd, yyyy"/>
+		</Style>
+		<Style ss:ID="53">
+			<Alignment ss:Horizontal="Center" ss:Vertical="Top" ss:WrapText="1"/>
+			<Borders>
+				<Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#000000"/>
+				<Border ss:Position="Top"/>
+				<Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#000000"/>
+				<Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#000000"/>
+				<Border ss:Position="DiagonalLeft"/>
+			</Borders>
+			<Font ss:FontName="sans-serif" ss:Size="7.5" ss:Color="#000000"/>
+			<NumberFormat ss:Format="###0.00"/>
+		</Style>
+		<Style ss:ID="32">
+			<Alignment ss:Horizontal="Left" ss:Vertical="Top" ss:WrapText="1"/>
+			<Borders>
+				<Border ss:Position="Bottom"/>
+				<Border ss:Position="Top"/>
+				<Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#000000"/>
+				<Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#000000"/>
+				<Border ss:Position="DiagonalLeft"/>
+			</Borders>
+			<Font ss:FontName="sans-serif" ss:Size="7.5" ss:Color="#000000"/>
+		</Style>
+		<Style ss:ID="46">
+			<Alignment ss:Horizontal="Center" ss:Vertical="Top" ss:WrapText="1"/>
+			<Borders>
+				<Border ss:Position="Bottom"/>
+				<Border ss:Position="Top"/>
+				<Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#000000"/>
+				<Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#000000"/>
+				<Border ss:Position="DiagonalLeft"/>
+			</Borders>
+			<Font ss:FontName="sans-serif" ss:Size="7.5" ss:Color="#000000"/>
+		</Style>
+		<Style ss:ID="74">
+			<Alignment ss:Horizontal="Left" ss:Vertical="Top" ss:WrapText="1"/>
+			<Borders>
+				<Border ss:Position="Bottom"/>
+				<Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#000000"/>
+				<Border ss:Position="Left"/>
+				<Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#000000"/>
+				<Border ss:Position="DiagonalLeft"/>
+			</Borders>
+			<Font ss:FontName="sans-serif" ss:Size="10.0" ss:Color="#000000"/>
+		</Style>
+		<Style ss:ID="49">
+			<Alignment ss:Horizontal="Center" ss:Vertical="Top" ss:WrapText="1"/>
+			<Borders>
+				<Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#000000"/>
+				<Border ss:Position="Top"/>
+				<Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#000000"/>
+				<Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#000000"/>
+				<Border ss:Position="DiagonalLeft"/>
+			</Borders>
+			<Font ss:FontName="sans-serif" ss:Size="7.5" ss:Color="#000000"/>
+			<NumberFormat ss:Format="###0.00"/>
+		</Style>
+		<Style ss:ID="45">
+			<Alignment ss:Horizontal="Center" ss:Vertical="Top" ss:WrapText="1"/>
+			<Borders>
+				<Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#000000"/>
+				<Border ss:Position="Top"/>
+				<Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#000000"/>
+				<Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#000000"/>
+				<Border ss:Position="DiagonalLeft"/>
+			</Borders>
+			<Font ss:FontName="sans-serif" ss:Size="7.5" ss:Color="#000000"/>
+		</Style>
+		<Style ss:ID="52">
+			<Alignment ss:Horizontal="Center" ss:Vertical="Top" ss:WrapText="1"/>
+			<Borders>
+				<Border ss:Position="Bottom"/>
+				<Border ss:Position="Top"/>
+				<Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#000000"/>
+				<Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#000000"/>
+				<Border ss:Position="DiagonalLeft"/>
+			</Borders>
+			<Font ss:FontName="sans-serif" ss:Size="7.5" ss:Color="#000000"/>
+			<NumberFormat ss:Format="###0.00"/>
+		</Style>
+		<Style ss:ID="72">
+			<Alignment ss:Horizontal="Left" ss:Vertical="Top" ss:WrapText="1"/>
+			<Borders>
+				<Border ss:Position="Bottom"/>
+				<Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#000000"/>
+				<Border ss:Position="Left"/>
+				<Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#000000"/>
+				<Border ss:Position="DiagonalLeft"/>
+			</Borders>
+			<Font ss:FontName="sans-serif" ss:Size="7.5" ss:Bold="1" ss:Color="#000000"/>
+			<Interior ss:Color="#dfe0e1" ss:Pattern="Solid"/>
+		</Style>
+		<Style ss:ID="69">
+			<Alignment ss:Horizontal="Left" ss:Vertical="Top" ss:WrapText="1"/>
+			<Borders>
+				<Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#000000"/>
+				<Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#000000"/>
+				<Border ss:Position="Left"/>
+				<Border ss:Position="Right"/>
+				<Border ss:Position="DiagonalLeft"/>
+			</Borders>
+			<Font ss:FontName="sans-serif" ss:Size="10.0" ss:Color="#000000"/>
+			<Interior ss:Color="#dfe0e1" ss:Pattern="Solid"/>
+		</Style>
+		<Style ss:ID="78">
+			<Alignment ss:Horizontal="Left" ss:Vertical="Top" ss:WrapText="1"/>
+			<Borders>
+				<Border ss:Position="Bottom"/>
+				<Border ss:Position="Top"/>
+				<Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#000000"/>
+				<Border ss:Position="Right"/>
+				<Border ss:Position="DiagonalLeft"/>
+			</Borders>
+			<Font ss:FontName="sans-serif" ss:Size="7.5" ss:Color="#000000"/>
+		</Style>
+		<Style ss:ID="67">
+			<Alignment ss:Horizontal="Center" ss:Vertical="Top" ss:WrapText="1"/>
+			<Borders>
+				<Border ss:Position="Bottom"/>
+				<Border ss:Position="Top"/>
+				<Border ss:Position="Left"/>
+				<Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#000000"/>
+				<Border ss:Position="DiagonalLeft"/>
+			</Borders>
+			<Font ss:FontName="sans-serif" ss:Size="7.5" ss:Bold="1" ss:Color="#000000"/>
+			<NumberFormat ss:Format="###0.00"/>
+		</Style>
+		<Style ss:ID="77">
+			<Alignment ss:Horizontal="Center" ss:Vertical="Top" ss:WrapText="1"/>
+			<Borders>
+				<Border ss:Position="Bottom"/>
+				<Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#000000"/>
+				<Border ss:Position="Left"/>
+				<Border ss:Position="Right"/>
+				<Border ss:Position="DiagonalLeft"/>
+			</Borders>
+			<Font ss:FontName="sans-serif" ss:Size="10.0" ss:Color="#000000"/>
+		</Style>
+		<Style ss:ID="66">
+			<Alignment ss:Horizontal="Left" ss:Vertical="Top" ss:WrapText="1"/>
+			<Borders>
+				<Border ss:Position="Bottom"/>
+				<Border ss:Position="Top"/>
+				<Border ss:Position="Left"/>
+				<Border ss:Position="Right"/>
+				<Border ss:Position="DiagonalLeft"/>
+			</Borders>
+			<Font ss:FontName="sans-serif" ss:Size="7.5" ss:Bold="1" ss:Color="#000000"/>
+		</Style>
+		<Style ss:ID="68">
+			<Alignment ss:Horizontal="Left" ss:Vertical="Top" ss:WrapText="1"/>
+			<Borders>
+				<Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#000000"/>
+				<Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#000000"/>
+				<Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#000000"/>
+				<Border ss:Position="Right"/>
+				<Border ss:Position="DiagonalLeft"/>
+			</Borders>
+			<Font ss:FontName="sans-serif" ss:Size="10.0" ss:Color="#000000"/>
+			<Interior ss:Color="#dfe0e1" ss:Pattern="Solid"/>
+		</Style>
+		<Style ss:ID="58">
+			<Alignment ss:Horizontal="Right" ss:Vertical="Top" ss:WrapText="1"/>
+			<Borders>
+				<Border ss:Position="Bottom"/>
+				<Border ss:Position="Top"/>
+				<Border ss:Position="Left"/>
+				<Border ss:Position="Right"/>
+				<Border ss:Position="DiagonalLeft"/>
+			</Borders>
+			<Font ss:FontName="sans-serif" ss:Size="7.5" ss:Color="#000000"/>
+			<NumberFormat ss:Format="###0.00"/>
+		</Style>
+		<Style ss:ID="60">
+			<Alignment ss:Horizontal="Center" ss:Vertical="Top" ss:WrapText="1"/>
+			<Borders>
+				<Border ss:Position="Bottom"/>
+				<Border ss:Position="Top"/>
+				<Border ss:Position="Left"/>
+				<Border ss:Position="Right"/>
+				<Border ss:Position="DiagonalLeft"/>
+			</Borders>
+			<Font ss:FontName="sans-serif" ss:Size="7.5" ss:Color="#000000"/>
+			<NumberFormat ss:Format="###0.00"/>
+		</Style>
+	</Styles>
+	<Names>
+		<NamedRange ss:Name="__bookmark_2" ss:RefersTo="Report!R1C1:R11C24"/>
+		<NamedRange ss:Name="__bookmark_1" ss:RefersTo="Report!R1C1:R36C24"/>
+	</Names>
+
+<Worksheet ss:Name="Report">
+	<ss:Table>
+		<ss:Column ss:Width="16.384" ss:AutoFitWidth="0"/>
+		<ss:Column ss:Width="28.544" ss:AutoFitWidth="0"/>
+		<ss:Column ss:Width="52.48" ss:AutoFitWidth="0"/>
+		<ss:Column ss:Width="15.744" ss:AutoFitWidth="0"/>
+		<ss:Column ss:Width="24.064" ss:AutoFitWidth="0"/>
+		<ss:Column ss:Width="33.664" ss:AutoFitWidth="0"/>
+		<ss:Column ss:Width="27.008" ss:AutoFitWidth="0"/>
+		<ss:Column ss:Width="28.544" ss:AutoFitWidth="0"/>
+		<ss:Column ss:Width="8.192" ss:AutoFitWidth="0"/>
+		<ss:Column ss:Width="39.04" ss:AutoFitWidth="0"/>
+		<ss:Column ss:Width="15.36" ss:AutoFitWidth="0"/>
+		<ss:Column ss:Width="12.416" ss:AutoFitWidth="0"/>
+		<ss:Column ss:Width="27.008" ss:AutoFitWidth="0"/>
+		<ss:Column ss:Width="11.264" ss:AutoFitWidth="0"/>
+		<ss:Column ss:Width="17.28" ss:AutoFitWidth="0"/>
+		<ss:Column ss:Width="32.896" ss:AutoFitWidth="0"/>
+		<ss:Column ss:Width="28.544" ss:AutoFitWidth="0"/>
+		<ss:Column ss:Width="15.232" ss:AutoFitWidth="0"/>
+		<ss:Column ss:Width="13.312" ss:AutoFitWidth="0"/>
+		<ss:Column ss:Width="23.168" ss:AutoFitWidth="0"/>
+		<ss:Column ss:Width="23.296" ss:AutoFitWidth="0"/>
+		<ss:Column ss:Width="37.504" ss:AutoFitWidth="0"/>
+		<ss:Column ss:Width="18.688" ss:AutoFitWidth="0"/>
+		<ss:Column ss:Width="28.544" ss:AutoFitWidth="0"/>
+		<ss:Column ss:Width="1.28" ss:AutoFitWidth="0"/>
+		<Row ss:AutoFitHeight="1">
+			<Cell ss:Index="1" ss:StyleID="21" ss:MergeAcross="23">
+				<Data ss:Type="String">Purchase Order </Data>
+			</Cell>
+		</Row>
+		<Row ss:AutoFitHeight="1">
+			<Cell ss:Index="1" ss:StyleID="22" ss:MergeAcross="10" ss:MergeDown="6">
+				<Data ss:Type="String"> Vendor Name : </Data>
+			</Cell>
+			<Cell ss:Index="12" ss:StyleID="24" ss:MergeAcross="6">
+				<Data ss:Type="String">PO No :</Data>
+			</Cell>
+			<Cell ss:Index="19" ss:StyleID="25" ss:MergeAcross="5">
+				<Data ss:Type="String">JCNPO173907</Data>
+			</Cell>
+			<Cell ss:Index="25" ss:StyleID="23"/>
+		</Row>
+		<Row ss:AutoFitHeight="1">
+			<Cell ss:Index="12" ss:StyleID="24" ss:MergeAcross="6">
+				<Data ss:Type="String">PO Date :</Data>
+			</Cell>
+			<Cell ss:Index="19" ss:StyleID="25" ss:MergeAcross="5">
+				<Data ss:Type="String">Aug 4, 2025</Data>
+			</Cell>
+		</Row>
+		<Row ss:AutoFitHeight="1">
+			<Cell ss:Index="12" ss:StyleID="24" ss:MergeAcross="6">
+				<Data ss:Type="String">PO Release Date :</Data>
+			</Cell>
+			<Cell ss:Index="19" ss:StyleID="25" ss:MergeAcross="5">
+				<Data ss:Type="String">Aug 4, 2025</Data>
+			</Cell>
+		</Row>
+		<Row ss:AutoFitHeight="1">
+			<Cell ss:Index="12" ss:StyleID="24" ss:MergeAcross="6">
+				<Data ss:Type="String">Payment Terms :</Data>
+			</Cell>
+			<Cell ss:Index="19" ss:StyleID="25" ss:MergeAcross="5">
+				<Data ss:Type="String">0 Days</Data>
+			</Cell>
+		</Row>
+		<Row ss:AutoFitHeight="1">
+			<Cell ss:Index="12" ss:StyleID="24" ss:MergeAcross="6">
+				<Data ss:Type="String">Expected Delivery Date:</Data>
+			</Cell>
+			<Cell ss:Index="19" ss:StyleID="26" ss:MergeAcross="5">
+				<Data ss:Type="DateTime">2025-08-18T00:00:00.000</Data>
+			</Cell>
+		</Row>
+		<Row ss:AutoFitHeight="1">
+			<Cell ss:Index="12" ss:StyleID="24" ss:MergeAcross="6">
+				<Data ss:Type="String">PO Expiry Date: </Data>
+			</Cell>
+			<Cell ss:Index="19" ss:StyleID="25" ss:MergeAcross="5">
+				<Data ss:Type="String">Aug 20, 2025</Data>
+			</Cell>
+		</Row>
+		<Row ss:AutoFitHeight="1">
+			<Cell ss:Index="12" ss:StyleID="24" ss:MergeAcross="6">
+				<Data ss:Type="String">Reference PO Code:</Data>
+			</Cell>
+			<Cell ss:Index="19" ss:StyleID="25" ss:MergeAcross="5">
+				<Data ss:Type="String"/>
+			</Cell>
+		</Row>
+		<Row ss:AutoFitHeight="1">
+			<Cell ss:Index="1" ss:StyleID="27" ss:MergeAcross="10">
+				<Data ss:Type="String">KNOWTABLE ONLINE SERVICES PRIVATE LIMITED&#10;749/1, &#10;Sri Chamundeshwari Layout, Bettadasanapura Main Road, &#10;Electronic City Phase 1, Bengaluru, 560100&#10;Bangalore, Karnataka&#10;India-560100&#10;GSTIN :29AAICK3556G1Z9&#10;PAN :AAICK3556G&#10;Contact :8880133366</Data>
+			</Cell>
+			<Cell ss:Index="12" ss:StyleID="24" ss:MergeAcross="6">
+				<Data ss:Type="String"/>
+			</Cell>
+			<Cell ss:Index="19" ss:StyleID="25" ss:MergeAcross="5">
+				<Data ss:Type="String"/>
+			</Cell>
+		</Row>
+		<Row ss:AutoFitHeight="1">
+			<Cell ss:Index="1" ss:StyleID="29" ss:MergeAcross="10">
+				<Data ss:Type="String">Billing Address</Data>
+			</Cell>
+			<Cell ss:Index="12" ss:StyleID="31" ss:MergeAcross="12">
+				<Data ss:Type="String">Shipping Address</Data>
+			</Cell>
+		</Row>
+		<Row ss:AutoFitHeight="1">
+			<Cell ss:Index="1" ss:StyleID="33" ss:MergeAcross="10">
+				<Data ss:Type="String">SCOOTSY LOGISTICS PRIVATE LIMITED&#10;Ecom Express Pvt Ltd,&#10;No 90, PeriapalayamHigh Road, Kannigaipair Village,&#10;Chennai, Tamil Nadu - 601101, India&#10;Vendorinvoices@scootsy.com&#10;Contact : 9597667591&#10;GSTIN :33AAVCS1691R2ZB</Data>
+			</Cell>
+			<Cell ss:Index="12" ss:StyleID="34" ss:MergeAcross="12">
+				<Data ss:Type="String">SCOOTSY LOGISTICS PRIVATE LIMITED&#10;Ecom Express Pvt Ltd,&#10;No 90, PeriapalayamHigh Road, Kannigaipair Village,&#10;Chennai, Tamil Nadu - 601101, India&#10;Vendorinvoices@scootsy.com&#10;Contact : 9597667591&#10;GSTIN :33AAVCS1691R2ZB</Data>
+			</Cell>
+		</Row>
+		<Row ss:AutoFitHeight="1">
+			<Cell ss:Index="1" ss:StyleID="35">
+				<Data ss:Type="String">S.</Data>
+			</Cell>
+			<Cell ss:Index="2" ss:StyleID="39" ss:MergeDown="1">
+				<Data ss:Type="String">Item Code</Data>
+			</Cell>
+			<Cell ss:Index="3" ss:StyleID="39" ss:MergeDown="1">
+				<Data ss:Type="String">Item Desc</Data>
+			</Cell>
+			<Cell ss:Index="4" ss:StyleID="41" ss:MergeAcross="1" ss:MergeDown="1">
+				<Data ss:Type="String">HSN Code</Data>
+			</Cell>
+			<Cell ss:Index="6" ss:StyleID="41" ss:MergeDown="1">
+				<Data ss:Type="String">Qty</Data>
+			</Cell>
+			<Cell ss:Index="7" ss:StyleID="41" ss:MergeDown="1">
+				<Data ss:Type="String">MRP</Data>
+			</Cell>
+			<Cell ss:Index="8" ss:StyleID="41" ss:MergeAcross="1" ss:MergeDown="1">
+				<Data ss:Type="String">Unit Base Cost (INR)</Data>
+			</Cell>
+			<Cell ss:Index="10" ss:StyleID="41" ss:MergeDown="1">
+				<Data ss:Type="String">Taxable Value (INR)</Data>
+			</Cell>
+			<Cell ss:Index="11" ss:StyleID="41" ss:MergeAcross="2">
+				<Data ss:Type="String">CGST</Data>
+			</Cell>
+			<Cell ss:Index="14" ss:StyleID="41" ss:MergeAcross="2">
+				<Data ss:Type="String">SGST/UGST</Data>
+			</Cell>
+			<Cell ss:Index="17" ss:StyleID="41" ss:MergeAcross="2">
+				<Data ss:Type="String">IGST</Data>
+			</Cell>
+			<Cell ss:Index="20" ss:StyleID="41" ss:MergeAcross="1">
+				<Data ss:Type="String">CESS</Data>
+			</Cell>
+			<Cell ss:Index="22" ss:StyleID="43" ss:MergeDown="1">
+				<Data ss:Type="String">Additional CESS</Data>
+			</Cell>
+			<Cell ss:Index="23" ss:StyleID="41" ss:MergeAcross="1" ss:MergeDown="1">
+				<Data ss:Type="String">Total (INR)</Data>
+			</Cell>
+		</Row>
+		<Row ss:AutoFitHeight="1">
+			<Cell ss:Index="1" ss:StyleID="37">
+				<Data ss:Type="String">No</Data>
+			</Cell>
+			<Cell ss:Index="11" ss:StyleID="43" ss:MergeAcross="1">
+				<Data ss:Type="String">Rate</Data>
+			</Cell>
+			<Cell ss:Index="13" ss:StyleID="43">
+				<Data ss:Type="String">Amt (INR)</Data>
+			</Cell>
+			<Cell ss:Index="14" ss:StyleID="43" ss:MergeAcross="1">
+				<Data ss:Type="String">Rate</Data>
+			</Cell>
+			<Cell ss:Index="16" ss:StyleID="43">
+				<Data ss:Type="String">Amt (INR)</Data>
+			</Cell>
+			<Cell ss:Index="17" ss:StyleID="43">
+				<Data ss:Type="String">Rate</Data>
+			</Cell>
+			<Cell ss:Index="18" ss:StyleID="43" ss:MergeAcross="1">
+				<Data ss:Type="String">Amt (INR)</Data>
+			</Cell>
+			<Cell ss:Index="20" ss:StyleID="43">
+				<Data ss:Type="String">Rate</Data>
+			</Cell>
+			<Cell ss:Index="21" ss:StyleID="43">
+				<Data ss:Type="String">Amt (INR)</Data>
+			</Cell>
+		</Row>
+		<Row ss:AutoFitHeight="1">
+			<Cell ss:Index="1" ss:StyleID="45">
+				<Data ss:Type="Number">1</Data>
+			</Cell>
+			<Cell ss:Index="2" ss:StyleID="47">
+				<Data ss:Type="String">15687</Data>
+			</Cell>
+			<Cell ss:Index="3" ss:StyleID="34">
+				<Data ss:Type="String">JIVO EXTRA LIGH&#10;T DAILY COOKING&#10; OLIVE OIL 1.00&#10; L&#10;Colour: &#10;Size: size&#10;Brand:CAMPAIGN</Data>
+			</Cell>
+			<Cell ss:Index="4" ss:StyleID="34" ss:MergeAcross="1">
+				<Data ss:Type="String">15099090</Data>
+			</Cell>
+			<Cell ss:Index="6" ss:StyleID="47">
+				<Data ss:Type="String">16</Data>
+			</Cell>
+			<Cell ss:Index="7" ss:StyleID="49">
+				<Data ss:Type="Number">1499.0</Data>
+			</Cell>
+			<Cell ss:Index="8" ss:StyleID="51" ss:MergeAcross="1">
+				<Data ss:Type="Number">504.76191</Data>
+			</Cell>
+			<Cell ss:Index="10" ss:StyleID="49">
+				<Data ss:Type="Number">8076.19056</Data>
+			</Cell>
+			<Cell ss:Index="11" ss:StyleID="49" ss:MergeAcross="1">
+				<Data ss:Type="Number">0.0</Data>
+			</Cell>
+			<Cell ss:Index="13" ss:StyleID="49">
+				<Data ss:Type="Number">0.0</Data>
+			</Cell>
+			<Cell ss:Index="14" ss:StyleID="49" ss:MergeAcross="1">
+				<Data ss:Type="Number">0.0</Data>
+			</Cell>
+			<Cell ss:Index="16" ss:StyleID="49">
+				<Data ss:Type="Number">0.0</Data>
+			</Cell>
+			<Cell ss:Index="17" ss:StyleID="49">
+				<Data ss:Type="Number">5.0</Data>
+			</Cell>
+			<Cell ss:Index="18" ss:StyleID="49" ss:MergeAcross="1">
+				<Data ss:Type="Number">403.80952</Data>
+			</Cell>
+			<Cell ss:Index="20" ss:StyleID="49">
+				<Data ss:Type="Number">0.0</Data>
+			</Cell>
+			<Cell ss:Index="21" ss:StyleID="49">
+				<Data ss:Type="Number">0.0</Data>
+			</Cell>
+			<Cell ss:Index="22" ss:StyleID="49">
+				<Data ss:Type="Number">0.0</Data>
+			</Cell>
+			<Cell ss:Index="23" ss:StyleID="53" ss:MergeAcross="1">
+				<Data ss:Type="Number">8480.00008</Data>
+			</Cell>
+		</Row>
+		<Row ss:AutoFitHeight="1">
+			<Cell ss:Index="1" ss:StyleID="45">
+				<Data ss:Type="Number">2</Data>
+			</Cell>
+			<Cell ss:Index="2" ss:StyleID="47">
+				<Data ss:Type="String">21709</Data>
+			</Cell>
+			<Cell ss:Index="3" ss:StyleID="34">
+				<Data ss:Type="String">JIVO DAILY COOK&#10;ING POMACE OLIV&#10;E OIL 1.00 L&#10;Colour: &#10;Size: size&#10;Brand:CAMPAIGN</Data>
+			</Cell>
+			<Cell ss:Index="4" ss:StyleID="34" ss:MergeAcross="1">
+				<Data ss:Type="String">15099010</Data>
+			</Cell>
+			<Cell ss:Index="6" ss:StyleID="47">
+				<Data ss:Type="String">32</Data>
+			</Cell>
+			<Cell ss:Index="7" ss:StyleID="49">
+				<Data ss:Type="Number">1049.0</Data>
+			</Cell>
+			<Cell ss:Index="8" ss:StyleID="51" ss:MergeAcross="1">
+				<Data ss:Type="Number">397.14286</Data>
+			</Cell>
+			<Cell ss:Index="10" ss:StyleID="49">
+				<Data ss:Type="Number">12708.57152</Data>
+			</Cell>
+			<Cell ss:Index="11" ss:StyleID="49" ss:MergeAcross="1">
+				<Data ss:Type="Number">0.0</Data>
+			</Cell>
+			<Cell ss:Index="13" ss:StyleID="49">
+				<Data ss:Type="Number">0.0</Data>
+			</Cell>
+			<Cell ss:Index="14" ss:StyleID="49" ss:MergeAcross="1">
+				<Data ss:Type="Number">0.0</Data>
+			</Cell>
+			<Cell ss:Index="16" ss:StyleID="49">
+				<Data ss:Type="Number">0.0</Data>
+			</Cell>
+			<Cell ss:Index="17" ss:StyleID="49">
+				<Data ss:Type="Number">5.0</Data>
+			</Cell>
+			<Cell ss:Index="18" ss:StyleID="49" ss:MergeAcross="1">
+				<Data ss:Type="Number">635.42857</Data>
+			</Cell>
+			<Cell ss:Index="20" ss:StyleID="49">
+				<Data ss:Type="Number">0.0</Data>
+			</Cell>
+			<Cell ss:Index="21" ss:StyleID="49">
+				<Data ss:Type="Number">0.0</Data>
+			</Cell>
+			<Cell ss:Index="22" ss:StyleID="49">
+				<Data ss:Type="Number">0.0</Data>
+			</Cell>
+			<Cell ss:Index="23" ss:StyleID="53" ss:MergeAcross="1">
+				<Data ss:Type="Number">13344.00009</Data>
+			</Cell>
+		</Row>
+		<Row ss:AutoFitHeight="1">
+			<Cell ss:Index="1" ss:StyleID="45">
+				<Data ss:Type="Number">3</Data>
+			</Cell>
+			<Cell ss:Index="2" ss:StyleID="47">
+				<Data ss:Type="String">60711</Data>
+			</Cell>
+			<Cell ss:Index="3" ss:StyleID="34">
+				<Data ss:Type="String">Jivo Cold Press&#10; Kachi Ghani Mu&#10;stard Oil 1.0 L&#10;Colour: &#10;Size: size&#10;Brand:Default</Data>
+			</Cell>
+			<Cell ss:Index="4" ss:StyleID="34" ss:MergeAcross="1">
+				<Data ss:Type="String">15149120</Data>
+			</Cell>
+			<Cell ss:Index="6" ss:StyleID="47">
+				<Data ss:Type="String">60</Data>
+			</Cell>
+			<Cell ss:Index="7" ss:StyleID="49">
+				<Data ss:Type="Number">255.0</Data>
+			</Cell>
+			<Cell ss:Index="8" ss:StyleID="51" ss:MergeAcross="1">
+				<Data ss:Type="Number">166.66667</Data>
+			</Cell>
+			<Cell ss:Index="10" ss:StyleID="49">
+				<Data ss:Type="Number">10000.0002</Data>
+			</Cell>
+			<Cell ss:Index="11" ss:StyleID="49" ss:MergeAcross="1">
+				<Data ss:Type="Number">0.0</Data>
+			</Cell>
+			<Cell ss:Index="13" ss:StyleID="49">
+				<Data ss:Type="Number">0.0</Data>
+			</Cell>
+			<Cell ss:Index="14" ss:StyleID="49" ss:MergeAcross="1">
+				<Data ss:Type="Number">0.0</Data>
+			</Cell>
+			<Cell ss:Index="16" ss:StyleID="49">
+				<Data ss:Type="Number">0.0</Data>
+			</Cell>
+			<Cell ss:Index="17" ss:StyleID="49">
+				<Data ss:Type="Number">5.0</Data>
+			</Cell>
+			<Cell ss:Index="18" ss:StyleID="49" ss:MergeAcross="1">
+				<Data ss:Type="Number">500.0</Data>
+			</Cell>
+			<Cell ss:Index="20" ss:StyleID="49">
+				<Data ss:Type="Number">0.0</Data>
+			</Cell>
+			<Cell ss:Index="21" ss:StyleID="49">
+				<Data ss:Type="Number">0.0</Data>
+			</Cell>
+			<Cell ss:Index="22" ss:StyleID="49">
+				<Data ss:Type="Number">0.0</Data>
+			</Cell>
+			<Cell ss:Index="23" ss:StyleID="53" ss:MergeAcross="1">
+				<Data ss:Type="Number">10500.0002</Data>
+			</Cell>
+		</Row>
+		<Row ss:AutoFitHeight="1">
+			<Cell ss:Index="1" ss:StyleID="45">
+				<Data ss:Type="Number">4</Data>
+			</Cell>
+			<Cell ss:Index="2" ss:StyleID="47">
+				<Data ss:Type="String">904426</Data>
+			</Cell>
+			<Cell ss:Index="3" ss:StyleID="34">
+				<Data ss:Type="String">JIVO COLD PRESS&#10;ED MUSTARD OIL &#10;5L 5.00 LTRS&#10;Colour: &#10;Size: size&#10;Brand:</Data>
+			</Cell>
+			<Cell ss:Index="4" ss:StyleID="34" ss:MergeAcross="1">
+				<Data ss:Type="String">15149990</Data>
+			</Cell>
+			<Cell ss:Index="6" ss:StyleID="47">
+				<Data ss:Type="String">16</Data>
+			</Cell>
+			<Cell ss:Index="7" ss:StyleID="49">
+				<Data ss:Type="Number">1250.0</Data>
+			</Cell>
+			<Cell ss:Index="8" ss:StyleID="51" ss:MergeAcross="1">
+				<Data ss:Type="Number">833.33333</Data>
+			</Cell>
+			<Cell ss:Index="10" ss:StyleID="49">
+				<Data ss:Type="Number">13333.33328</Data>
+			</Cell>
+			<Cell ss:Index="11" ss:StyleID="49" ss:MergeAcross="1">
+				<Data ss:Type="Number">0.0</Data>
+			</Cell>
+			<Cell ss:Index="13" ss:StyleID="49">
+				<Data ss:Type="Number">0.0</Data>
+			</Cell>
+			<Cell ss:Index="14" ss:StyleID="49" ss:MergeAcross="1">
+				<Data ss:Type="Number">0.0</Data>
+			</Cell>
+			<Cell ss:Index="16" ss:StyleID="49">
+				<Data ss:Type="Number">0.0</Data>
+			</Cell>
+			<Cell ss:Index="17" ss:StyleID="49">
+				<Data ss:Type="Number">5.0</Data>
+			</Cell>
+			<Cell ss:Index="18" ss:StyleID="49" ss:MergeAcross="1">
+				<Data ss:Type="Number">666.66667</Data>
+			</Cell>
+			<Cell ss:Index="20" ss:StyleID="49">
+				<Data ss:Type="Number">0.0</Data>
+			</Cell>
+			<Cell ss:Index="21" ss:StyleID="49">
+				<Data ss:Type="Number">0.0</Data>
+			</Cell>
+			<Cell ss:Index="22" ss:StyleID="49">
+				<Data ss:Type="Number">0.0</Data>
+			</Cell>
+			<Cell ss:Index="23" ss:StyleID="53" ss:MergeAcross="1">
+				<Data ss:Type="Number">13999.999950000001</Data>
+			</Cell>
+		</Row>
+		<Row ss:AutoFitHeight="1">
+			<Cell ss:Index="1" ss:StyleID="45">
+				<Data ss:Type="Number">5</Data>
+			</Cell>
+			<Cell ss:Index="2" ss:StyleID="47">
+				<Data ss:Type="String">968589</Data>
+			</Cell>
+			<Cell ss:Index="3" ss:StyleID="34">
+				<Data ss:Type="String">JIVO SO OLIVE O&#10;IL 1L 1.00 LTR&#10;Colour: &#10;Size: size&#10;Brand:</Data>
+			</Cell>
+			<Cell ss:Index="4" ss:StyleID="34" ss:MergeAcross="1">
+				<Data ss:Type="String">15155091</Data>
+			</Cell>
+			<Cell ss:Index="6" ss:StyleID="47">
+				<Data ss:Type="String">80</Data>
+			</Cell>
+			<Cell ss:Index="7" ss:StyleID="49">
+				<Data ss:Type="Number">325.0</Data>
+			</Cell>
+			<Cell ss:Index="8" ss:StyleID="51" ss:MergeAcross="1">
+				<Data ss:Type="Number">204.7619</Data>
+			</Cell>
+			<Cell ss:Index="10" ss:StyleID="49">
+				<Data ss:Type="Number">16380.952</Data>
+			</Cell>
+			<Cell ss:Index="11" ss:StyleID="49" ss:MergeAcross="1">
+				<Data ss:Type="Number">0.0</Data>
+			</Cell>
+			<Cell ss:Index="13" ss:StyleID="49">
+				<Data ss:Type="Number">0.0</Data>
+			</Cell>
+			<Cell ss:Index="14" ss:StyleID="49" ss:MergeAcross="1">
+				<Data ss:Type="Number">0.0</Data>
+			</Cell>
+			<Cell ss:Index="16" ss:StyleID="49">
+				<Data ss:Type="Number">0.0</Data>
+			</Cell>
+			<Cell ss:Index="17" ss:StyleID="49">
+				<Data ss:Type="Number">5.0</Data>
+			</Cell>
+			<Cell ss:Index="18" ss:StyleID="49" ss:MergeAcross="1">
+				<Data ss:Type="Number">819.04762</Data>
+			</Cell>
+			<Cell ss:Index="20" ss:StyleID="49">
+				<Data ss:Type="Number">0.0</Data>
+			</Cell>
+			<Cell ss:Index="21" ss:StyleID="49">
+				<Data ss:Type="Number">0.0</Data>
+			</Cell>
+			<Cell ss:Index="22" ss:StyleID="49">
+				<Data ss:Type="Number">0.0</Data>
+			</Cell>
+			<Cell ss:Index="23" ss:StyleID="53" ss:MergeAcross="1">
+				<Data ss:Type="Number">17199.99962</Data>
+			</Cell>
+		</Row>
+		<Row ss:AutoFitHeight="1">
+			<Cell ss:Index="1" ss:StyleID="45">
+				<Data ss:Type="Number">6</Data>
+			</Cell>
+			<Cell ss:Index="2" ss:StyleID="47">
+				<Data ss:Type="String">401502</Data>
+			</Cell>
+			<Cell ss:Index="3" ss:StyleID="34">
+				<Data ss:Type="String">Jivo Cold Press&#10;ed oil Groundnu&#10;t Oil 5.0 L&#10;Colour: &#10;Size: size&#10;Brand:</Data>
+			</Cell>
+			<Cell ss:Index="4" ss:StyleID="34" ss:MergeAcross="1">
+				<Data ss:Type="String">15089091</Data>
+			</Cell>
+			<Cell ss:Index="6" ss:StyleID="47">
+				<Data ss:Type="String">64</Data>
+			</Cell>
+			<Cell ss:Index="7" ss:StyleID="49">
+				<Data ss:Type="Number">2800.0</Data>
+			</Cell>
+			<Cell ss:Index="8" ss:StyleID="51" ss:MergeAcross="1">
+				<Data ss:Type="Number">952.38095</Data>
+			</Cell>
+			<Cell ss:Index="10" ss:StyleID="49">
+				<Data ss:Type="Number">60952.3808</Data>
+			</Cell>
+			<Cell ss:Index="11" ss:StyleID="49" ss:MergeAcross="1">
+				<Data ss:Type="Number">0.0</Data>
+			</Cell>
+			<Cell ss:Index="13" ss:StyleID="49">
+				<Data ss:Type="Number">0.0</Data>
+			</Cell>
+			<Cell ss:Index="14" ss:StyleID="49" ss:MergeAcross="1">
+				<Data ss:Type="Number">0.0</Data>
+			</Cell>
+			<Cell ss:Index="16" ss:StyleID="49">
+				<Data ss:Type="Number">0.0</Data>
+			</Cell>
+			<Cell ss:Index="17" ss:StyleID="49">
+				<Data ss:Type="Number">5.0</Data>
+			</Cell>
+			<Cell ss:Index="18" ss:StyleID="49" ss:MergeAcross="1">
+				<Data ss:Type="Number">3047.61905</Data>
+			</Cell>
+			<Cell ss:Index="20" ss:StyleID="49">
+				<Data ss:Type="Number">0.0</Data>
+			</Cell>
+			<Cell ss:Index="21" ss:StyleID="49">
+				<Data ss:Type="Number">0.0</Data>
+			</Cell>
+			<Cell ss:Index="22" ss:StyleID="49">
+				<Data ss:Type="Number">0.0</Data>
+			</Cell>
+			<Cell ss:Index="23" ss:StyleID="53" ss:MergeAcross="1">
+				<Data ss:Type="Number">63999.99985</Data>
+			</Cell>
+		</Row>
+		<Row ss:AutoFitHeight="1">
+			<Cell ss:Index="1" ss:StyleID="45">
+				<Data ss:Type="Number">7</Data>
+			</Cell>
+			<Cell ss:Index="2" ss:StyleID="47">
+				<Data ss:Type="String">240878</Data>
+			</Cell>
+			<Cell ss:Index="3" ss:StyleID="34">
+				<Data ss:Type="String">Jivo Extra Virg&#10;in Olive Oil 25&#10;0.0 ml&#10;Colour: &#10;Size: size&#10;Brand:</Data>
+			</Cell>
+			<Cell ss:Index="4" ss:StyleID="34" ss:MergeAcross="1">
+				<Data ss:Type="String">15099090</Data>
+			</Cell>
+			<Cell ss:Index="6" ss:StyleID="47">
+				<Data ss:Type="String">168</Data>
+			</Cell>
+			<Cell ss:Index="7" ss:StyleID="49">
+				<Data ss:Type="Number">450.0</Data>
+			</Cell>
+			<Cell ss:Index="8" ss:StyleID="51" ss:MergeAcross="1">
+				<Data ss:Type="Number">196.19048</Data>
+			</Cell>
+			<Cell ss:Index="10" ss:StyleID="49">
+				<Data ss:Type="Number">32960.00064</Data>
+			</Cell>
+			<Cell ss:Index="11" ss:StyleID="49" ss:MergeAcross="1">
+				<Data ss:Type="Number">0.0</Data>
+			</Cell>
+			<Cell ss:Index="13" ss:StyleID="49">
+				<Data ss:Type="Number">0.0</Data>
+			</Cell>
+			<Cell ss:Index="14" ss:StyleID="49" ss:MergeAcross="1">
+				<Data ss:Type="Number">0.0</Data>
+			</Cell>
+			<Cell ss:Index="16" ss:StyleID="49">
+				<Data ss:Type="Number">0.0</Data>
+			</Cell>
+			<Cell ss:Index="17" ss:StyleID="49">
+				<Data ss:Type="Number">5.0</Data>
+			</Cell>
+			<Cell ss:Index="18" ss:StyleID="49" ss:MergeAcross="1">
+				<Data ss:Type="Number">1648.0</Data>
+			</Cell>
+			<Cell ss:Index="20" ss:StyleID="49">
+				<Data ss:Type="Number">0.0</Data>
+			</Cell>
+			<Cell ss:Index="21" ss:StyleID="49">
+				<Data ss:Type="Number">0.0</Data>
+			</Cell>
+			<Cell ss:Index="22" ss:StyleID="49">
+				<Data ss:Type="Number">0.0</Data>
+			</Cell>
+			<Cell ss:Index="23" ss:StyleID="53" ss:MergeAcross="1">
+				<Data ss:Type="Number">34608.00064</Data>
+			</Cell>
+		</Row>
+		<Row ss:AutoFitHeight="1">
+			<Cell ss:Index="1" ss:StyleID="45">
+				<Data ss:Type="Number">8</Data>
+			</Cell>
+			<Cell ss:Index="2" ss:StyleID="47">
+				<Data ss:Type="String">390730</Data>
+			</Cell>
+			<Cell ss:Index="3" ss:StyleID="34">
+				<Data ss:Type="String">Jivo Cold Press&#10;ed oil Groundnu&#10;t Oil 1.0 L&#10;Colour: &#10;Size: size&#10;Brand:</Data>
+			</Cell>
+			<Cell ss:Index="4" ss:StyleID="34" ss:MergeAcross="1">
+				<Data ss:Type="String">15089091</Data>
+			</Cell>
+			<Cell ss:Index="6" ss:StyleID="47">
+				<Data ss:Type="String">256</Data>
+			</Cell>
+			<Cell ss:Index="7" ss:StyleID="49">
+				<Data ss:Type="Number">560.0</Data>
+			</Cell>
+			<Cell ss:Index="8" ss:StyleID="51" ss:MergeAcross="1">
+				<Data ss:Type="Number">190.47619</Data>
+			</Cell>
+			<Cell ss:Index="10" ss:StyleID="49">
+				<Data ss:Type="Number">48761.90464</Data>
+			</Cell>
+			<Cell ss:Index="11" ss:StyleID="49" ss:MergeAcross="1">
+				<Data ss:Type="Number">0.0</Data>
+			</Cell>
+			<Cell ss:Index="13" ss:StyleID="49">
+				<Data ss:Type="Number">0.0</Data>
+			</Cell>
+			<Cell ss:Index="14" ss:StyleID="49" ss:MergeAcross="1">
+				<Data ss:Type="Number">0.0</Data>
+			</Cell>
+			<Cell ss:Index="16" ss:StyleID="49">
+				<Data ss:Type="Number">0.0</Data>
+			</Cell>
+			<Cell ss:Index="17" ss:StyleID="49">
+				<Data ss:Type="Number">5.0</Data>
+			</Cell>
+			<Cell ss:Index="18" ss:StyleID="49" ss:MergeAcross="1">
+				<Data ss:Type="Number">2438.09524</Data>
+			</Cell>
+			<Cell ss:Index="20" ss:StyleID="49">
+				<Data ss:Type="Number">0.0</Data>
+			</Cell>
+			<Cell ss:Index="21" ss:StyleID="49">
+				<Data ss:Type="Number">0.0</Data>
+			</Cell>
+			<Cell ss:Index="22" ss:StyleID="49">
+				<Data ss:Type="Number">0.0</Data>
+			</Cell>
+			<Cell ss:Index="23" ss:StyleID="53" ss:MergeAcross="1">
+				<Data ss:Type="Number">51199.99988</Data>
+			</Cell>
+		</Row>
+		<Row ss:AutoFitHeight="1">
+			<Cell ss:Index="1" ss:StyleID="54"/>
+			<Cell ss:Index="2" ss:StyleID="55"/>
+			<Cell ss:Index="3" ss:StyleID="55"/>
+			<Cell ss:Index="4" ss:StyleID="55" ss:MergeAcross="1"/>
+			<Cell ss:Index="6" ss:StyleID="55"/>
+			<Cell ss:Index="7" ss:StyleID="55"/>
+			<Cell ss:Index="8" ss:StyleID="55" ss:MergeAcross="1"/>
+			<Cell ss:Index="10" ss:StyleID="57">
+				<Data ss:Type="Number">203173.33364</Data>
+			</Cell>
+			<Cell ss:Index="11" ss:StyleID="59" ss:MergeAcross="2">
+				<Data ss:Type="Number">0.0</Data>
+			</Cell>
+			<Cell ss:Index="14" ss:StyleID="59" ss:MergeAcross="2">
+				<Data ss:Type="Number">0.0</Data>
+			</Cell>
+			<Cell ss:Index="17" ss:StyleID="59" ss:MergeAcross="2">
+				<Data ss:Type="Number">10158.66667</Data>
+			</Cell>
+			<Cell ss:Index="20" ss:StyleID="59" ss:MergeAcross="1">
+				<Data ss:Type="Number">0.0</Data>
+			</Cell>
+			<Cell ss:Index="22" ss:StyleID="61">
+				<Data ss:Type="Number">0.0</Data>
+			</Cell>
+			<Cell ss:Index="23" ss:StyleID="63" ss:MergeAcross="1">
+				<Data ss:Type="Number">213332.0</Data>
+			</Cell>
+		</Row>
+		<Row ss:AutoFitHeight="1">
+			<Cell ss:Index="1" ss:StyleID="64"/>
+			<Cell ss:Index="2" ss:StyleID="65"/>
+			<Cell ss:Index="3" ss:StyleID="65"/>
+			<Cell ss:Index="4" ss:StyleID="65" ss:MergeAcross="1"/>
+			<Cell ss:Index="6" ss:StyleID="65"/>
+			<Cell ss:Index="7" ss:StyleID="65"/>
+			<Cell ss:Index="8" ss:StyleID="65" ss:MergeAcross="1"/>
+			<Cell ss:Index="10" ss:StyleID="65"/>
+			<Cell ss:Index="11" ss:StyleID="65" ss:MergeAcross="1"/>
+			<Cell ss:Index="13" ss:StyleID="65"/>
+			<Cell ss:Index="14" ss:StyleID="65" ss:MergeAcross="1"/>
+			<Cell ss:Index="16" ss:StyleID="66" ss:MergeAcross="4">
+				<Data ss:Type="String">Total Amount (INR)</Data>
+			</Cell>
+			<Cell ss:Index="21" ss:StyleID="65"/>
+			<Cell ss:Index="22" ss:StyleID="65"/>
+			<Cell ss:Index="23" ss:StyleID="62" ss:MergeAcross="1">
+				<Data ss:Type="Number">203173.33</Data>
+			</Cell>
+		</Row>
+		<Row ss:AutoFitHeight="1">
+			<Cell ss:Index="1" ss:StyleID="64"/>
+			<Cell ss:Index="2" ss:StyleID="65"/>
+			<Cell ss:Index="3" ss:StyleID="65"/>
+			<Cell ss:Index="4" ss:StyleID="65" ss:MergeAcross="1"/>
+			<Cell ss:Index="6" ss:StyleID="65"/>
+			<Cell ss:Index="7" ss:StyleID="65"/>
+			<Cell ss:Index="8" ss:StyleID="65" ss:MergeAcross="1"/>
+			<Cell ss:Index="10" ss:StyleID="65"/>
+			<Cell ss:Index="11" ss:StyleID="65" ss:MergeAcross="1"/>
+			<Cell ss:Index="13" ss:StyleID="65"/>
+			<Cell ss:Index="14" ss:StyleID="65" ss:MergeAcross="1"/>
+			<Cell ss:Index="16" ss:StyleID="66" ss:MergeAcross="4">
+				<Data ss:Type="String">GST Compensation Cess</Data>
+			</Cell>
+			<Cell ss:Index="21" ss:StyleID="65"/>
+			<Cell ss:Index="22" ss:StyleID="65"/>
+			<Cell ss:Index="23" ss:StyleID="62" ss:MergeAcross="1">
+				<Data ss:Type="Number">0.0</Data>
+			</Cell>
+		</Row>
+		<Row ss:AutoFitHeight="1">
+			<Cell ss:Index="1" ss:StyleID="64"/>
+			<Cell ss:Index="2" ss:StyleID="65"/>
+			<Cell ss:Index="3" ss:StyleID="65"/>
+			<Cell ss:Index="4" ss:StyleID="65" ss:MergeAcross="1"/>
+			<Cell ss:Index="6" ss:StyleID="65"/>
+			<Cell ss:Index="7" ss:StyleID="65"/>
+			<Cell ss:Index="8" ss:StyleID="65" ss:MergeAcross="1"/>
+			<Cell ss:Index="10" ss:StyleID="65"/>
+			<Cell ss:Index="11" ss:StyleID="65" ss:MergeAcross="1"/>
+			<Cell ss:Index="13" ss:StyleID="65"/>
+			<Cell ss:Index="14" ss:StyleID="65" ss:MergeAcross="1"/>
+			<Cell ss:Index="16" ss:StyleID="66" ss:MergeAcross="4">
+				<Data ss:Type="String">GST Additional Cess</Data>
+			</Cell>
+			<Cell ss:Index="21" ss:StyleID="65"/>
+			<Cell ss:Index="22" ss:StyleID="65"/>
+			<Cell ss:Index="23" ss:StyleID="62" ss:MergeAcross="1">
+				<Data ss:Type="Number">0.0</Data>
+			</Cell>
+		</Row>
+		<Row ss:AutoFitHeight="1">
+			<Cell ss:Index="1" ss:StyleID="64"/>
+			<Cell ss:Index="2" ss:StyleID="65"/>
+			<Cell ss:Index="3" ss:StyleID="65"/>
+			<Cell ss:Index="4" ss:StyleID="65" ss:MergeAcross="1"/>
+			<Cell ss:Index="6" ss:StyleID="65"/>
+			<Cell ss:Index="7" ss:StyleID="65"/>
+			<Cell ss:Index="8" ss:StyleID="65" ss:MergeAcross="1"/>
+			<Cell ss:Index="10" ss:StyleID="65"/>
+			<Cell ss:Index="11" ss:StyleID="65" ss:MergeAcross="1"/>
+			<Cell ss:Index="13" ss:StyleID="65"/>
+			<Cell ss:Index="14" ss:StyleID="65" ss:MergeAcross="1"/>
+			<Cell ss:Index="16" ss:StyleID="66" ss:MergeAcross="4">
+				<Data ss:Type="String">Total Tax (INR)</Data>
+			</Cell>
+			<Cell ss:Index="21" ss:StyleID="65"/>
+			<Cell ss:Index="22" ss:StyleID="65"/>
+			<Cell ss:Index="23" ss:StyleID="62" ss:MergeAcross="1">
+				<Data ss:Type="Number">10158.67</Data>
+			</Cell>
+		</Row>
+		<Row ss:AutoFitHeight="1">
+			<Cell ss:Index="1" ss:StyleID="64"/>
+			<Cell ss:Index="2" ss:StyleID="65"/>
+			<Cell ss:Index="3" ss:StyleID="65"/>
+			<Cell ss:Index="4" ss:StyleID="65" ss:MergeAcross="1"/>
+			<Cell ss:Index="6" ss:StyleID="65"/>
+			<Cell ss:Index="7" ss:StyleID="65"/>
+			<Cell ss:Index="8" ss:StyleID="65" ss:MergeAcross="1"/>
+			<Cell ss:Index="10" ss:StyleID="65"/>
+			<Cell ss:Index="11" ss:StyleID="65" ss:MergeAcross="1"/>
+			<Cell ss:Index="13" ss:StyleID="65"/>
+			<Cell ss:Index="14" ss:StyleID="65" ss:MergeAcross="1"/>
+			<Cell ss:Index="16" ss:StyleID="66" ss:MergeAcross="4">
+				<Data ss:Type="String">Grand Total (INR)</Data>
+			</Cell>
+			<Cell ss:Index="21" ss:StyleID="65"/>
+			<Cell ss:Index="22" ss:StyleID="65"/>
+			<Cell ss:Index="23" ss:StyleID="67" ss:MergeAcross="1">
+				<Data ss:Type="Number">213332.0</Data>
+			</Cell>
+		</Row>
+		<Row ss:AutoFitHeight="1">
+			<Cell ss:Index="1" ss:StyleID="68"/>
+			<Cell ss:Index="2" ss:StyleID="69"/>
+			<Cell ss:Index="3" ss:StyleID="69"/>
+			<Cell ss:Index="4" ss:StyleID="71" ss:MergeAcross="5">
+				<Data ss:Type="String">Amount in Words : </Data>
+			</Cell>
+			<Cell ss:Index="10" ss:StyleID="73" ss:MergeAcross="14"/>
+		</Row>
+		<Row ss:AutoFitHeight="0" ss:Height="19.5">
+			<Cell ss:Index="1" ss:StyleID="75" ss:MergeAcross="3"/>
+			<Cell ss:Index="5" ss:StyleID="76" ss:MergeAcross="3"/>
+			<Cell ss:Index="9" ss:StyleID="76" ss:MergeAcross="5"/>
+			<Cell ss:Index="15" ss:StyleID="77" ss:MergeAcross="8" ss:MergeDown="3"/>
+			<Cell ss:Index="24" ss:StyleID="74" ss:MergeDown="4"/>
+		</Row>
+		<Row ss:AutoFitHeight="1">
+			<Cell ss:Index="1" ss:StyleID="64" ss:MergeAcross="3"/>
+			<Cell ss:Index="5" ss:StyleID="65" ss:MergeAcross="3"/>
+			<Cell ss:Index="9" ss:StyleID="65" ss:MergeAcross="5"/>
+		</Row>
+		<Row ss:AutoFitHeight="0" ss:Height="18.0">
+			<Cell ss:Index="1" ss:StyleID="27" ss:MergeAcross="3">
+				<Data ss:Type="String">Prepared By</Data>
+			</Cell>
+			<Cell ss:Index="5" ss:StyleID="25" ss:MergeAcross="3">
+				<Data ss:Type="String">Verified By</Data>
+			</Cell>
+			<Cell ss:Index="9" ss:StyleID="25" ss:MergeAcross="5">
+				<Data ss:Type="String">Authorised Signature</Data>
+			</Cell>
+		</Row>
+		<Row ss:AutoFitHeight="0" ss:Height="16.5">
+			<Cell ss:Index="1" ss:StyleID="64" ss:MergeAcross="13"/>
+		</Row>
+		<Row ss:AutoFitHeight="0" ss:Height="16.5">
+			<Cell ss:Index="1" ss:StyleID="78" ss:MergeAcross="22"/>
+		</Row>
+		<Row ss:AutoFitHeight="1">
+			<Cell ss:Index="1" ss:StyleID="79" ss:MergeAcross="23">
+				<Data ss:Type="String">Terms And Conditions </Data>
+			</Cell>
+		</Row>
+		<Row ss:AutoFitHeight="1">
+			<Cell ss:Index="1" ss:StyleID="80" ss:MergeAcross="23">
+				<Data ss:Type="String">1.  This purchase order (“PO”) is an offer by the Purchaser directed towards the Seller for the purchase of SKU’s mentioned in the table above (“Goods”) &#10;     in accordance with and subject to the terms and conditions contained herein. This offer shall be deemed to be accepted by the Seller with the passage &#10;     of 7 (seven) working days from the date of the PO, unless the Seller provides strict acceptance or rejection of the offer within the said timeline.&#10;2.  Seller shall deliver the Goods at the location mandated by the Purchaser strictly within the timeline prescribed under the PO. The Seller agrees and &#10;     undertakes to pay an amount equivalent to 18% of the invoice value as liquidated damages for each day of delay in delivery of the Goods to the Purchaser. &#10;3.  The Purchaser shall reserve the right to inspect the Goods on or after delivery date, and it may, at its sole discretion reject or return all or &#10;     any portion of such Goods supplied on account of non-conformity as to quantity, quality, non-compliance with any applicable laws or utility. It is &#10;     hereby explicitly agreed by the Purchaser, that all costs and expenses incurred in relation to the return or replacement of such Goods shall be solely &#10;     borne by the Seller.&#10;4.  The Seller shall forthwith remedy the shortcomings on priority to the satisfaction of the Purchaser, failing which the PO may be cancelled, Goods &#10;     returned, and payment withheld by the Purchaser.&#10;5.  The invoice issued by the Seller shall be as per the commercial terms mentioned in this PO, failing which, the Purchaser shall at its sole discretion, &#10;     exercise the following rights : (i) reject the Goods or (ii) partly/fully accept the Goods, and recover the additional amounts due from the Seller either &#10;     by way of set-off, or by issuing a debit note to the Seller.&#10;6.  The Purchaser may, without limiting any other rights or remedies it may have, set off any amount owed to it by the Seller against any amount payable &#10;     by it to the Seller.&#10;7.  Seller warrants and represents to the Purchaser that it is in whole compliance with, and shall remain in total compliance of, all applicable laws &#10;     and regulations in present and that may be notified in the future including but not limited to laws pertaining to legal metrology, GST and E-invoicing &#10;     compliances.&#10;8.  The Seller shall, at all times, keep information provided by the Purchaser confidential.&#10;9.  Goods delivered shall at the time of GRN have a minimum remaining shelf life of 70%, failing which, the Purchaser may, at its sole discretion reject the Goods. &#10;10. The Seller agrees and undertakes to allow Purchaser, its affiliates and third parties to use its proprietary Intellectual Property Rights for the &#10;     purposes of the display for sale/sale of the Goods. The Seller also grants the Purchaser the right to indicate or use the Intellectual Property Rights &#10;     related to the Goods in any content, listing catalogues etc. over the internet or in any other media, in its capacity as owner/ licensee of such &#10;     IPRs, which it so represents.&#10;11. The Seller agrees and undertakes to be solely responsible for all quality assurance related obligations of the Goods supplied to Purchaser under &#10;     this PO. The Seller further undertakes that in the event the Goods delivered under this PO are defective, adulterated, and/or are damaged, the Seller &#10;     shall be liable for such defects/damages and shall at the sole discretion of the Purchaser either (a) replace the Goods and also compensate Purchaser &#10;     for its losses and expenses in relation such Goods(s) (if any) or (b) refund the price of the Goods(s) paid by Purchaser to the Seller and also compensate &#10;     Purchaser for its losses and expenses in relation such Goods(s) (if any). The Seller agrees to abide by the applicable laws related to quality and assurance &#10;     control in India. The Seller also agrees that the Purchaser, at no stage shall be held responsible for any issues/claims related to quality assurance, &#10;     Consumer Protection Act, the Sale of Goods Act, 1930 and other related legislations/statutes in India with respect to the Goods sold by the Seller under &#10;     this PO, and shall fully indemnify Purchaser from all such claims.&#10;</Data>
+			</Cell>
+		</Row>
+		<Row ss:AutoFitHeight="1">
+			<Cell ss:Index="1" ss:StyleID="81" ss:MergeAcross="23">
+				<Data ss:Type="String">12. Seller may charge and the Purchaser will pay Goods and Services Tax (‘GST’) as applicable by law amended from time to time, provided that such GST &#10;     is stated on the original invoice that Seller provides to the Purchaser and meets the requirements of a valid tax invoice under the GST laws and &#10;     regulations in force at the time of issuance of the invoice/(E-invoice).&#10;13. The Seller shall, at its own cost and expense, indemnify and hold the Purchaser, its directors, employees, officers, affiliates and agents (collectively &#10;     “Indemnified Persons”) harmless from and against any and all losses, liabilities, claims, actions, costs and expenses, including reasonable attorneys' &#10;     fees and court costs (collectively “Claims”), relating to, resulting from or in any way arising out of: &#10;     (a) Breach of any of its representations, warranties or obligations contained herein;&#10;     (b) Any claim, suit or proceeding brought against the Purchaser alleging that (a) the sale of any Goods provided by the Seller under this PO &#10;          constitutes an infringement of any intellectual property rights; and (b) the use of any brands, trademarks and logos of the Seller by the Purchaser or &#10;          use of any other content (provided or approved by the Seller) by the Purchaser constitutes an infringement of any Intellectual Property Rights; &#10;     (c) the Purchaser’s inability to use or sell the Goods as a result of any infringement action against the Seller; &#10;     (d) any defects in the Goods (except any defects arising out of the wilful negligence of the Purchaser);&#10;     (e) fraud or fraudulent misrepresentation; &#10;     (f) breach of the terms, conditions and warranties implied by the Sale of Goods Act, 1930; or&#10;     (g) defective Goods that arises under the Consumer Protection Act.&#10;14. Seller hereby undertakes to remit applicable GST to the appropriate GST jurisdiction of the applicable taxing authority within the time specified in the &#10;     GST Law in force at the time of issuance of the invoice and report the details of the invoices in the returns within the prescribed time limit so &#10;     that the Purchaser can take input tax credit of the GST paid. b) In the event, the input tax credit of GST is denied or payment of GST is sought from &#10;     the Purchaser, for reasons including but not limited to, issuance of a deficient invoice, default in payment of GST, inappropriate reporting in the &#10;     returns filed, invoices not reported in the returns by the 10th of the next month or any such other time limit prescribed under the GST law to file the &#10;     returns, or any other non-compliance of applicable laws and regulations by Seller, Seller shall become liable to promptly, without delay or demur, &#10;     reimburse to the Purchaser the following: (i) all the GST payable for the supply as per the scope mentioned herein, and/or; (ii) the disallowed or &#10;     unavailable input tax credits which otherwise the Purchaser would be entitled under the applicable law; (iii) interest and penalties associated with &#10;     such disallowed or unavailable credits or such GST payment sought from the Purchaser; and (iv) all other additional taxes or late charges that may &#10;     be demanded by or may become payable to the taxing authority from the Purchaser.&#10;15. Seller acknowledges and agrees that in the event, any tax proceedings are initiated against the Purchaser, Seller shall fully cooperate with the Purchaser &#10;     by furnishing the relevant information related to the supply provided to the Purchaser on timely basis as may be required by the Purchaser. Furthermore, &#10;     all the damages and other costs incurred by the Purchaser due to any fault of Seller, Seller shall indemnify the Purchaser for all such damages and other costs.&#10;16. Seller acknowledges and agrees that it would adhere to the applicable GST compliances that may be monitored by the taxation authorities and any defaults &#10;     may result in blacklisting or special scrutiny of either of the Parties. Accordingly, in the event of continuing defaults from Seller, which results in &#10;     any kind of adverse actions against the Purchaser including special scrutiny of the books of accounts of the Purchaser, then the Purchaser shall have &#10;     the right to immediately terminate this PO for violation of law committed by Seller and the breach of this PO.&#10;17. Seller shall comply with Anti Profiteering Measure as defined under section 171 of the Central Goods and Services Act, 2017 including such rules, &#10;     guidelines, circulars, notification etc., as may be issued by Government from time to time. Further, as required under Anti Profiteering Measure &#10;     of the GST Law, Seller shall pass on the benefit of any tax credits / reduction in rate of output taxes/ benefits to which the Purchaser shall be &#10;     eligible under GST by way of reduction in the base price charged to the Purchaser and the Purchaser reserves its rights to seek any information that &#10;     may be appropriate to meet this purpose.&#10;18. The Seller acknowledges that the Purchaser shall further resell the Goods, in as is condition, adopting the classification and rate of GST as per the &#10;     tax invoice raised by the Seller on the Purchaser. The Seller agrees to indemnify the Purchaser in relation to the classification and the rate of GST &#10;     charged on the Goods which are further sold by the Purchaser. In case there is any demand of tax, interest or penalty due to an incorrect classification &#10;     and/ or rate of GST on the Purchaser, then the Purchaser shall have the right to recover the amount of tax, interest or penalty from the Seller.&#10;19. The Seller shall fully indemnify, defend and hold harmless Purchaser, its directors, employees, officers, affiliates, agents and contractors harmless &#10;     from and against any and all losses including but not limited to any liabilities, claims, actions, costs and expenses, third party claims, reasonable &#10;     attorney’s fees and court costs, tax imposed or tax loss, interest, penalty, and costs or expenses of any nature whatsoever (including attorneys’ fees &#10;     and costs), (“Losses”) and indemnify the Purchaser for all Losses incurred by the Purchaser in or on account of any disputes arising or any claim(s) &#10;     that are made against the Purchaser or any credit, refund or other benefit due under the GST laws is denied to the Purchaser due to classification &#10;     and/ or GST rate adopted by the Purchaser basis the Seller’s invoices for sales made to the Purchaser.&#10;20. In the event of any dispute arising out of or in connection with the present PO, the parties shall, at the first instance, operate and negotiate in good &#10;     faith to settle their dispute amicably. If any dispute is not settled amicably, the principal shall appoint an arbitrator, to whom the dispute(s) shall &#10;     be referred to for adjudication. The award given by the arbitrator shall be final and binding on both parties. The language of the arbitral proceedings &#10;     shall be in English. The arbitration shall be governed by the Arbitration and Conciliation Act, 1996 and the place of arbitration shall be at Bangalore.&#10;</Data>
+			</Cell>
+		</Row>
+	</ss:Table>
+	<WorksheetOptions xmlns="urn:schemas-microsoft-com:office:excel">
+		<PageSetup>
+			<PageMargins x:Bottom="0.25" x:Left="0.14583333" x:Right="0.072916664" x:Top="0.0"/>
+			<Layout x:Orientation="Portrait"/>
+			<Header/>
+			<Footer/>
+		</PageSetup>
+		<Print>
+			<PaperSizeIndex>9</PaperSizeIndex>
+		</Print>
+	</WorksheetOptions>
+</Worksheet>
+</Workbook>

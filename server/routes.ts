@@ -4,7 +4,8 @@ import { storage } from "./storage";
 import { insertPfPoSchema, insertPfOrderItemsSchema, insertFlipkartGroceryPoHeaderSchema, insertFlipkartGroceryPoLinesSchema } from "@shared/schema";
 import { z } from "zod";
 import { seedTestData } from "./seed-data";
-import { parseFlipkartGroceryPO, parseZeptoPO, parseCityMallPO, parseBlinkitPO, parseSwiggyPO } from "./csv-parser";
+import { parseFlipkartGroceryPO, parseZeptoPO, parseCityMallPO, parseBlinkitPO } from "./csv-parser";
+import { parseSwiggyPO } from "./swiggy-parser";
 import multer from 'multer';
 
 const createPoSchema = z.object({
