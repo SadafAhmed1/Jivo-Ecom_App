@@ -765,33 +765,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // If the method doesn't exist, continue - it means no duplicate check is implemented yet
       }
 
+      // Helper function to safely convert dates
+      const safeConvertDate = (dateValue: any): Date | null => {
+        if (!dateValue) return null;
+        if (dateValue instanceof Date) return dateValue;
+        if (typeof dateValue === 'string') {
+          const parsed = Date.parse(dateValue);
+          return isNaN(parsed) ? null : new Date(parsed);
+        }
+        return null;
+      };
+
       // Clean and convert dates to proper Date objects
       const cleanHeader = { ...header };
-      if (cleanHeader.order_date && typeof cleanHeader.order_date === 'string') {
-        cleanHeader.order_date = new Date(cleanHeader.order_date);
-      }
-      if (cleanHeader.po_expiry_date && typeof cleanHeader.po_expiry_date === 'string') {
-        cleanHeader.po_expiry_date = new Date(cleanHeader.po_expiry_date);
-      }
-      if (cleanHeader.po_date && typeof cleanHeader.po_date === 'string') {
-        const dateStr = cleanHeader.po_date;
-        // Only convert if it's not already a Date object
-        if (dateStr && !isNaN(Date.parse(dateStr))) {
-          cleanHeader.po_date = new Date(dateStr);
-        } else {
-          cleanHeader.po_date = null; // Set to null if invalid date
+      
+      // Convert all possible date fields
+      const dateFields = ['order_date', 'po_expiry_date', 'po_date', 'po_release_date', 'expected_delivery_date', 'appointment_date', 'expiry_date'];
+      dateFields.forEach(field => {
+        if (cleanHeader[field]) {
+          cleanHeader[field] = safeConvertDate(cleanHeader[field]);
         }
-      }
+      });
 
       // Clean lines data
       const cleanLines = lines.map((line: any) => {
         const cleanLine = { ...line };
-        if (cleanLine.required_by_date && typeof cleanLine.required_by_date === 'string') {
-          cleanLine.required_by_date = new Date(cleanLine.required_by_date);
-        }
-        if (cleanLine.po_expiry_date && typeof cleanLine.po_expiry_date === 'string') {
-          cleanLine.po_expiry_date = new Date(cleanLine.po_expiry_date);
-        }
+        const lineDateFields = ['required_by_date', 'po_expiry_date', 'delivery_date'];
+        lineDateFields.forEach(field => {
+          if (cleanLine[field]) {
+            cleanLine[field] = safeConvertDate(cleanLine[field]);
+          }
+        });
         return cleanLine;
       });
 
