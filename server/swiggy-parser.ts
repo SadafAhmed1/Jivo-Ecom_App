@@ -43,9 +43,25 @@ export function parseSwiggyPO(fileBuffer: Buffer, uploadedBy: string): ParsedSwi
         
         const cellStr = cell.toString().trim();
         
-        // Extract PO Number
-        if (cellStr === 'PO No :' && j + 1 < row.length && row[j + 1]) {
-          poNumber = row[j + 1].toString().trim();
+
+        
+        // Extract PO Number - check current and next several cells
+        if (cellStr === 'PO No :') {
+          // Look in next few cells for the PO number
+          for (let k = j + 1; k < Math.min(j + 10, row.length); k++) {
+            if (row[k] && row[k].toString().trim()) {
+              const potentialPO = row[k].toString().trim();
+              if (potentialPO.startsWith('JCNPO') || potentialPO.startsWith('SOTY-')) {
+                poNumber = potentialPO;
+                break;
+              }
+            }
+          }
+        }
+        
+        // Also check if the cell itself contains a PO number
+        if (cellStr.startsWith('JCNPO') || cellStr.startsWith('SOTY-')) {
+          poNumber = cellStr;
         }
         
         // Extract dates
@@ -62,9 +78,54 @@ export function parseSwiggyPO(fileBuffer: Buffer, uploadedBy: string): ParsedSwi
           poExpiryDate = parseSwiggyDate(row[j + 1].toString());
         }
         
-        // Extract payment terms
-        if (cellStr === 'Payment Terms :' && j + 1 < row.length && row[j + 1]) {
-          paymentTerms = row[j + 1].toString().trim();
+        // Extract payment terms - check multiple approaches
+        if (cellStr === 'Payment Terms :' || cellStr.includes('Payment Terms')) {
+          // Look in next few cells for the value
+          for (let k = j + 1; k < Math.min(j + 10, row.length); k++) {
+            if (row[k] && row[k].toString().trim()) {
+              const value = row[k].toString().trim();
+              if (value && value !== '' && !value.includes('PO') && !value.includes('Date')) {
+                paymentTerms = value;
+                break;
+              }
+            }
+          }
+        }
+        
+        // Also look for "0 Days" or similar patterns directly
+        if ((cellStr === '0 Days' || cellStr.includes('Days')) && !paymentTerms) {
+          paymentTerms = cellStr;
+        }
+        
+        // Extract vendor information - check for "Vendor Name :" in separate cells  
+        if (cellStr === 'Vendor Name :' || cellStr.includes('Vendor Name')) {
+          // The vendor name might be in merged cells or subsequent rows
+          // Check the current row and next few rows for vendor information
+          for (let nextRow = i; nextRow < Math.min(i + 5, jsonData.length); nextRow++) {
+            const searchRow = jsonData[nextRow];
+            if (searchRow) {
+              for (let k = 0; k < searchRow.length; k++) {
+                if (searchRow[k] && searchRow[k].toString().trim()) {
+                  const value = searchRow[k].toString().trim();
+                  // Look for vendor name that's not a label or empty
+                  if (value && value !== '' && 
+                      !value.includes(':') && 
+                      !value.includes('PO') && 
+                      !value.includes('Date') && 
+                      !value.includes('Payment') &&
+                      !value.includes('Expected') &&
+                      !value.includes('Vendor Name') &&
+                      !value.includes('Aug') &&
+                      !value.includes('2025') &&
+                      value.length > 3) {
+                    vendorName = value;
+                    break;
+                  }
+                }
+              }
+              if (vendorName) break;
+            }
+          }
         }
         
         // Extract vendor information from multi-line cells
@@ -73,7 +134,7 @@ export function parseSwiggyPO(fileBuffer: Buffer, uploadedBy: string): ParsedSwi
           if (lines.length > 1) {
             vendorName = lines[0].replace('Vendor Name :', '').trim();
             vendorAddress = lines.slice(1, -2).join(', ');
-            const gstinLine = lines.find(line => line.includes('GSTIN'));
+            const gstinLine = lines.find((line: any) => line.includes('GSTIN'));
             if (gstinLine) {
               vendorGstin = gstinLine.replace('GSTIN :', '').trim();
             }
@@ -134,8 +195,7 @@ export function parseSwiggyPO(fileBuffer: Buffer, uploadedBy: string): ParsedSwi
             cess_rate: parseDecimal(row[19]?.toString()),
             cess_amount: parseDecimal(row[20]?.toString()),
             additional_cess: parseDecimal(row[21]?.toString()),
-            total_amount: parseDecimal(row[22]?.toString()),
-            status: 'Pending',
+            line_total: parseDecimal(row[22]?.toString()),
             created_by: uploadedBy
           };
 
@@ -147,7 +207,7 @@ export function parseSwiggyPO(fileBuffer: Buffer, uploadedBy: string): ParsedSwi
           totalTaxAmount += (Number(line.cgst_amount || 0) + Number(line.sgst_amount || 0) + 
                             Number(line.igst_amount || 0) + Number(line.cess_amount || 0) + 
                             Number(line.additional_cess || 0));
-          totalAmount += Number(line.total_amount || 0);
+          totalAmount += Number(line.line_total || 0);
         } catch (error) {
           console.warn(`Error parsing Swiggy PO line ${i}:`, error);
           continue;
@@ -160,6 +220,17 @@ export function parseSwiggyPO(fileBuffer: Buffer, uploadedBy: string): ParsedSwi
       const timestamp = Date.now();
       poNumber = `SW_${timestamp}`;
     }
+    
+    // Set default vendor name if not found
+    if (!vendorName) {
+      vendorName = "N/A";
+    }
+    
+    // Filter out empty line items
+    const filteredLines = lines.filter(line => 
+      line.item_code && line.item_code.trim() !== '' && 
+      line.quantity > 0
+    );
 
     const header: InsertSwiggyPo = {
       po_number: poNumber,
@@ -169,10 +240,6 @@ export function parseSwiggyPO(fileBuffer: Buffer, uploadedBy: string): ParsedSwi
       po_expiry_date: poExpiryDate,
       payment_terms: paymentTerms,
       vendor_name: vendorName,
-      vendor_address: vendorAddress,
-      vendor_gstin: vendorGstin,
-      billing_address: billingAddress,
-      shipping_address: shippingAddress,
       total_quantity: totalQuantity,
       total_taxable_value: totalTaxableValue.toString(),
       total_tax_amount: totalTaxAmount.toString(),
@@ -182,9 +249,9 @@ export function parseSwiggyPO(fileBuffer: Buffer, uploadedBy: string): ParsedSwi
       uploaded_by: uploadedBy
     };
 
-    return { header, lines };
+    return { header, lines: filteredLines };
   } catch (error) {
-    throw new Error(`Failed to parse Swiggy PO: ${error.message}`);
+    throw new Error(`Failed to parse Swiggy PO: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 }
 
