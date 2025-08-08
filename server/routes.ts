@@ -694,8 +694,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return sum + amount;
         }, 0);
 
+        // Clean header data for display
+        let displayHeader = { ...parsedData.header };
+        
+        // Fix vendor_name display for Swiggy - if it contains payment terms or dates, set to null
+        if (detectedVendor === "swiggy") {
+          // Force vendor_name to null for Swiggy since the data is corrupted
+          displayHeader.vendor_name = null;
+        }
+
         res.json({
-          header: parsedData.header,
+          header: displayHeader,
           lines: parsedData.lines,
           detectedVendor: detectedVendor,
           totalItems: parsedData.lines.length,
