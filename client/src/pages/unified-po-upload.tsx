@@ -462,8 +462,77 @@ export default function UnifiedPOUpload() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              {/* Summary Information */}
-              {selectedPlatform === "flipkart" ? (
+              {/* Blinkit Multi-PO Display */}
+              {parsedData.poList ? (
+                <div className="space-y-8">
+                  <div className="flex items-center gap-2 mb-4">
+                    <CheckCircle className="h-5 w-5 text-green-600" />
+                    <h3 className="text-lg font-semibold">
+                      Multiple POs Found: {parsedData.totalPOs} Purchase Orders
+                    </h3>
+                  </div>
+                  
+                  {parsedData.poList.map((po: any, poIndex: number) => (
+                    <div key={poIndex} className="border rounded-lg p-6 bg-white shadow-sm">
+                      <h4 className="text-lg font-semibold mb-4 text-blue-600">
+                        PO #{poIndex + 1}: {po.header.po_number}
+                      </h4>
+                      
+                      {/* Individual PO Summary */}
+                      <div className="grid grid-cols-3 gap-4 mb-6">
+                        <div className="p-3 bg-green-50 rounded-lg">
+                          <p className="text-sm font-medium text-green-800">Items</p>
+                          <p className="text-lg font-bold text-green-900">{po.totalItems}</p>
+                        </div>
+                        <div className="p-3 bg-purple-50 rounded-lg">
+                          <p className="text-sm font-medium text-purple-800">Quantity</p>
+                          <p className="text-lg font-bold text-purple-900">{po.totalQuantity}</p>
+                        </div>
+                        <div className="p-3 bg-yellow-50 rounded-lg">
+                          <p className="text-sm font-medium text-yellow-800">Amount</p>
+                          <p className="text-lg font-bold text-yellow-900">₹{po.totalAmount}</p>
+                        </div>
+                      </div>
+
+                      {/* PO Lines Table */}
+                      <div className="overflow-x-auto">
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead>Item Code</TableHead>
+                              <TableHead>Product Description</TableHead>
+                              <TableHead>UOM</TableHead>
+                              <TableHead>Quantity</TableHead>
+                              <TableHead>Landing Rate</TableHead>
+                              <TableHead>Total Amount</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {po.lines.slice(0, 5).map((line: any, lineIndex: number) => (
+                              <TableRow key={lineIndex}>
+                                <TableCell className="font-medium">{line.item_code}</TableCell>
+                                <TableCell>{line.product_description}</TableCell>
+                                <TableCell>{line.grammage}</TableCell>
+                                <TableCell>{line.quantity}</TableCell>
+                                <TableCell>₹{line.landing_rate}</TableCell>
+                                <TableCell>₹{line.total_amount}</TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                        {po.lines.length > 5 && (
+                          <p className="text-sm text-gray-500 mt-2">
+                            ...and {po.lines.length - 5} more items
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <>
+                  {/* Summary Information for single PO platforms */}
+                  {selectedPlatform === "flipkart" ? (
                 <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
                   <div className="p-3 bg-blue-50 rounded-lg">
                     <p className="text-sm font-medium text-blue-800">
@@ -772,12 +841,14 @@ export default function UnifiedPOUpload() {
                     </TableBody>
                   </Table>
                 </div>
-                {parsedData.lines.length > 5 && (
+                {parsedData.lines && parsedData.lines.length > 5 && (
                   <p className="text-sm text-gray-500 text-center">
                     Showing 5 of {parsedData.lines.length} items
                   </p>
                 )}
               </div>
+                </>
+              )}
 
               {/* Import Actions */}
               <div className="flex gap-3 pt-4 border-t">
