@@ -749,8 +749,104 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/po/import/:vendor", async (req, res) => {
     try {
       const vendor = req.params.vendor;
-      const { header, lines } = req.body;
+      const { header, lines, poList } = req.body;
 
+      // Helper function to safely convert dates
+      const safeConvertDate = (dateValue: any): Date | null => {
+        if (!dateValue) return null;
+        if (dateValue instanceof Date) return dateValue;
+        if (typeof dateValue === 'string') {
+          const parsed = Date.parse(dateValue);
+          return isNaN(parsed) ? null : new Date(parsed);
+        }
+        return null;
+      };
+
+      console.log("Import request data:", { 
+        vendor, 
+        hasPoList: !!poList, 
+        hasHeader: !!header, 
+        hasLines: !!lines,
+        bodyKeys: Object.keys(req.body)
+      });
+      
+      // Handle Blinkit multi-PO structure
+      if (vendor === "blinkit" && poList && Array.isArray(poList)) {
+        const importResults = [];
+        
+        for (const po of poList) {
+          try {
+            // Check if PO number exists
+            if (!po.header?.po_number) {
+              importResults.push({ 
+                po_number: "Unknown", 
+                status: "failed", 
+                error: "PO number is not available" 
+              });
+              continue;
+            }
+
+            // Check for duplicate PO numbers
+            try {
+              const existingPo = await storage.getBlinkitPoByNumber(po.header.po_number);
+              if (existingPo) {
+                importResults.push({ 
+                  po_number: po.header.po_number, 
+                  status: "failed", 
+                  error: "PO already exists" 
+                });
+                continue;
+              }
+            } catch (error) {
+              // Continue if duplicate check method doesn't exist
+            }
+
+            // Clean and convert dates
+            const cleanHeader = { ...po.header };
+            const dateFields = ['order_date', 'po_expiry_date', 'po_date', 'po_release_date', 'expected_delivery_date'];
+            dateFields.forEach(field => {
+              if (cleanHeader[field]) {
+                cleanHeader[field] = safeConvertDate(cleanHeader[field]);
+              }
+            });
+
+            // Clean lines data
+            const cleanLines = po.lines.map((line: any) => {
+              const cleanLine = { ...line };
+              const lineDateFields = ['required_by_date', 'po_expiry_date', 'delivery_date'];
+              lineDateFields.forEach(field => {
+                if (cleanLine[field]) {
+                  cleanLine[field] = safeConvertDate(cleanLine[field]);
+                }
+              });
+              return cleanLine;
+            });
+
+            // Create the PO
+            const createdPo = await storage.createBlinkitPo(cleanHeader, cleanLines);
+            importResults.push({ 
+              po_number: po.header.po_number, 
+              status: "success", 
+              id: createdPo.id 
+            });
+
+          } catch (error) {
+            console.error(`Error importing PO ${po.header?.po_number}:`, error);
+            importResults.push({ 
+              po_number: po.header?.po_number || "Unknown", 
+              status: "failed", 
+              error: "Failed to import PO" 
+            });
+          }
+        }
+
+        return res.status(201).json({ 
+          message: `Imported ${importResults.filter(r => r.status === 'success').length} of ${poList.length} POs`, 
+          results: importResults 
+        });
+      }
+
+      // Handle single PO structure (existing logic)
       if (!header || !lines) {
         return res.status(400).json({ error: "Header and lines are required" });
       }
@@ -787,17 +883,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } catch (error) {
         // If the method doesn't exist, continue - it means no duplicate check is implemented yet
       }
-
-      // Helper function to safely convert dates
-      const safeConvertDate = (dateValue: any): Date | null => {
-        if (!dateValue) return null;
-        if (dateValue instanceof Date) return dateValue;
-        if (typeof dateValue === 'string') {
-          const parsed = Date.parse(dateValue);
-          return isNaN(parsed) ? null : new Date(parsed);
-        }
-        return null;
-      };
 
       // Clean and convert dates to proper Date objects
       const cleanHeader = { ...header };

@@ -128,8 +128,8 @@ export default function UnifiedPOUpload() {
   });
 
   const importMutation = useMutation({
-    mutationFn: async (data: { header: any; lines: any[] }) => {
-      const response = await fetch(selectedPlatformData!.endpoint, {
+    mutationFn: async (data: { header?: any; lines?: any[]; poList?: any[] }) => {
+      const response = await fetch(`/api/po/import/${selectedPlatform}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -145,10 +145,24 @@ export default function UnifiedPOUpload() {
       return response.json();
     },
     onSuccess: (data) => {
-      toast({
-        title: "PO imported successfully",
-        description: `PO ${data.po_number} has been created`,
-      });
+      // Handle both single PO response and multi-PO response
+      if (data.results && Array.isArray(data.results)) {
+        // Multi-PO response (Blinkit)
+        const successfulImports = data.results.filter((r: any) => r.status === 'success');
+        const failedImports = data.results.filter((r: any) => r.status === 'failed');
+        
+        toast({
+          title: "PO import completed",
+          description: `Successfully imported ${successfulImports.length} of ${data.results.length} POs${failedImports.length > 0 ? `. ${failedImports.length} failed.` : ''}`,
+        });
+      } else {
+        // Single PO response
+        toast({
+          title: "PO imported successfully",
+          description: `PO ${data.po_number} has been created`,
+        });
+      }
+      
       resetForm();
       queryClient.invalidateQueries({
         queryKey: [selectedPlatformData!.queryKey],
@@ -244,10 +258,18 @@ export default function UnifiedPOUpload() {
       return;
     }
 
-    importMutation.mutate({
-      header: parsedData.header,
-      lines: parsedData.lines,
-    });
+    // Handle Blinkit multi-PO structure
+    if (parsedData.poList) {
+      importMutation.mutate({
+        poList: parsedData.poList,
+      });
+    } else {
+      // Handle single PO structure for other platforms
+      importMutation.mutate({
+        header: parsedData.header,
+        lines: parsedData.lines,
+      });
+    }
   };
 
   const resetForm = () => {
