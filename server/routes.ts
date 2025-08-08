@@ -832,10 +832,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
           } catch (error) {
             console.error(`Error importing PO ${po.header?.po_number}:`, error);
+            const errorMessage = error instanceof Error ? error.message : String(error);
             importResults.push({ 
               po_number: po.header?.po_number || "Unknown", 
               status: "failed", 
-              error: "Failed to import PO" 
+              error: errorMessage
             });
           }
         }
