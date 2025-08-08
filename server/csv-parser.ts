@@ -479,8 +479,10 @@ export function parseCityMallPO(csvContent: string, uploadedBy: string): ParsedC
 }
 
 export function parseBlinkitPO(fileContent: Buffer, uploadedBy: string): {
-  header: InsertBlinkitPoHeader;
-  lines: InsertBlinkitPoLines[];
+  poList: Array<{
+    header: InsertBlinkitPoHeader;
+    lines: InsertBlinkitPoLines[];
+  }>;
 } {
   const csvContent = fileContent.toString('utf-8');
   const parsedData = Papa.parse(csvContent, {
@@ -498,85 +500,78 @@ export function parseBlinkitPO(fileContent: Buffer, uploadedBy: string): {
     throw new Error('CSV file appears to be empty');
   }
 
-  // Check for required headers in the actual CSV format
-  const requiredHeaders = ['po_number', 'vendor_name', 'order_date'];
+  // Check for required headers - using the actual column names from the new format
+  const requiredHeaders = ['po_number', 'item_id', 'name', 'remaining_quantity'];
   const headers = Object.keys(rows[0]);
   const missingHeaders = requiredHeaders.filter(header => !headers.includes(header));
   if (missingHeaders.length > 0) {
     throw new Error(`Missing required headers: ${missingHeaders.join(', ')}`);
   }
 
-  // Get the first row to extract PO number and common data
-  const firstRow = rows[0];
-  const poNumber = firstRow.po_number?.toString().trim();
-
-  // Validate PO number exists
-  if (!poNumber) {
-    throw new Error('po no is not available please check you upload po');
-  }
-
-  // Parse dates safely
-  const parseDate = (dateStr: string) => {
-    if (!dateStr) return null;
-    try {
-      return new Date(dateStr);
-    } catch {
-      return null;
-    }
-  };
-
-  const orderDate = parseDate(firstRow.order_date);
-  const expiryDate = parseDate(firstRow.expiry_date);
+  // Group rows by PO number
+  const poGroups: { [poNumber: string]: any[] } = {};
   
-  // Calculate totals
-  let totalQuantity = 0;
-  let totalAmount = 0;
-  const uniquePoNumbers = new Set();
-
-  const blinkitLines: InsertBlinkitPoLines[] = rows.map((row: any, index: number) => {
-    const quantity = Number(row.units_ordered) || 0;
-    const lineTotal = Number(row.total_amount) || 0;
+  rows.forEach(row => {
+    const poNumber = row.po_number?.toString().trim();
+    if (!poNumber) {
+      throw new Error('po no is not available please check you upload po');
+    }
     
-    totalQuantity += quantity;
-    totalAmount += lineTotal;
-    uniquePoNumbers.add(row.po_number);
-
-    return {
-      line_number: index + 1,
-      item_code: String(row.item_id || ''),
-      hsn_code: '', // Not present in this CSV format
-      product_upc: String(row.upc || ''),
-      product_description: String(row.name || ''),
-      grammage: String(row.uom_text || ''),
-      basic_cost_price: (Number(row.cost_price) || 0).toString(),
-      cgst_percent: (Number(row.cgst_value) || 0).toString(),
-      sgst_percent: (Number(row.sgst_value) || 0).toString(),
-      igst_percent: (Number(row.igst_value) || 0).toString(),
-      cess_percent: (Number(row.cess_value) || 0).toString(),
-      additional_cess: '0',
-      tax_amount: (Number(row.tax_value) || 0).toString(),
-      landing_rate: (Number(row.landing_rate) || 0).toString(),
-      quantity: quantity,
-      mrp: (Number(row.mrp) || 0).toString(),
-      margin_percent: (Number(row.margin_percentage) || 0).toString(),
-      total_amount: lineTotal.toString(),
-      status: row.po_state || "Active",
-      created_by: uploadedBy
-    };
+    if (!poGroups[poNumber]) {
+      poGroups[poNumber] = [];
+    }
+    poGroups[poNumber].push(row);
   });
 
-  const blinkitHeader: InsertBlinkitPoHeader = {
-    po_number: poNumber,
-    status: "Open",
-    total_quantity: totalQuantity,
-    total_tax_amount: blinkitLines.reduce((sum, line) => sum + Number(line.tax_amount), 0).toString(),
-    created_by: uploadedBy
-  };
+  // Process each PO separately
+  const poList = Object.entries(poGroups).map(([poNumber, poRows]) => {
+    let totalQuantity = 0;
+    let totalAmount = 0;
 
-  return {
-    header: blinkitHeader,
-    lines: blinkitLines
-  };
+    const blinkitLines: InsertBlinkitPoLines[] = poRows.map((row: any, index: number) => {
+      // Use the correct field mappings as specified
+      const quantity = Number(row.remaining_quantity) || 0; // remaining_quantity → quantity
+      const lineTotal = Number(row.total_amount) || 0;
+      
+      totalQuantity += quantity;
+      totalAmount += lineTotal;
+
+      return {
+        line_number: index + 1,
+        item_code: String(row.item_id || ''), // item_id → item_code
+        hsn_code: '', // Not present in this CSV format
+        product_upc: String(row.upc || ''),
+        product_description: String(row.name || ''), // name → item_name 
+        grammage: String(row.uom_text || ''), // uom_text → uom
+        basic_cost_price: (Number(row.cost_price) || 0).toString(),
+        cgst_percent: (Number(row.cgst_value) || 0).toString(),
+        sgst_percent: (Number(row.sgst_value) || 0).toString(),
+        igst_percent: (Number(row.igst_value) || 0).toString(),
+        cess_percent: (Number(row.cess_value) || 0).toString(),
+        additional_cess: '0',
+        tax_amount: (Number(row.tax_value) || 0).toString(),
+        landing_rate: (Number(row.landing_rate) || 0).toString(),
+        quantity: quantity,
+        mrp: (Number(row.mrp) || 0).toString(),
+        margin_percent: (Number(row.margin_percentage) || 0).toString(),
+        total_amount: lineTotal.toString(),
+        status: row.po_state || "Active",
+        created_by: uploadedBy
+      };
+    });
+
+    const blinkitHeader: InsertBlinkitPoHeader = {
+      po_number: poNumber,
+      status: "Open",
+      total_quantity: totalQuantity,
+      total_tax_amount: blinkitLines.reduce((sum, line) => sum + Number(line.tax_amount), 0).toString(),
+      created_by: uploadedBy
+    };
+
+    return { header: blinkitHeader, lines: blinkitLines };
+  });
+
+  return { poList };
 }
 
 interface ParsedSwiggyPO {

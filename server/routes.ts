@@ -659,7 +659,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
           parsedData = await parseCityMallPO(req.file.buffer, uploadedBy);
         } else if (filename.includes('blinkit')) {
           detectedVendor = "blinkit";
-          parsedData = await parseBlinkitPO(req.file.buffer, uploadedBy);
+          console.log("Processing Blinkit file with multiple POs...");
+          try {
+            const blinkitResult = parseBlinkitPO(req.file.buffer, uploadedBy);
+            console.log("Found", blinkitResult.poList.length, "POs in Blinkit file");
+            // Return the multiple POs structure for Blinkit
+            return res.json({
+              poList: blinkitResult.poList.map(po => ({
+                header: po.header,
+                lines: po.lines,
+                totalItems: po.lines.length,
+                totalQuantity: po.header.total_quantity,
+                totalAmount: po.lines.reduce((sum, line) => sum + parseFloat(line.total_amount || '0'), 0).toFixed(2)
+              })),
+              detectedVendor: 'blinkit',
+              totalPOs: blinkitResult.poList.length
+            });
+          } catch (blinkitError) {
+            console.error("Blinkit parsing failed:", blinkitError);
+            throw blinkitError; // Re-throw to fall through to fallback parsers
+          }
         } else if (filename.includes('swiggy') || filename.includes('soty')) {
           detectedVendor = "swiggy";
           parsedData = await parseSwiggyPO(req.file.buffer, uploadedBy);
@@ -669,7 +688,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
             { name: "flipkart", parser: parseFlipkartGroceryPO },
             { name: "zepto", parser: parseZeptoPO },
             { name: "citymall", parser: parseCityMallPO },
-            { name: "blinkit", parser: parseBlinkitPO },
+            { name: "blinkit", parser: (buffer: Buffer, user: string) => {
+              const result = parseBlinkitPO(buffer, user);
+              // Convert multiple PO structure to single PO for fallback detection
+              return result.poList.length > 0 ? result.poList[0] : { header: {}, lines: [] };
+            } },
             { name: "swiggy", parser: parseSwiggyPO }
           ];
 
