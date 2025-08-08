@@ -541,7 +541,7 @@ export default function UnifiedPOUpload() {
                       Total Amount
                     </p>
                     <p className="text-lg font-bold text-yellow-900">
-                      ₹{parsedData.totalAmount || "0"}
+                      ₹{parsedData.header?.grand_total ? parseFloat(parsedData.header.grand_total).toFixed(2) : (parsedData.totalAmount || "0")}
                     </p>
                   </div>
                   <div className="p-3 bg-orange-50 rounded-lg">
@@ -553,7 +553,7 @@ export default function UnifiedPOUpload() {
                         ? new Date(
                             parsedData.header.po_date,
                           ).toLocaleDateString()
-                        : "N/A"}
+                        : "Not Available"}
                     </p>
                   </div>
                 </div>
@@ -631,7 +631,7 @@ export default function UnifiedPOUpload() {
                         <strong>PO Date:</strong>{" "}
                         {parsedData.header?.po_date
                           ? new Date(parsedData.header.po_date).toLocaleDateString()
-                          : "N/A"}
+                          : "Not Available"}
                       </div>
                       <div>
                         <strong>Vendor Name:</strong>{" "}
@@ -744,11 +744,11 @@ export default function UnifiedPOUpload() {
                                 {line.item_description || line.item_name || "N/A"}
                               </TableCell>
                               <TableCell>{line.item_code || "N/A"}</TableCell>
-                              <TableCell>{line.hsn_code || "N/A"}</TableCell>
+                              <TableCell>{line.hsn_code || "Not Available"}</TableCell>
                               <TableCell>{line.quantity || "N/A"}</TableCell>
                               <TableCell>₹{line.mrp || "N/A"}</TableCell>
-                              <TableCell>₹{line.unit_base_cost || "N/A"}</TableCell>
-                              <TableCell>₹{line.taxable_value || "N/A"}</TableCell>
+                              <TableCell>{line.unit_base_cost ? `₹${parseFloat(line.unit_base_cost).toFixed(2)}` : "Not Available"}</TableCell>
+                              <TableCell>₹{line.taxable_value ? parseFloat(line.taxable_value).toFixed(2) : "N/A"}</TableCell>
                             </>
                           ) : (
                             <>
