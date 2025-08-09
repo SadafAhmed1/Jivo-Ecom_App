@@ -71,7 +71,12 @@ export function POListView() {
   };
 
   const handleEdit = (po: POWithDetails) => {
-    setLocation(`/po-edit/${po.id}`);
+    // For Zepto POs, redirect to Zepto-specific edit page
+    if (po.platform.pf_name === "Zepto") {
+      setLocation(`/zepto-pos/edit/${po.id}`);
+    } else {
+      setLocation(`/po-edit/${po.id}`);
+    }
   };
 
   const handleDelete = (po: POWithDetails) => {

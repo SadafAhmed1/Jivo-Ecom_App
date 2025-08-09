@@ -814,6 +814,88 @@ export class DatabaseStorage implements IStorage {
   async deleteSwiggyPo(id: number): Promise<void> {
     await db.delete(swiggyPos).where(eq(swiggyPos.id, id));
   }
+
+  // Zepto PO management methods
+  async getAllZeptoPos(): Promise<(ZeptoPoHeader & { poLines: ZeptoPoLines[] })[]> {
+    const headers = await db.select().from(zeptoPoHeader).orderBy(desc(zeptoPoHeader.created_at));
+    
+    const result = [];
+    for (const header of headers) {
+      const lines = await db.select().from(zeptoPoLines)
+        .where(eq(zeptoPoLines.po_number, header.po_number))
+        .orderBy(zeptoPoLines.line_number);
+      
+      result.push({
+        ...header,
+        poLines: lines
+      });
+    }
+    
+    return result;
+  }
+
+  async getZeptoPoById(id: number): Promise<(ZeptoPoHeader & { poLines: ZeptoPoLines[] }) | undefined> {
+    const [header] = await db.select().from(zeptoPoHeader).where(eq(zeptoPoHeader.id, id));
+    
+    if (!header) {
+      return undefined;
+    }
+    
+    const lines = await db.select().from(zeptoPoLines)
+      .where(eq(zeptoPoLines.po_number, header.po_number))
+      .orderBy(zeptoPoLines.line_number);
+    
+    return {
+      ...header,
+      poLines: lines
+    };
+  }
+
+  async getZeptoPoByNumber(poNumber: string): Promise<ZeptoPoHeader | undefined> {
+    const [header] = await db.select().from(zeptoPoHeader).where(eq(zeptoPoHeader.po_number, poNumber));
+    return header || undefined;
+  }
+
+  async updateZeptoPo(id: number, header: Partial<InsertZeptoPoHeader>, lines?: InsertZeptoPoLines[]): Promise<ZeptoPoHeader | undefined> {
+    return await db.transaction(async (tx) => {
+      // Update header
+      const [updatedHeader] = await tx
+        .update(zeptoPoHeader)
+        .set({ ...header, updated_at: new Date() })
+        .where(eq(zeptoPoHeader.id, id))
+        .returning();
+
+      // If lines are provided, update them
+      if (lines && lines.length > 0) {
+        // Delete existing lines for this PO
+        await tx.delete(zeptoPoLines).where(eq(zeptoPoLines.po_number, updatedHeader.po_number));
+        
+        // Insert new lines
+        const linesWithHeaderId = lines.map(line => ({
+          ...line,
+          po_header_id: updatedHeader.id,
+          po_number: updatedHeader.po_number
+        }));
+        await tx.insert(zeptoPoLines).values(linesWithHeaderId);
+      }
+
+      return updatedHeader;
+    });
+  }
+
+  async deleteZeptoPo(id: number): Promise<void> {
+    await db.transaction(async (tx) => {
+      // Get the PO header to find the po_number
+      const [header] = await tx.select().from(zeptoPoHeader).where(eq(zeptoPoHeader.id, id));
+      
+      if (header) {
+        // Delete lines first
+        await tx.delete(zeptoPoLines).where(eq(zeptoPoLines.po_number, header.po_number));
+        // Delete header
+        await tx.delete(zeptoPoHeader).where(eq(zeptoPoHeader.id, id));
+      }
+    });
+  }
 }
 
 export const storage = new DatabaseStorage();

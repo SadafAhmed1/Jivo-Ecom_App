@@ -14,6 +14,7 @@ import FlipkartGroceryPODetails from "@/pages/flipkart-grocery-po-details";
 import ZeptoPoUpload from "@/pages/zepto-po-upload";
 import ZeptoPOs from "@/pages/zepto-pos";
 import ZeptoPoDetails from "@/pages/zepto-po-details";
+import ZeptoPoEdit from "@/pages/zepto-po-edit";
 import CityMallPoUpload from "@/pages/city-mall-po-upload";
 import CityMallPOs from "@/pages/city-mall-pos";
 import CityMallPoDetails from "@/pages/city-mall-po-details";
@@ -39,6 +40,9 @@ function Router() {
           <Route path="/zepto-upload" component={ZeptoPoUpload} />
           <Route path="/zepto-pos" component={ZeptoPOs} />
           <Route path="/zepto-pos/:id" component={ZeptoPoDetails} />
+          <Route path="/zepto-pos/edit/:id">
+            {(params) => <ZeptoPoEdit poId={params.id} />}
+          </Route>
           <Route path="/city-mall-upload" component={CityMallPoUpload} />
           <Route path="/city-mall-pos" component={CityMallPOs} />
           <Route path="/city-mall-pos/:id" component={CityMallPoDetails} />

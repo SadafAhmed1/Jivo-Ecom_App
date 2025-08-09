@@ -633,6 +633,60 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Zepto PO management endpoints
+  app.get("/api/zepto-pos", async (_req, res) => {
+    try {
+      const pos = await storage.getAllZeptoPos();
+      res.json(pos);
+    } catch (error) {
+      console.error("Error fetching Zepto POs:", error);
+      res.status(500).json({ error: "Failed to fetch Zepto POs" });
+    }
+  });
+
+  app.get("/api/zepto-pos/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ error: "Invalid ID" });
+      }
+      
+      const zeptoPo = await storage.getZeptoPoById(id);
+      if (!zeptoPo) {
+        return res.status(404).json({ error: "Zepto PO not found" });
+      }
+      
+      res.json(zeptoPo);
+    } catch (error) {
+      console.error("Error fetching Zepto PO:", error);
+      res.status(500).json({ error: "Failed to fetch Zepto PO" });
+    }
+  });
+
+  app.put("/api/zepto-pos/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const { header, lines } = req.body;
+      
+      const updatedPo = await storage.updateZeptoPo(id, header, lines);
+      res.json(updatedPo);
+    } catch (error) {
+      console.error("Error updating Zepto PO:", error);
+      res.status(500).json({ error: "Failed to update PO" });
+    }
+  });
+
+  app.delete("/api/zepto-pos/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      await storage.deleteZeptoPo(id);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting Zepto PO:", error);
+      res.status(500).json({ error: "Failed to delete PO" });
+    }
+  });
+
   // Unified PO upload and preview routes
   app.post("/api/po/preview", upload.single('file'), async (req, res) => {
     try {
