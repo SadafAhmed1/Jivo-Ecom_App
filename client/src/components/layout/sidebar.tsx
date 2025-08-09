@@ -6,8 +6,8 @@ import {
   Upload, 
   Package, 
   Store, 
-  Database,
-  User
+  User,
+  Database
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -24,13 +24,6 @@ const navigation = [
     icon: ShoppingCart,
     active: true,
     description: "Create, upload & manage platform orders"
-  },
-  {
-    name: "Item Master",
-    href: "/items-dashboard",
-    icon: Database,
-    active: true,
-    description: "View & sync SAP item master data"
   },
   {
     name: "Distributor PO",
@@ -52,6 +45,13 @@ const navigation = [
     icon: Package,
     active: false,
     comingSoon: true
+  },
+  {
+    name: "Item Management",
+    href: "/item-management",
+    icon: Database,
+    active: true,
+    description: "Manage master item catalog with SQL API"
   }
 ];
 

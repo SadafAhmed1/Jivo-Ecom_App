@@ -4,23 +4,21 @@ import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 import { relations } from "drizzle-orm";
 
-// SAP Item Master Table (synced from SQL Server SP_GET_ITEM_DETAILS)
+// SAP Item Master Table
 export const sapItemMst = pgTable("sap_item_mst", {
   id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
   itemcode: varchar("itemcode", { length: 50 }).notNull().unique(),
   itemname: text("itemname").notNull(),
-  itmsgrpnam: varchar("itmsgrpnam", { length: 100 }), // Item Group Name
-  u_type: varchar("u_type", { length: 50 }), // User defined type
+  type: varchar("type", { length: 50 }),
+  itemgroup: varchar("itemgroup", { length: 100 }),
   variety: varchar("variety", { length: 100 }),
   subgroup: varchar("subgroup", { length: 100 }),
-  u_brand: varchar("u_brand", { length: 100 }), // User defined brand
+  brand: varchar("brand", { length: 100 }),
   uom: varchar("uom", { length: 20 }),
-  unitsize: decimal("unitsize", { precision: 10, scale: 6 }), // Changed to decimal for precision
-  u_is_litre: varchar("u_is_litre", { length: 1 }), // Y/N flag as in SQL Server
-  u_tax_rate: decimal("u_tax_rate", { precision: 5, scale: 2 }), // User defined tax rate
-  created_at: timestamp("created_at").defaultNow(),
-  updated_at: timestamp("updated_at").defaultNow(),
-  last_synced: timestamp("last_synced").defaultNow()
+  taxrate: decimal("taxrate", { precision: 5, scale: 2 }),
+  unitsize: varchar("unitsize", { length: 50 }),
+  is_litre: boolean("is_litre").default(false),
+  case_pack: integer("case_pack")
 });
 
 // Platform Master Table
@@ -110,12 +108,15 @@ export const pfOrderItemsRelations = relations(pfOrderItems, ({ one }) => ({
 }));
 
 // Insert schemas
+export const insertSapItemMstSchema = createInsertSchema(sapItemMst).omit({ id: true });
 export const insertPfMstSchema = createInsertSchema(pfMst).omit({ id: true });
 export const insertPfItemMstSchema = createInsertSchema(pfItemMst).omit({ id: true });
 export const insertPfPoSchema = createInsertSchema(pfPo).omit({ id: true, created_at: true, updated_at: true });
 export const insertPfOrderItemsSchema = createInsertSchema(pfOrderItems).omit({ id: true, po_id: true });
 
 // Types
+export type SapItemMst = typeof sapItemMst.$inferSelect;
+export type InsertSapItemMst = z.infer<typeof insertSapItemMstSchema>;
 export type PfMst = typeof pfMst.$inferSelect;
 export type InsertPfMst = z.infer<typeof insertPfMstSchema>;
 export type PfItemMst = typeof pfItemMst.$inferSelect;
@@ -124,6 +125,38 @@ export type PfPo = typeof pfPo.$inferSelect;
 export type InsertPfPo = z.infer<typeof insertPfPoSchema>;
 export type PfOrderItems = typeof pfOrderItems.$inferSelect;
 export type InsertPfOrderItems = z.infer<typeof insertPfOrderItemsSchema>;
+
+// Item Management Table
+export const itemMaster = pgTable("item_master", {
+  id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
+  itemCode: varchar("item_code", { length: 50 }).notNull().unique(),
+  itemName: text("item_name").notNull(),
+  itmsGrpNam: varchar("itms_grp_nam", { length: 100 }),
+  uType: varchar("u_type", { length: 50 }),
+  variety: varchar("variety", { length: 100 }),
+  subGroup: varchar("sub_group", { length: 100 }),
+  uBrand: varchar("u_brand", { length: 100 }),
+  uom: varchar("uom", { length: 20 }),
+  unitSize: decimal("unit_size", { precision: 10, scale: 6 }),
+  uIsLitre: varchar("u_is_litre", { length: 1 }),
+  uTaxRate: decimal("u_tax_rate", { precision: 5, scale: 2 }),
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow()
+});
+
+// Insert schema for item master - make all fields strings for form handling
+export const insertItemMasterSchema = createInsertSchema(itemMaster).omit({ 
+  id: true, 
+  created_at: true, 
+  updated_at: true 
+}).extend({
+  unitSize: z.string().optional(),
+  uTaxRate: z.string().optional()
+});
+
+// Types for item master
+export type ItemMaster = typeof itemMaster.$inferSelect;
+export type InsertItemMaster = z.infer<typeof insertItemMasterSchema>;
 
 // Legacy user table (keeping for compatibility)
 export const users = pgTable("users", {
@@ -534,15 +567,3 @@ export type SwiggyPo = typeof swiggyPos.$inferSelect;
 export type InsertSwiggyPo = z.infer<typeof insertSwiggyPoSchema>;
 export type SwiggyPoLine = typeof swiggyPoLines.$inferSelect;
 export type InsertSwiggyPoLine = z.infer<typeof insertSwiggyPoLinesSchema>;
-
-// Insert schema for SAP Item Master
-export const insertSapItemMstSchema = createInsertSchema(sapItemMst).omit({
-  id: true,
-  created_at: true,
-  updated_at: true,
-  last_synced: true
-});
-
-// Types for SAP Item Master  
-export type SapItemMst = typeof sapItemMst.$inferSelect;
-export type InsertSapItemMst = z.infer<typeof insertSapItemMstSchema>;
