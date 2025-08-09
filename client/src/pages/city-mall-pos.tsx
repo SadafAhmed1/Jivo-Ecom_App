@@ -106,7 +106,7 @@ export default function CityMallPOs() {
           </div>
         </div>
         
-        <Link href="/city-mall-upload">
+        <Link href="/unified-po-upload">
           <Button>
             <Package className="mr-2 h-4 w-4" />
             Upload New PO
@@ -172,7 +172,7 @@ export default function CityMallPOs() {
             <Package size={48} className="mx-auto mb-4 text-gray-400" />
             <h3 className="text-lg font-semibold text-gray-900 mb-2">No Purchase Orders Found</h3>
             <p className="text-gray-600 mb-4">Upload a CSV file to get started with City Mall purchase orders.</p>
-            <Link href="/city-mall-upload">
+            <Link href="/unified-po-upload">
               <Button>
                 <Package className="mr-2 h-4 w-4" />
                 Upload First PO
