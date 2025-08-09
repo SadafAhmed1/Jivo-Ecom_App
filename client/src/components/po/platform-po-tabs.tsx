@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus, List, BarChart3, Upload } from "lucide-react";
+import { Plus, List, BarChart3, Upload, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -53,24 +53,26 @@ export function PlatformPOTabs() {
       {/* Main Content with Tabs */}
       <Card className="shadow-lg border-0">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <CardHeader className="border-b border-gray-100 dark:border-gray-700 bg-gradient-to-r from-slate-50 to-gray-50 dark:from-gray-800 dark:to-gray-900">
-            <TabsList className="grid w-full grid-cols-2 bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm shadow-md rounded-xl">
-              <TabsTrigger 
-                value="list" 
-                className="flex items-center space-x-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-600 data-[state=active]:to-emerald-600 data-[state=active]:text-white"
-              >
-                <List className="h-4 w-4" />
-                <span>View POs</span>
-              </TabsTrigger>
-              <TabsTrigger 
-                value="analytics" 
-                className="flex items-center space-x-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-pink-600 data-[state=active]:text-white"
-              >
-                <BarChart3 className="h-4 w-4" />
-                <span>Order Items</span>
-              </TabsTrigger>
-            </TabsList>
-          </CardHeader>
+          {!showUploadModal && !showCreateForm && (
+            <CardHeader className="border-b border-gray-100 dark:border-gray-700 bg-gradient-to-r from-slate-50 to-gray-50 dark:from-gray-800 dark:to-gray-900">
+              <TabsList className="grid w-full grid-cols-2 bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm shadow-md rounded-xl">
+                <TabsTrigger 
+                  value="list" 
+                  className="flex items-center space-x-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-600 data-[state=active]:to-emerald-600 data-[state=active]:text-white"
+                >
+                  <List className="h-4 w-4" />
+                  <span>View POs</span>
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="analytics" 
+                  className="flex items-center space-x-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-pink-600 data-[state=active]:text-white"
+                >
+                  <BarChart3 className="h-4 w-4" />
+                  <span>Order Items</span>
+                </TabsTrigger>
+              </TabsList>
+            </CardHeader>
+          )}
 
           <CardContent className="p-0">
             {!showUploadModal && !showCreateForm && (
@@ -91,14 +93,19 @@ export function PlatformPOTabs() {
 
             {showUploadModal && (
               <div className="p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-semibold">Upload Purchase Order</h3>
-                  <button 
-                    onClick={() => setShowUploadModal(false)}
-                    className="text-gray-500 hover:text-gray-700"
-                  >
-                    ✕
-                  </button>
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center space-x-3">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setShowUploadModal(false)}
+                      className="flex items-center space-x-2"
+                    >
+                      <ArrowLeft className="h-4 w-4" />
+                      <span>Back</span>
+                    </Button>
+                    <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Upload Purchase Order</h3>
+                  </div>
                 </div>
                 <UnifiedUploadComponent 
                   onComplete={() => {
@@ -111,14 +118,19 @@ export function PlatformPOTabs() {
 
             {showCreateForm && (
               <div className="p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-semibold">Create New Purchase Order</h3>
-                  <button 
-                    onClick={() => setShowCreateForm(false)}
-                    className="text-gray-500 hover:text-gray-700"
-                  >
-                    ✕
-                  </button>
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center space-x-3">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setShowCreateForm(false)}
+                      className="flex items-center space-x-2"
+                    >
+                      <ArrowLeft className="h-4 w-4" />
+                      <span>Back</span>
+                    </Button>
+                    <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Create New Purchase Order</h3>
+                  </div>
                 </div>
                 <PlatformPOForm />
               </div>
