@@ -516,6 +516,14 @@ export function UnifiedUploadComponent({ onComplete }: UnifiedUploadComponentPro
                                         <th className="text-left p-2 font-medium">MRP</th>
                                         <th className="text-left p-2 font-medium">Total Value</th>
                                       </>
+                                    ) : selectedPlatformData?.id === 'citymall' ? (
+                                      <>
+                                        <th className="text-left p-2 font-medium">Item</th>
+                                        <th className="text-left p-2 font-medium">Code</th>
+                                        <th className="text-left p-2 font-medium">Quantity</th>
+                                        <th className="text-left p-2 font-medium">Price</th>
+                                        <th className="text-left p-2 font-medium">Total</th>
+                                      </>
                                     ) : (
                                       <>
                                         <th className="text-left p-2 font-medium">Item</th>
@@ -541,6 +549,14 @@ export function UnifiedUploadComponent({ onComplete }: UnifiedUploadComponentPro
                                           <td className="p-2">₹{line.cost_price || '0.00'}</td>
                                           <td className="p-2">₹{line.mrp || '0.00'}</td>
                                           <td className="p-2">₹{line.total_value || '0.00'}</td>
+                                        </>
+                                      ) : selectedPlatformData?.id === 'citymall' ? (
+                                        <>
+                                          <td className="p-2">{line.article_name || 'N/A'}</td>
+                                          <td className="p-2">{line.article_id || 'N/A'}</td>
+                                          <td className="p-2">{line.quantity || 0}</td>
+                                          <td className="p-2">₹{line.base_cost_price || '0.00'}</td>
+                                          <td className="p-2">₹{line.total_amount || '0.00'}</td>
                                         </>
                                       ) : (
                                         <>
