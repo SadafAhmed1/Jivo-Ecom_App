@@ -54,8 +54,8 @@ export default function SapSync() {
       let description = "Failed to sync SAP items";
       
       if (error.message.includes('503:')) {
-        title = "SAP Server Connection Failed";
-        description = "Unable to connect to SAP B1 Hanna ERP. Please check VPN connection and server accessibility.";
+        title = "SQL Server Connection Failed";
+        description = "Unable to connect to SQL Server database. Please check VPN connection and server accessibility.";
       } else if (error.message.includes('500:')) {
         description = error.message.split(': ')[1] || "Internal server error occurred";
       }
@@ -86,7 +86,7 @@ export default function SapSync() {
         <div>
           <h1 className="text-3xl font-bold">SAP Item Master Sync</h1>
           <p className="text-gray-600 mt-2">
-            Synchronize item master data from SAP B1 Hanna ERP system
+            Synchronize item master data from SQL Server database
           </p>
         </div>
         <Button
@@ -184,7 +184,7 @@ export default function SapSync() {
             <div className="text-center py-8 text-gray-500">
               <Database className="h-12 w-12 mx-auto mb-4 text-gray-300" />
               <p className="text-lg font-medium">No SAP items found</p>
-              <p className="text-sm">Click "Sync Now" to fetch items from SAP B1 Hanna</p>
+              <p className="text-sm">Click "Sync Now" to fetch items from SQL Server database</p>
             </div>
           ) : (
             <div className="space-y-2">
