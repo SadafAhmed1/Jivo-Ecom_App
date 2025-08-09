@@ -305,10 +305,14 @@ interface ParsedZeptoPO {
 }
 
 export function parseZeptoPO(csvContent: string, uploadedBy: string): ParsedZeptoPO {
-  const records = parse(csvContent, {
+  // Clean the CSV content to remove any BOM or extra whitespace
+  const cleanContent = csvContent.replace(/^\uFEFF/, '').trim();
+  
+  const records = parse(cleanContent, {
     columns: true,
     skip_empty_lines: true,
-    trim: true
+    trim: true,
+    skip_records_with_empty_values: false
   });
 
   if (records.length === 0) {
@@ -336,6 +340,13 @@ export function parseZeptoPO(csvContent: string, uploadedBy: string): ParsedZept
       if (index === 0) {
         console.log('Zepto CSV columns:', Object.keys(record));
         console.log('SAP Id value:', record['SAP Id']);
+        console.log('All column variations:');
+        Object.keys(record).forEach(key => {
+          if (key.toLowerCase().includes('sap')) {
+            console.log(`  "${key}": "${record[key]}"`);
+          }
+        });
+        console.log('First record full data:', record);
       }
       
       const line: InsertZeptoPoLines = {
