@@ -31,6 +31,8 @@ import {
   type SwiggyPoLine,
   type InsertSwiggyPo,
   type InsertSwiggyPoLine,
+  type ItemMaster,
+  type InsertItemMaster,
   users,
   pfMst,
   sapItemMst,
@@ -46,10 +48,11 @@ import {
   blinkitPoHeader,
   blinkitPoLines,
   swiggyPos,
-  swiggyPoLines
+  swiggyPoLines,
+  itemMaster
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, and, ilike } from "drizzle-orm";
+import { eq, desc, and, ilike, or } from "drizzle-orm";
 
 export interface IStorage {
   // User methods (legacy)
@@ -118,6 +121,15 @@ export interface IStorage {
   createSwiggyPo(po: InsertSwiggyPo, lines: InsertSwiggyPoLine[]): Promise<SwiggyPo>;
   updateSwiggyPo(id: number, po: Partial<InsertSwiggyPo>): Promise<SwiggyPo | undefined>;
   deleteSwiggyPo(id: number): Promise<void>;
+
+  // Item Management methods
+  getAllItems(): Promise<ItemMaster[]>;
+  getItemById(id: number): Promise<ItemMaster | undefined>;
+  getItemByCode(itemCode: string): Promise<ItemMaster | undefined>;
+  createItem(item: InsertItemMaster): Promise<ItemMaster>;
+  updateItem(id: number, item: Partial<InsertItemMaster>): Promise<ItemMaster>;
+  deleteItem(id: number): Promise<void>;
+  searchItems(search?: string): Promise<ItemMaster[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -895,6 +907,57 @@ export class DatabaseStorage implements IStorage {
         await tx.delete(zeptoPoHeader).where(eq(zeptoPoHeader.id, id));
       }
     });
+  }
+
+  // Item Management methods
+  async getAllItems(): Promise<ItemMaster[]> {
+    return await db.select().from(itemMaster).orderBy(itemMaster.itemCode);
+  }
+
+  async getItemById(id: number): Promise<ItemMaster | undefined> {
+    const [item] = await db.select().from(itemMaster).where(eq(itemMaster.id, id));
+    return item || undefined;
+  }
+
+  async getItemByCode(itemCode: string): Promise<ItemMaster | undefined> {
+    const [item] = await db.select().from(itemMaster).where(eq(itemMaster.itemCode, itemCode));
+    return item || undefined;
+  }
+
+  async createItem(item: InsertItemMaster): Promise<ItemMaster> {
+    const [result] = await db.insert(itemMaster).values(item).returning();
+    return result;
+  }
+
+  async updateItem(id: number, item: Partial<InsertItemMaster>): Promise<ItemMaster> {
+    const [updated] = await db
+      .update(itemMaster)
+      .set({ ...item, updated_at: new Date() })
+      .where(eq(itemMaster.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteItem(id: number): Promise<void> {
+    await db.delete(itemMaster).where(eq(itemMaster.id, id));
+  }
+
+  async searchItems(search?: string): Promise<ItemMaster[]> {
+    if (!search) {
+      return this.getAllItems();
+    }
+    
+    return await db
+      .select()
+      .from(itemMaster)
+      .where(
+        or(
+          ilike(itemMaster.itemCode, `%${search}%`),
+          ilike(itemMaster.itemName, `%${search}%`),
+          ilike(itemMaster.uBrand, `%${search}%`)
+        )
+      )
+      .orderBy(itemMaster.itemCode);
   }
 }
 

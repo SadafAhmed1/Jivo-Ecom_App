@@ -126,6 +126,38 @@ export type InsertPfPo = z.infer<typeof insertPfPoSchema>;
 export type PfOrderItems = typeof pfOrderItems.$inferSelect;
 export type InsertPfOrderItems = z.infer<typeof insertPfOrderItemsSchema>;
 
+// Item Management Table
+export const itemMaster = pgTable("item_master", {
+  id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
+  itemCode: varchar("item_code", { length: 50 }).notNull().unique(),
+  itemName: text("item_name").notNull(),
+  itmsGrpNam: varchar("itms_grp_nam", { length: 100 }),
+  uType: varchar("u_type", { length: 50 }),
+  variety: varchar("variety", { length: 100 }),
+  subGroup: varchar("sub_group", { length: 100 }),
+  uBrand: varchar("u_brand", { length: 100 }),
+  uom: varchar("uom", { length: 20 }),
+  unitSize: decimal("unit_size", { precision: 10, scale: 6 }),
+  uIsLitre: varchar("u_is_litre", { length: 1 }),
+  uTaxRate: decimal("u_tax_rate", { precision: 5, scale: 2 }),
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow()
+});
+
+// Insert schema for item master - make all fields strings for form handling
+export const insertItemMasterSchema = createInsertSchema(itemMaster).omit({ 
+  id: true, 
+  created_at: true, 
+  updated_at: true 
+}).extend({
+  unitSize: z.string().optional(),
+  uTaxRate: z.string().optional()
+});
+
+// Types for item master
+export type ItemMaster = typeof itemMaster.$inferSelect;
+export type InsertItemMaster = z.infer<typeof insertItemMasterSchema>;
+
 // Legacy user table (keeping for compatibility)
 export const users = pgTable("users", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),

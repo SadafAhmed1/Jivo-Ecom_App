@@ -1,11 +1,12 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertPfPoSchema, insertPfOrderItemsSchema, insertFlipkartGroceryPoHeaderSchema, insertFlipkartGroceryPoLinesSchema } from "@shared/schema";
+import { insertPfPoSchema, insertPfOrderItemsSchema, insertFlipkartGroceryPoHeaderSchema, insertFlipkartGroceryPoLinesSchema, insertItemMasterSchema } from "@shared/schema";
 import { z } from "zod";
 import { seedTestData } from "./seed-data";
 import { parseFlipkartGroceryPO, parseZeptoPO, parseCityMallPO, parseBlinkitPO } from "./csv-parser";
 import { parseSwiggyPO } from "./swiggy-parser";
+import { callSpGetItemDetails } from "./sql-client";
 import multer from 'multer';
 
 const createPoSchema = z.object({
@@ -88,6 +89,112 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(201).json(item);
     } catch (error) {
       res.status(500).json({ message: "Failed to create SAP item" });
+    }
+  });
+
+  // Item Management routes
+  app.get("/api/items", async (req, res) => {
+    try {
+      const search = req.query.search as string;
+      const items = search ? await storage.searchItems(search) : await storage.getAllItems();
+      res.json(items);
+    } catch (error) {
+      console.error("Error fetching items:", error);
+      res.status(500).json({ message: "Failed to fetch items" });
+    }
+  });
+
+  app.get("/api/items/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const item = await storage.getItemById(id);
+      if (!item) {
+        return res.status(404).json({ message: "Item not found" });
+      }
+      res.json(item);
+    } catch (error) {
+      console.error("Error fetching item:", error);
+      res.status(500).json({ message: "Failed to fetch item" });
+    }
+  });
+
+  app.post("/api/items", async (req, res) => {
+    try {
+      const validatedData = insertItemMasterSchema.parse(req.body);
+      
+      // Check if item code already exists
+      const existingItem = await storage.getItemByCode(validatedData.itemCode);
+      if (existingItem) {
+        return res.status(400).json({ message: "Item code already exists" });
+      }
+
+      const item = await storage.createItem(validatedData);
+      res.status(201).json(item);
+    } catch (error) {
+      console.error("Error creating item:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create item" });
+    }
+  });
+
+  app.put("/api/items/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const validatedData = insertItemMasterSchema.partial().parse(req.body);
+      
+      // Check if the item exists
+      const existingItem = await storage.getItemById(id);
+      if (!existingItem) {
+        return res.status(404).json({ message: "Item not found" });
+      }
+
+      // If item code is being updated, check for duplicates
+      if (validatedData.itemCode && validatedData.itemCode !== existingItem.itemCode) {
+        const itemWithSameCode = await storage.getItemByCode(validatedData.itemCode);
+        if (itemWithSameCode) {
+          return res.status(400).json({ message: "Item code already exists" });
+        }
+      }
+
+      const updatedItem = await storage.updateItem(id, validatedData);
+      res.json(updatedItem);
+    } catch (error) {
+      console.error("Error updating item:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to update item" });
+    }
+  });
+
+  app.delete("/api/items/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      
+      // Check if the item exists
+      const existingItem = await storage.getItemById(id);
+      if (!existingItem) {
+        return res.status(404).json({ message: "Item not found" });
+      }
+
+      await storage.deleteItem(id);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting item:", error);
+      res.status(500).json({ message: "Failed to delete item" });
+    }
+  });
+
+  // SQL Server integration endpoint
+  app.get("/api/sql/item-details", async (req, res) => {
+    try {
+      const items = await callSpGetItemDetails();
+      res.json(items);
+    } catch (error) {
+      console.error("Error calling SQL stored procedure:", error);
+      res.status(500).json({ error: "Failed to fetch item details from SQL Server" });
     }
   });
 

@@ -6,7 +6,8 @@ import {
   Upload, 
   Package, 
   Store, 
-  User
+  User,
+  Database
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -44,6 +45,13 @@ const navigation = [
     icon: Package,
     active: false,
     comingSoon: true
+  },
+  {
+    name: "Item Management",
+    href: "/item-management",
+    icon: Database,
+    active: true,
+    description: "Manage master item catalog with SQL API"
   }
 ];
 
