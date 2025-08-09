@@ -4,21 +4,23 @@ import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 import { relations } from "drizzle-orm";
 
-// SAP Item Master Table
+// SAP Item Master Table (synced from SQL Server SP_GET_ITEM_DETAILS)
 export const sapItemMst = pgTable("sap_item_mst", {
   id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
   itemcode: varchar("itemcode", { length: 50 }).notNull().unique(),
   itemname: text("itemname").notNull(),
-  type: varchar("type", { length: 50 }),
-  itemgroup: varchar("itemgroup", { length: 100 }),
+  itmsgrpnam: varchar("itmsgrpnam", { length: 100 }), // Item Group Name
+  u_type: varchar("u_type", { length: 50 }), // User defined type
   variety: varchar("variety", { length: 100 }),
   subgroup: varchar("subgroup", { length: 100 }),
-  brand: varchar("brand", { length: 100 }),
+  u_brand: varchar("u_brand", { length: 100 }), // User defined brand
   uom: varchar("uom", { length: 20 }),
-  taxrate: decimal("taxrate", { precision: 5, scale: 2 }),
-  unitsize: varchar("unitsize", { length: 50 }),
-  is_litre: boolean("is_litre").default(false),
-  case_pack: integer("case_pack")
+  unitsize: decimal("unitsize", { precision: 10, scale: 6 }), // Changed to decimal for precision
+  u_is_litre: varchar("u_is_litre", { length: 1 }), // Y/N flag as in SQL Server
+  u_tax_rate: decimal("u_tax_rate", { precision: 5, scale: 2 }), // User defined tax rate
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow(),
+  last_synced: timestamp("last_synced").defaultNow()
 });
 
 // Platform Master Table
@@ -108,15 +110,12 @@ export const pfOrderItemsRelations = relations(pfOrderItems, ({ one }) => ({
 }));
 
 // Insert schemas
-export const insertSapItemMstSchema = createInsertSchema(sapItemMst).omit({ id: true });
 export const insertPfMstSchema = createInsertSchema(pfMst).omit({ id: true });
 export const insertPfItemMstSchema = createInsertSchema(pfItemMst).omit({ id: true });
 export const insertPfPoSchema = createInsertSchema(pfPo).omit({ id: true, created_at: true, updated_at: true });
 export const insertPfOrderItemsSchema = createInsertSchema(pfOrderItems).omit({ id: true, po_id: true });
 
 // Types
-export type SapItemMst = typeof sapItemMst.$inferSelect;
-export type InsertSapItemMst = z.infer<typeof insertSapItemMstSchema>;
 export type PfMst = typeof pfMst.$inferSelect;
 export type InsertPfMst = z.infer<typeof insertPfMstSchema>;
 export type PfItemMst = typeof pfItemMst.$inferSelect;
@@ -535,3 +534,15 @@ export type SwiggyPo = typeof swiggyPos.$inferSelect;
 export type InsertSwiggyPo = z.infer<typeof insertSwiggyPoSchema>;
 export type SwiggyPoLine = typeof swiggyPoLines.$inferSelect;
 export type InsertSwiggyPoLine = z.infer<typeof insertSwiggyPoLinesSchema>;
+
+// Insert schema for SAP Item Master
+export const insertSapItemMstSchema = createInsertSchema(sapItemMst).omit({
+  id: true,
+  created_at: true,
+  updated_at: true,
+  last_synced: true
+});
+
+// Types for SAP Item Master  
+export type SapItemMst = typeof sapItemMst.$inferSelect;
+export type InsertSapItemMst = z.infer<typeof insertSapItemMstSchema>;

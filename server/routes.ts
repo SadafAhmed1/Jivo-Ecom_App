@@ -6,6 +6,7 @@ import { z } from "zod";
 import { seedTestData } from "./seed-data";
 import { parseFlipkartGroceryPO, parseZeptoPO, parseCityMallPO, parseBlinkitPO } from "./csv-parser";
 import { parseSwiggyPO } from "./swiggy-parser";
+import { itemSyncService } from "./itemSyncService";
 import multer from 'multer';
 
 const createPoSchema = z.object({
@@ -69,6 +70,73 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(201).json(platform);
     } catch (error) {
       res.status(500).json({ message: "Failed to create platform" });
+    }
+  });
+
+  // SAP Items routes (synced from SQL Server)
+  app.get("/api/items", async (req, res) => {
+    try {
+      const { search, limit } = req.query;
+      
+      if (search && typeof search === 'string') {
+        const items = await itemSyncService.searchItems(search, limit ? parseInt(limit as string) : 50);
+        res.json(items);
+      } else {
+        const items = await itemSyncService.getAllItems();
+        res.json(items);
+      }
+    } catch (error) {
+      console.error('Error fetching items:', error);
+      res.status(500).json({ message: "Failed to fetch items" });
+    }
+  });
+
+  app.get("/api/items/:itemCode", async (req, res) => {
+    try {
+      const item = await itemSyncService.getItemByCode(req.params.itemCode);
+      if (!item) {
+        return res.status(404).json({ message: "Item not found" });
+      }
+      res.json(item);
+    } catch (error) {
+      console.error('Error fetching item:', error);
+      res.status(500).json({ message: "Failed to fetch item" });
+    }
+  });
+
+  // Manual sync from SQL Server (like a trigger)
+  app.post("/api/items/sync", async (req, res) => {
+    try {
+      console.log('Manual sync triggered from API');
+      const result = await itemSyncService.syncItemsFromSqlServer();
+      res.json({
+        message: `Sync completed: ${result.synced} items synced`,
+        synced: result.synced,
+        errors: result.errors
+      });
+    } catch (error) {
+      console.error('Error during manual sync:', error);
+      res.status(500).json({ 
+        message: "Failed to sync items from SQL Server",
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
+  // Auto-trigger sync (checks if sync is needed)
+  app.post("/api/items/auto-sync", async (req, res) => {
+    try {
+      const syncTriggered = await itemSyncService.triggerSyncIfNeeded();
+      res.json({
+        message: syncTriggered ? 'Auto-sync completed' : 'No sync needed',
+        syncTriggered
+      });
+    } catch (error) {
+      console.error('Error during auto-sync:', error);
+      res.status(500).json({ 
+        message: "Failed to auto-sync items",
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
     }
   });
 
