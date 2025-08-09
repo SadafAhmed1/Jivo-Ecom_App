@@ -308,11 +308,19 @@ export function parseZeptoPO(csvContent: string, uploadedBy: string): ParsedZept
   // Clean the CSV content to remove any BOM or extra whitespace
   const cleanContent = csvContent.replace(/^\uFEFF/, '').trim();
   
+  // First, let's check if there are multiple header rows
+  const csvLines = cleanContent.split('\n');
+  console.log('First 3 lines of CSV:');
+  csvLines.slice(0, 3).forEach((line, idx) => {
+    console.log(`Line ${idx + 1}: ${line}`);
+  });
+  
   const records = parse(cleanContent, {
     columns: true,
     skip_empty_lines: true,
     trim: true,
-    skip_records_with_empty_values: false
+    skip_records_with_empty_values: false,
+    from_line: 1  // Start from first line (header)
   });
 
   if (records.length === 0) {
