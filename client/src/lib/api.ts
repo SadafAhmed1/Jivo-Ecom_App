@@ -5,9 +5,7 @@ import type {
   PfPo, 
   InsertPfPo, 
   PfOrderItems, 
-  InsertPfOrderItems,
-  ItemMaster,
-  InsertItemMaster
+  InsertPfOrderItems 
 } from "@shared/schema";
 
 export const api = {
@@ -55,37 +53,6 @@ export const api = {
       
       const response = await apiRequest("GET", `/api/platform-items?${params.toString()}`);
       return response.json();
-    }
-  },
-
-  sql: {
-    getItemDetails: async () => {
-      const response = await apiRequest("GET", "/api/sql/item-details");
-      return response.json();
-    }
-  },
-
-  // Item Management APIs
-  items: {
-    getAll: async (search?: string): Promise<ItemMaster[]> => {
-      const params = search ? `?search=${encodeURIComponent(search)}` : '';
-      const response = await apiRequest("GET", `/api/items${params}`);
-      return response.json();
-    },
-    getById: async (id: number): Promise<ItemMaster> => {
-      const response = await apiRequest("GET", `/api/items/${id}`);
-      return response.json();
-    },
-    create: async (item: InsertItemMaster): Promise<ItemMaster> => {
-      const response = await apiRequest("POST", "/api/items", item);
-      return response.json();
-    },
-    update: async (id: number, item: Partial<InsertItemMaster>): Promise<ItemMaster> => {
-      const response = await apiRequest("PUT", `/api/items/${id}`, item);
-      return response.json();
-    },
-    delete: async (id: number): Promise<void> => {
-      await apiRequest("DELETE", `/api/items/${id}`);
     }
   }
 };
