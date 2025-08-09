@@ -60,7 +60,6 @@ export function Sidebar() {
           </div>
           <div>
             <h1 className="text-xl font-semibold text-gray-900">Jivo E-Com</h1>
-            <p className="text-sm text-gray-600">Purchase Order Management</p>
           </div>
         </div>
       </div>
