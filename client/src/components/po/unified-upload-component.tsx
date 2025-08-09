@@ -489,6 +489,81 @@ export function UnifiedUploadComponent({ onComplete }: UnifiedUploadComponentPro
                           </div>
                         )}
                       </div>
+
+                      {/* Line Items Preview */}
+                      {parsedData.lines && parsedData.lines.length > 0 && (
+                        <Card>
+                          <CardHeader>
+                            <CardTitle className="text-base">Line Items Preview</CardTitle>
+                            <CardDescription>
+                              Showing first 5 items. Total: {parsedData.lines.length} items
+                            </CardDescription>
+                          </CardHeader>
+                          <CardContent>
+                            <div className="overflow-x-auto">
+                              <table className="w-full text-sm">
+                                <thead>
+                                  <tr className="border-b">
+                                    {selectedPlatformData?.id === 'zepto' ? (
+                                      <>
+                                        <th className="text-left p-2 font-medium">SKU</th>
+                                        <th className="text-left p-2 font-medium">Brand</th>
+                                        <th className="text-left p-2 font-medium">SAP ID</th>
+                                        <th className="text-left p-2 font-medium">HSN Code</th>
+                                        <th className="text-left p-2 font-medium">PO Qty</th>
+                                        <th className="text-left p-2 font-medium">Remaining</th>
+                                        <th className="text-left p-2 font-medium">Cost Price</th>
+                                        <th className="text-left p-2 font-medium">MRP</th>
+                                        <th className="text-left p-2 font-medium">Total Value</th>
+                                      </>
+                                    ) : (
+                                      <>
+                                        <th className="text-left p-2 font-medium">Item</th>
+                                        <th className="text-left p-2 font-medium">Code</th>
+                                        <th className="text-left p-2 font-medium">Quantity</th>
+                                        <th className="text-left p-2 font-medium">Price</th>
+                                        <th className="text-left p-2 font-medium">Total</th>
+                                      </>
+                                    )}
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {parsedData.lines.slice(0, 5).map((line: any, index: number) => (
+                                    <tr key={index} className="border-b last:border-b-0">
+                                      {selectedPlatformData?.id === 'zepto' ? (
+                                        <>
+                                          <td className="p-2">{line.sku || 'N/A'}</td>
+                                          <td className="p-2">{line.brand || 'N/A'}</td>
+                                          <td className="p-2">{line.sap_id || 'N/A'}</td>
+                                          <td className="p-2">{line.hsn_code || 'N/A'}</td>
+                                          <td className="p-2">{line.po_qty || 0}</td>
+                                          <td className="p-2">{line.remaining_qty || 0}</td>
+                                          <td className="p-2">₹{line.cost_price || '0.00'}</td>
+                                          <td className="p-2">₹{line.mrp || '0.00'}</td>
+                                          <td className="p-2">₹{line.total_value || '0.00'}</td>
+                                        </>
+                                      ) : (
+                                        <>
+                                          <td className="p-2">{line.item_name || line.sku || 'N/A'}</td>
+                                          <td className="p-2">{line.item_code || line.sku || 'N/A'}</td>
+                                          <td className="p-2">{line.quantity || line.po_qty || 0}</td>
+                                          <td className="p-2">₹{line.cost_price || line.mrp || '0.00'}</td>
+                                          <td className="p-2">₹{line.total_value || line.total_amount || '0.00'}</td>
+                                        </>
+                                      )}
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                              {parsedData.lines.length > 5 && (
+                                <div className="text-center py-2 text-gray-500">
+                                  ... and {parsedData.lines.length - 5} more items
+                                </div>
+                              )}
+                            </div>
+                          </CardContent>
+                        </Card>
+                      )}
                     </div>
                   )}
 
