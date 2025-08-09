@@ -114,7 +114,7 @@ export function POListView() {
     });
 
     // Prepare detailed order items data
-    const orderItemsData = [];
+    const orderItemsData: any[] = [];
     filteredPOs.forEach(po => {
       po.orderItems.forEach(item => {
         orderItemsData.push({
@@ -456,7 +456,7 @@ export function POListView() {
             const { totalQuantity, totalValue } = calculatePOTotals(po.orderItems);
             
             return (
-              <Card key={po.id} className="shadow-lg border-0 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm hover:shadow-xl transition-all duration-300 hover:scale-[1.01]">
+              <Card key={`po-${po.id}-${po.po_number}`} className="shadow-lg border-0 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm hover:shadow-xl transition-all duration-300 hover:scale-[1.01]">
                 <CardHeader className="pb-4 bg-gradient-to-r from-slate-50 to-gray-50 dark:from-gray-800 dark:to-gray-900 border-b border-gray-100 dark:border-gray-700">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-4">

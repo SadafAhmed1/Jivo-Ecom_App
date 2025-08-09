@@ -530,7 +530,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "No file uploaded" });
       }
 
-      const { header, lines } = parseBlinkitPO(req.file.buffer, "system");
+      const result = parseBlinkitPO(req.file.buffer, "system");
+      // Use the first PO from the list for single upload
+      const { header, lines } = result.poList[0];
       const createdPo = await storage.createBlinkitPo(header, lines);
       
       res.status(201).json({
@@ -769,13 +771,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       try {
         if (filename.includes('flipkart') || filename.includes('grocery')) {
           detectedVendor = "flipkart";
-          parsedData = await parseFlipkartGroceryPO(req.file.buffer, uploadedBy);
+          parsedData = await parseFlipkartGroceryPO(req.file.buffer.toString('utf-8'), uploadedBy);
         } else if (filename.includes('zepto')) {
           detectedVendor = "zepto";
           parsedData = parseZeptoPO(req.file.buffer.toString('utf-8'), uploadedBy);
         } else if (filename.includes('city') || filename.includes('mall')) {
           detectedVendor = "citymall";
-          parsedData = await parseCityMallPO(req.file.buffer, uploadedBy);
+          parsedData = await parseCityMallPO(req.file.buffer.toString('utf-8'), uploadedBy);
         } else if (filename.includes('blinkit')) {
           detectedVendor = "blinkit";
           console.log("Processing Blinkit file with multiple POs...");
@@ -804,15 +806,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         } else {
           // Try different parsers until one works
           const parsers = [
-            { name: "flipkart", parser: parseFlipkartGroceryPO },
+            { name: "flipkart", parser: (buffer: Buffer, user: string) => parseFlipkartGroceryPO(buffer.toString('utf-8'), user) },
             { name: "zepto", parser: (buffer: Buffer, user: string) => parseZeptoPO(buffer.toString('utf-8'), user) },
-            { name: "citymall", parser: parseCityMallPO },
+            { name: "citymall", parser: (buffer: Buffer, user: string) => parseCityMallPO(buffer.toString('utf-8'), user) },
             { name: "blinkit", parser: (buffer: Buffer, user: string) => {
               const result = parseBlinkitPO(buffer, user);
               // Convert multiple PO structure to single PO for fallback detection
               return result.poList.length > 0 ? result.poList[0] : { header: {}, lines: [] };
             } },
-            { name: "swiggy", parser: parseSwiggyPO }
+            { name: "swiggy", parser: (buffer: Buffer, user: string) => parseSwiggyPO(buffer, user) }
           ];
 
           for (const { name, parser } of parsers) {
@@ -842,7 +844,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Fix vendor_name display for Swiggy - if it contains payment terms or dates, set to null
         if (detectedVendor === "swiggy") {
           // Force vendor_name to null for Swiggy since the data is corrupted
-          displayHeader.vendor_name = null;
+          displayHeader = { ...displayHeader, vendor_name: null };
         }
 
         res.json({
