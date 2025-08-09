@@ -59,12 +59,11 @@ export function Sidebar() {
             <Store className="text-white text-lg" size={20} />
           </div>
           <div>
-            <h1 className="text-xl font-semibold text-gray-900">POJivo E-Com</h1>
+            <h1 className="text-xl font-semibold text-gray-900">Jivo E-Com</h1>
             <p className="text-sm text-gray-600">Purchase Order Management</p>
           </div>
         </div>
       </div>
-
       {/* Navigation Section */}
       <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
         {navigation.map((item) => {
@@ -95,7 +94,6 @@ export function Sidebar() {
           );
         })}
       </nav>
-
       {/* User Section */}
       <div className="p-4 border-t border-gray-200">
         <div className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50 cursor-pointer">
