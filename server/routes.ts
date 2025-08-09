@@ -707,7 +707,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           parsedData = await parseFlipkartGroceryPO(req.file.buffer, uploadedBy);
         } else if (filename.includes('zepto')) {
           detectedVendor = "zepto";
-          parsedData = await parseZeptoPO(req.file.buffer, uploadedBy);
+          parsedData = parseZeptoPO(req.file.buffer.toString('utf-8'), uploadedBy);
         } else if (filename.includes('city') || filename.includes('mall')) {
           detectedVendor = "citymall";
           parsedData = await parseCityMallPO(req.file.buffer, uploadedBy);
@@ -740,7 +740,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // Try different parsers until one works
           const parsers = [
             { name: "flipkart", parser: parseFlipkartGroceryPO },
-            { name: "zepto", parser: parseZeptoPO },
+            { name: "zepto", parser: (buffer: Buffer, user: string) => parseZeptoPO(buffer.toString('utf-8'), user) },
             { name: "citymall", parser: parseCityMallPO },
             { name: "blinkit", parser: (buffer: Buffer, user: string) => {
               const result = parseBlinkitPO(buffer, user);

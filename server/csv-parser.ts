@@ -330,8 +330,14 @@ export function parseZeptoPO(csvContent: string, uploadedBy: string): ParsedZept
   let totalAmount = 0;
 
   // Process each line item
-  records.forEach((record: Record<string, string>, index: number) => {
+  records.forEach((record: any, index: number) => {
     try {
+      // Debug logging for first record
+      if (index === 0) {
+        console.log('Zepto CSV columns:', Object.keys(record));
+        console.log('SAP Id value:', record['SAP Id']);
+      }
+      
       const line: InsertZeptoPoLines = {
         line_number: index + 1,
         po_number: record['PO No.'] || poNumber,
