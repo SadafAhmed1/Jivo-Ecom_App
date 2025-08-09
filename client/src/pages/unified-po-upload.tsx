@@ -775,7 +775,7 @@ export default function UnifiedPOUpload() {
                 </h4>
                 {selectedPlatform === "citymall" && (
                   <div className="text-xs text-gray-500 mb-2">
-                    Debug - First line keys: {parsedData.lines[0] ? Object.keys(parsedData.lines[0]).join(', ') : 'No data'}
+                    Debug - First line: {parsedData.lines[0] ? JSON.stringify(parsedData.lines[0], null, 2) : 'No data'}
                   </div>
                 )}
                 <div className="border rounded-lg overflow-hidden">
