@@ -39,12 +39,8 @@ export default function SapSync() {
   // Sync mutation
   const syncMutation = useMutation({
     mutationFn: async (): Promise<SyncResponse> => {
-      return await apiRequest('/api/sap-items-api/sync', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
+      const response = await apiRequest('POST', '/api/sap-items-api/sync');
+      return await response.json();
     },
     onSuccess: (data) => {
       toast({
@@ -54,9 +50,19 @@ export default function SapSync() {
       queryClient.invalidateQueries({ queryKey: ['/api/sap-items-api'] });
     },
     onError: (error: Error) => {
+      let title = "Sync failed";
+      let description = "Failed to sync SAP items";
+      
+      if (error.message.includes('503:')) {
+        title = "SAP Server Connection Failed";
+        description = "Unable to connect to SAP B1 Hanna ERP. Please check VPN connection and server accessibility.";
+      } else if (error.message.includes('500:')) {
+        description = error.message.split(': ')[1] || "Internal server error occurred";
+      }
+      
       toast({
-        title: "Sync failed",
-        description: error.message || "Failed to sync SAP items",
+        title,
+        description,
         variant: "destructive",
       });
     },

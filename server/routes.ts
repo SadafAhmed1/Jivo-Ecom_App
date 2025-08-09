@@ -134,15 +134,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log(`Successfully synced ${syncedCount} SAP items`);
       res.json({ 
         success: true, 
-        message: `Successfully synced ${syncedCount} SAP items`,
+        message: `Successfully synced ${syncedCount} SAP items from SAP B1 Hanna`,
         count: syncedCount 
       });
     } catch (error) {
       console.error("Error syncing SAP items:", error);
-      res.status(500).json({ 
-        error: "Failed to sync SAP items", 
-        details: error instanceof Error ? error.message : "Unknown error" 
-      });
+      
+      // Check if it's a connection error
+      if (error instanceof Error && error.message.includes('Failed to connect')) {
+        res.status(503).json({ 
+          error: "SAP Server Connection Failed", 
+          details: `Unable to connect to SAP B1 Hanna ERP at 103.89.44.240:5000. Please check if the server is accessible and VPN connection is active.`,
+          suggestion: "Contact your IT administrator to verify SAP server connectivity from this environment."
+        });
+      } else {
+        res.status(500).json({ 
+          error: "Failed to sync SAP items", 
+          details: error instanceof Error ? error.message : "Unknown error" 
+        });
+      }
     }
   });
 
