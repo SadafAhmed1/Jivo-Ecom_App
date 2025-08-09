@@ -59,7 +59,7 @@ export function Sidebar() {
             <Store className="text-white text-lg" size={20} />
           </div>
           <div>
-            <h1 className="text-xl font-semibold text-gray-900">Jivo E-Commerce</h1>
+            <h1 className="text-xl font-semibold text-gray-900">POJivo E-Com</h1>
             <p className="text-sm text-gray-600">Purchase Order Management</p>
           </div>
         </div>
