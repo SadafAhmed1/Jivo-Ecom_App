@@ -315,14 +315,11 @@ export function parseZeptoPO(csvContent: string, uploadedBy: string): ParsedZept
     throw new Error('CSV file is empty or invalid');
   }
 
-  // Get PO number from first record, generate if not found
+  // Get PO number from first record
   const firstRecord = records[0] as Record<string, string>;
-  let poNumber = firstRecord['PO No.'];
+  const poNumber = firstRecord['PO No.'];
   if (!poNumber) {
-    // Generate PO number based on timestamp and first article ID
-    const timestamp = Date.now().toString().slice(-6);
-    const articleId = firstRecord['Article Id'] || 'UNKNOWN';
-    poNumber = `ZP${timestamp}_${articleId.slice(0, 6)}`;
+    throw new Error('PO Number not found in CSV');
   }
 
   const lines: InsertZeptoPoLines[] = [];
@@ -338,23 +335,23 @@ export function parseZeptoPO(csvContent: string, uploadedBy: string): ParsedZept
       const line: InsertZeptoPoLines = {
         line_number: index + 1,
         po_number: record['PO No.'] || poNumber,
-        sku: record['Article Name'] || '',
-        brand: record['Brand'] || extractBrandFromName(record['Article Name'] || ''),
+        sku: record['SKU'] || '',
+        brand: record['Brand'] || '',
         sku_id: record['SKU Id'] || '',
-        sap_id: record['Article Id'] || '',
+        sap_id: record['SAP Id'] || '',
         hsn_code: record['HSN Code'] || '',
         ean_no: record['EAN No.'] || '',
-        po_qty: parseInt(record['Quantity']) || 0,
-        asn_qty: 0, // Not available in this CSV format
-        grn_qty: 0, // Not available in this CSV format
-        remaining_qty: parseInt(record['Quantity']) || 0, // Same as PO qty initially
-        cost_price: parseDecimal(record['Base Cost Price (₹)']),
-        cgst: '0.00', // Extract from IGST field if needed
-        sgst: '0.00', // Extract from IGST field if needed
-        igst: record['IGST (%) cess (%)'] ? record['IGST (%) cess (%)'].split('\n')[0] || '0.00' : '0.00',
-        cess: record['IGST (%) cess (%)'] ? record['IGST (%) cess (%)'].split('\n')[1] || '0.00' : '0.00',
-        mrp: parseDecimal(record['MRP (₹)']),
-        total_value: parseDecimal(record['Total Amount (₹)']),
+        po_qty: parseInt(record['PO Qty']) || 0,
+        asn_qty: parseInt(record['ASN Qty']) || 0,
+        grn_qty: parseInt(record['GRN Qty']) || 0,
+        remaining_qty: parseInt(record['Remaining']) || 0,
+        cost_price: parseDecimal(record['Cost Price']),
+        cgst: parseDecimal(record['CGST']),
+        sgst: parseDecimal(record['SGST']),
+        igst: parseDecimal(record['IGST']),
+        cess: parseDecimal(record['CESS']),
+        mrp: parseDecimal(record['MRP']),
+        total_value: parseDecimal(record['Total Value']),
         status: 'Pending',
         created_by: uploadedBy
       };
