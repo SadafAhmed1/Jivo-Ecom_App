@@ -884,9 +884,9 @@ export default function UnifiedPOUpload() {
                           ) : selectedPlatform === "citymall" ? (
                             <>
                               <TableCell className="font-medium">
-                                {line.article_name || line.Article_Name || line['Article Name'] || "N/A"}
+                                {line.article_name || "N/A"}
                               </TableCell>
-                              <TableCell>{line.article_id || line.Article_Id || line['Article Id'] || "N/A"}</TableCell>
+                              <TableCell>{line.article_id || "N/A"}</TableCell>
                               <TableCell>{line.quantity || "N/A"}</TableCell>
                               <TableCell>₹{line.base_cost_price || "N/A"}</TableCell>
                               <TableCell>₹{line.total_amount || "N/A"}</TableCell>

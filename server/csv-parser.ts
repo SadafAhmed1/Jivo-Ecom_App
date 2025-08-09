@@ -479,17 +479,7 @@ export function parseCityMallPO(csvContent: string, uploadedBy: string): ParsedC
         created_by: uploadedBy
       };
 
-      // Debug logging for first few lines
-      if (index < 3) {
-        console.log(`City Mall line ${index + 1}:`, {
-          'S.No': record['S.No'],
-          'Article Id': record['Article Id'],
-          'Article Name': record['Article Name'],
-          article_id: line.article_id,
-          article_name: line.article_name,
-          allKeys: Object.keys(record)
-        });
-      }
+
 
       lines.push(line);
 
