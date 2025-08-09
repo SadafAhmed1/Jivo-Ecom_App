@@ -773,9 +773,12 @@ export default function UnifiedPOUpload() {
                 <h4 className="font-medium">
                   Line Items Preview (First 5 items)
                 </h4>
-                {selectedPlatform === "citymall" && (
-                  <div className="text-xs text-gray-500 mb-2">
-                    Debug - First line: {parsedData.lines[0] ? JSON.stringify(parsedData.lines[0], null, 2) : 'No data'}
+                {selectedPlatform === "citymall" && parsedData.lines[0] && (
+                  <div className="text-xs text-gray-500 mb-2 p-2 bg-gray-50 rounded">
+                    <div><strong>Debug Info:</strong></div>
+                    <div>Article ID: {parsedData.lines[0].article_id || 'MISSING'}</div>
+                    <div>Article Name: {parsedData.lines[0].article_name || 'MISSING'}</div>
+                    <div>Keys: {Object.keys(parsedData.lines[0]).join(', ')}</div>
                   </div>
                 )}
                 <div className="border rounded-lg overflow-hidden">
