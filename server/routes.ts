@@ -6,7 +6,6 @@ import { z } from "zod";
 import { seedTestData } from "./seed-data";
 import { parseFlipkartGroceryPO, parseZeptoPO, parseCityMallPO, parseBlinkitPO } from "./csv-parser";
 import { parseSwiggyPO } from "./swiggy-parser";
-import { callSpGetItemDetails } from "./sqlserver";
 import multer from 'multer';
 
 const createPoSchema = z.object({
@@ -989,25 +988,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error importing PO:", error);
       res.status(500).json({ error: "Failed to import PO data" });
-    }
-  });
-
-  // SQL Server API endpoint
-  app.get("/api/sqlserver/item-details", async (req, res) => {
-    try {
-      const itemDetails = await callSpGetItemDetails();
-      res.json({
-        success: true,
-        data: itemDetails,
-        count: itemDetails.length
-      });
-    } catch (error) {
-      console.error("Error calling SQL Server:", error);
-      res.status(500).json({
-        success: false,
-        error: error instanceof Error ? error.message : "Unknown error",
-        message: "Failed to retrieve item details from SQL Server"
-      });
     }
   });
 
