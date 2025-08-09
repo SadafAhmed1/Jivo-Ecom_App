@@ -797,6 +797,16 @@ export default function UnifiedPOUpload() {
                             <TableHead>Unit Cost</TableHead>
                             <TableHead>Taxable Value</TableHead>
                           </>
+                        ) : selectedPlatform === "zepto" ? (
+                          <>
+                            <TableHead>SKU</TableHead>
+                            <TableHead>Brand</TableHead>
+                            <TableHead>SAP ID</TableHead>
+                            <TableHead>HSN Code</TableHead>
+                            <TableHead>PO Quantity</TableHead>
+                            <TableHead>Cost Price</TableHead>
+                            <TableHead>MRP</TableHead>
+                          </>
                         ) : (
                           <>
                             <TableHead>Item Name</TableHead>
@@ -840,6 +850,20 @@ export default function UnifiedPOUpload() {
                               <TableCell>₹{line.mrp || "N/A"}</TableCell>
                               <TableCell>{line.unit_base_cost ? `₹${parseFloat(line.unit_base_cost).toFixed(2)}` : "Not Available"}</TableCell>
                               <TableCell>₹{line.taxable_value ? parseFloat(line.taxable_value).toFixed(2) : "N/A"}</TableCell>
+                            </>
+                          ) : selectedPlatform === "zepto" ? (
+                            <>
+                              <TableCell className="font-medium">
+                                {line.sku || "N/A"}
+                              </TableCell>
+                              <TableCell>{line.brand || "N/A"}</TableCell>
+                              <TableCell className="text-blue-600 font-medium">
+                                {line.sap_id || "Not Available"}
+                              </TableCell>
+                              <TableCell>{line.hsn_code || "N/A"}</TableCell>
+                              <TableCell>{line.po_qty || "N/A"}</TableCell>
+                              <TableCell>₹{line.cost_price || "N/A"}</TableCell>
+                              <TableCell>₹{line.mrp || "N/A"}</TableCell>
                             </>
                           ) : (
                             <>
