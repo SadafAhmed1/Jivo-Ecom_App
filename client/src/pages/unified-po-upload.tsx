@@ -807,6 +807,14 @@ export default function UnifiedPOUpload() {
                             <TableHead>Cost Price</TableHead>
                             <TableHead>MRP</TableHead>
                           </>
+                        ) : selectedPlatform === "citymall" ? (
+                          <>
+                            <TableHead>Item</TableHead>
+                            <TableHead>Code</TableHead>
+                            <TableHead>Quantity</TableHead>
+                            <TableHead>Price</TableHead>
+                            <TableHead>Total</TableHead>
+                          </>
                         ) : (
                           <>
                             <TableHead>Item Name</TableHead>
@@ -864,6 +872,16 @@ export default function UnifiedPOUpload() {
                               <TableCell>{line.po_qty || "N/A"}</TableCell>
                               <TableCell>₹{line.cost_price || "N/A"}</TableCell>
                               <TableCell>₹{line.mrp || "N/A"}</TableCell>
+                            </>
+                          ) : selectedPlatform === "citymall" ? (
+                            <>
+                              <TableCell className="font-medium">
+                                {line.article_name || "N/A"}
+                              </TableCell>
+                              <TableCell>{line.article_id || "N/A"}</TableCell>
+                              <TableCell>{line.quantity || "N/A"}</TableCell>
+                              <TableCell>₹{line.base_cost_price || "N/A"}</TableCell>
+                              <TableCell>₹{line.total_amount || "N/A"}</TableCell>
                             </>
                           ) : (
                             <>
