@@ -137,9 +137,9 @@ export default function ZeptoPoDetails() {
                 </Button>
               </Link>
               <div>
-                <h1 className="text-3xl font-bold">PO #{po.po_number}</h1>
+                <h1 className="text-3xl font-bold">{po.po_number}</h1>
                 <p className="text-muted-foreground">
-                  Zepto Purchase Order Details
+                  <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-sm font-medium">Zepto</span> Purchase Order Details
                 </p>
               </div>
             </div>

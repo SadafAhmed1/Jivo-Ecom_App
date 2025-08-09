@@ -218,8 +218,9 @@ export default function ZeptoPOs() {
                           </TableCell>
                           <TableCell>
                             <Link href={`/zepto-pos/${po.id}`}>
-                              <Button variant="ghost" size="sm">
-                                <Eye className="h-4 w-4" />
+                              <Button variant="ghost" size="sm" title="View Zepto PO Details">
+                                <Eye className="h-4 w-4 mr-1" />
+                                View
                               </Button>
                             </Link>
                           </TableCell>
