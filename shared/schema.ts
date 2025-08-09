@@ -21,6 +21,26 @@ export const sapItemMst = pgTable("sap_item_mst", {
   case_pack: integer("case_pack")
 });
 
+// SAP Item Master API Table (synchronized from SQL Server)
+export const sapItemMstApi = pgTable("sap_item_mst_api", {
+  id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
+  itemcode: varchar("itemcode", { length: 50 }).notNull().unique(),
+  itemname: text("itemname").notNull(),
+  type: varchar("type", { length: 50 }),
+  itemgroup: varchar("itemgroup", { length: 100 }),
+  variety: varchar("variety", { length: 100 }),
+  subgroup: varchar("subgroup", { length: 100 }),
+  brand: varchar("brand", { length: 100 }),
+  uom: varchar("uom", { length: 20 }),
+  taxrate: decimal("taxrate", { precision: 5, scale: 2 }),
+  unitsize: varchar("unitsize", { length: 50 }),
+  is_litre: boolean("is_litre").default(false),
+  case_pack: integer("case_pack"),
+  last_synced: timestamp("last_synced").defaultNow(),
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow()
+});
+
 // Platform Master Table
 export const pfMst = pgTable("pf_mst", {
   id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
@@ -70,6 +90,16 @@ export const pfOrderItems = pgTable("pf_order_items", {
   total_litres: decimal("total_litres", { precision: 10, scale: 3 }),
   status: varchar("status", { length: 50 }).default('Pending')
 });
+
+// Insert and Select schemas for new table
+export const insertSapItemMstApiSchema = createInsertSchema(sapItemMstApi).omit({
+  id: true,
+  created_at: true,
+  updated_at: true,
+  last_synced: true,
+});
+export type InsertSapItemMstApi = z.infer<typeof insertSapItemMstApiSchema>;
+export type SapItemMstApi = typeof sapItemMstApi.$inferSelect;
 
 // Relations
 export const sapItemMstRelations = relations(sapItemMst, ({ many }) => ({

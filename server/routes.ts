@@ -1,6 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
+import { callSpGetItemDetails } from "./sqlserver";
 import { insertPfPoSchema, insertPfOrderItemsSchema, insertFlipkartGroceryPoHeaderSchema, insertFlipkartGroceryPoLinesSchema } from "@shared/schema";
 import { z } from "zod";
 import { seedTestData } from "./seed-data";
@@ -88,6 +89,60 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(201).json(item);
     } catch (error) {
       res.status(500).json({ message: "Failed to create SAP item" });
+    }
+  });
+
+  // Get all SAP items from API table
+  app.get("/api/sap-items-api", async (req, res) => {
+    try {
+      const items = await storage.getAllSapItemsApi();
+      res.json(items);
+    } catch (error) {
+      console.error("Error fetching SAP items from API:", error);
+      res.status(500).json({ error: "Failed to fetch SAP items from API" });
+    }
+  });
+
+  // Sync SAP items from SQL Server API
+  app.post("/api/sap-items-api/sync", async (req, res) => {
+    try {
+      console.log("Starting SAP items sync from SQL Server...");
+      
+      // Call the SQL Server stored procedure
+      const sqlServerItems = await callSpGetItemDetails();
+      console.log(`Retrieved ${sqlServerItems.length} items from SQL Server`);
+
+      // Transform SQL Server data to match our schema
+      const transformedItems = sqlServerItems.map((item: any) => ({
+        itemcode: item.ItemCode || item.itemcode,
+        itemname: item.ItemName || item.itemname,
+        type: item.Type || item.type,
+        itemgroup: item.ItemGroup || item.itemgroup,
+        variety: item.Variety || item.variety,
+        subgroup: item.SubGroup || item.subgroup,
+        brand: item.Brand || item.brand,
+        uom: item.UOM || item.uom,
+        taxrate: item.TaxRate || item.taxrate,
+        unitsize: item.UnitSize || item.unitsize,
+        is_litre: item.IsLitre || item.is_litre || false,
+        case_pack: item.CasePack || item.case_pack
+      }));
+
+      // Sync to database
+      const syncedCount = await storage.syncSapItemsFromApi(transformedItems);
+      
+      console.log(`Successfully synced ${syncedCount} SAP items`);
+      res.json({ 
+        success: true, 
+        message: `Successfully synced ${syncedCount} SAP items`,
+        count: syncedCount 
+      });
+    } catch (error) {
+      console.error("Error syncing SAP items:", error);
+      res.status(500).json({ 
+        error: "Failed to sync SAP items", 
+        details: error instanceof Error ? error.message : "Unknown error" 
+      });
     }
   });
 

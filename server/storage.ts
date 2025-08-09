@@ -5,6 +5,8 @@ import {
   type InsertPfMst,
   type SapItemMst,
   type InsertSapItemMst,
+  type SapItemMstApi,
+  type InsertSapItemMstApi,
   type PfItemMst,
   type InsertPfItemMst,
   type PfPo,
@@ -34,6 +36,7 @@ import {
   users,
   pfMst,
   sapItemMst,
+  sapItemMstApi,
   pfItemMst,
   pfPo,
   pfOrderItems,
@@ -64,6 +67,11 @@ export interface IStorage {
   // SAP Item methods
   getAllSapItems(): Promise<SapItemMst[]>;
   createSapItem(item: InsertSapItemMst): Promise<SapItemMst>;
+  
+  // SAP Item API methods
+  getAllSapItemsApi(): Promise<SapItemMstApi[]>;
+  createSapItemApi(item: InsertSapItemMstApi): Promise<SapItemMstApi>;
+  syncSapItemsFromApi(items: InsertSapItemMstApi[]): Promise<number>;
   
   // Platform Item methods
   getPlatformItems(platformId?: number, search?: string): Promise<(PfItemMst & { sapItem: SapItemMst; platform: PfMst })[]>;
@@ -158,6 +166,26 @@ export class DatabaseStorage implements IStorage {
   async createSapItem(item: InsertSapItemMst): Promise<SapItemMst> {
     const [result] = await db.insert(sapItemMst).values(item).returning();
     return result;
+  }
+
+  // SAP Item API methods
+  async getAllSapItemsApi(): Promise<SapItemMstApi[]> {
+    return await db.select().from(sapItemMstApi);
+  }
+
+  async createSapItemApi(item: InsertSapItemMstApi): Promise<SapItemMstApi> {
+    const [result] = await db.insert(sapItemMstApi).values(item).returning();
+    return result;
+  }
+
+  async syncSapItemsFromApi(items: InsertSapItemMstApi[]): Promise<number> {
+    if (items.length === 0) return 0;
+    
+    // Clear existing data and insert new data
+    await db.delete(sapItemMstApi);
+    await db.insert(sapItemMstApi).values(items);
+    
+    return items.length;
   }
 
   // Platform Item methods

@@ -6,7 +6,8 @@ import {
   Upload, 
   Package, 
   Store, 
-  User
+  User,
+  Database
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -44,6 +45,13 @@ const navigation = [
     icon: Package,
     active: false,
     comingSoon: true
+  },
+  {
+    name: "SAP Sync",
+    href: "/sap-sync", 
+    icon: Database,
+    active: true,
+    description: "Sync item master data from SAP B1 Hanna ERP"
   }
 ];
 
