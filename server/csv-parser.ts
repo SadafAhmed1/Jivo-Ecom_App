@@ -336,15 +336,15 @@ export function parseZeptoPO(csvContent: string, uploadedBy: string): ParsedZept
   // Process each line item
   records.forEach((record: any, index: number) => {
     try {
-      // Debug logging removed - parsing working correctly
+
       
       const line: InsertZeptoPoLines = {
         line_number: index + 1,
         po_number: record['PO No.'] || poNumber,
         sku: record['SKU'] || '',
         brand: record['Brand'] || '',
-        sku_id: record['SKU Id'] || '',
-        sap_id: record['SAP Id'] || '',
+        sku_id: record['SAP Id'] || '',
+        sap_id: record['SKU Id'] || '',
         hsn_code: record['HSN Code'] || '',
         ean_no: record['EAN No.'] || '',
         po_qty: parseInt(record['PO Qty']) || 0,
