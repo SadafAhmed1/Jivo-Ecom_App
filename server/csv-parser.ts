@@ -336,15 +336,26 @@ export function parseZeptoPO(csvContent: string, uploadedBy: string): ParsedZept
   // Process each line item
   records.forEach((record: any, index: number) => {
     try {
-
+      // Debug logging for first record
+      if (index === 0) {
+        console.log('Zepto CSV columns:', Object.keys(record));
+        console.log('SAP Id value:', record['SAP Id']);
+        console.log('All column variations:');
+        Object.keys(record).forEach(key => {
+          if (key.toLowerCase().includes('sap')) {
+            console.log(`  "${key}": "${record[key]}"`);
+          }
+        });
+        console.log('First record full data:', record);
+      }
       
       const line: InsertZeptoPoLines = {
         line_number: index + 1,
         po_number: record['PO No.'] || poNumber,
         sku: record['SKU'] || '',
         brand: record['Brand'] || '',
-        sku_id: record['SAP Id'] || '',
-        sap_id: record['SKU Id'] || '',
+        sku_id: record['SKU Id'] || '',
+        sap_id: record['SAP Id'] || '',
         hsn_code: record['HSN Code'] || '',
         ean_no: record['EAN No.'] || '',
         po_qty: parseInt(record['PO Qty']) || 0,
