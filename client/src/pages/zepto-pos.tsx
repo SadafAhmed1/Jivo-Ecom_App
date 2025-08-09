@@ -218,9 +218,15 @@ export default function ZeptoPOs() {
                           </TableCell>
                           <TableCell>
                             <Link href={`/zepto-pos/${po.id}`}>
-                              <Button variant="ghost" size="sm" title="View Zepto PO Details">
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                className="bg-blue-50 hover:bg-blue-100 text-blue-700 border-blue-200" 
+                                title={`View Zepto PO ${po.po_number}`}
+                                onClick={() => console.log(`Navigating to /zepto-pos/${po.id} for PO ${po.po_number}`)}
+                              >
                                 <Eye className="h-4 w-4 mr-1" />
-                                View
+                                View Zepto PO
                               </Button>
                             </Link>
                           </TableCell>

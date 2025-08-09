@@ -57,6 +57,12 @@ export default function ZeptoPoDetails() {
     enabled: !!poId,
   });
 
+  // Debug logging
+  console.log('ZeptoPoDetails component:', { poId, queryKey: `/api/zepto-pos/${poId}` });
+  if (po) {
+    console.log('Zepto PO data loaded:', { id: po.id, po_number: po.po_number });
+  }
+
   if (isLoading) {
     return (
       <div className="flex-1 flex flex-col overflow-hidden">
