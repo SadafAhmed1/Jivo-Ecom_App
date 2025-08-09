@@ -1,14 +1,16 @@
 import { useState } from "react";
-import { Plus, List, BarChart3, Settings } from "lucide-react";
+import { Plus, List, BarChart3, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PlatformPOForm } from "./platform-po-form";
 import { POListView } from "./po-list-view";
 import { OrderItemsListView } from "./order-items-list-view";
+import { NewPODropdown } from "./new-po-dropdown";
+import { UnifiedUploadComponent } from "./unified-upload-component";
 
 export function PlatformPOTabs() {
-  const [activeTab, setActiveTab] = useState("create");
+  const [activeTab, setActiveTab] = useState("list");
 
   return (
     <div className="max-w-7xl mx-auto space-y-6">
@@ -25,6 +27,10 @@ export function PlatformPOTabs() {
               </p>
             </div>
             <div className="flex items-center space-x-3">
+              <NewPODropdown 
+                onCreatePO={() => setActiveTab("create")}
+                onUploadPO={() => setActiveTab("upload")}
+              />
               <div className="flex items-center space-x-4 text-sm">
                 <div className="flex items-center space-x-2">
                   <div className="h-2 w-2 bg-green-500 rounded-full animate-pulse"></div>
@@ -40,14 +46,7 @@ export function PlatformPOTabs() {
       <Card className="shadow-lg border-0">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <CardHeader className="border-b border-gray-100 dark:border-gray-700 bg-gradient-to-r from-slate-50 to-gray-50 dark:from-gray-800 dark:to-gray-900">
-            <TabsList className="grid w-full grid-cols-3 bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm shadow-md rounded-xl">
-              <TabsTrigger 
-                value="create" 
-                className="flex items-center space-x-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-indigo-600 data-[state=active]:text-white"
-              >
-                <Plus className="h-4 w-4" />
-                <span>Create PO</span>
-              </TabsTrigger>
+            <TabsList className="grid w-full grid-cols-4 bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm shadow-md rounded-xl">
               <TabsTrigger 
                 value="list" 
                 className="flex items-center space-x-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-600 data-[state=active]:to-emerald-600 data-[state=active]:text-white"
@@ -56,25 +55,47 @@ export function PlatformPOTabs() {
                 <span>View POs</span>
               </TabsTrigger>
               <TabsTrigger 
+                value="upload" 
+                className="flex items-center space-x-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-indigo-600 data-[state=active]:text-white"
+              >
+                <Upload className="h-4 w-4" />
+                <span>Upload PO</span>
+              </TabsTrigger>
+              <TabsTrigger 
+                value="create" 
+                className="flex items-center space-x-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-600 data-[state=active]:to-red-600 data-[state=active]:text-white"
+              >
+                <Plus className="h-4 w-4" />
+                <span>Create PO</span>
+              </TabsTrigger>
+              <TabsTrigger 
                 value="analytics" 
                 className="flex items-center space-x-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-pink-600 data-[state=active]:text-white"
               >
                 <BarChart3 className="h-4 w-4" />
-                <span>View Order Items</span>
+                <span>Order Items</span>
               </TabsTrigger>
             </TabsList>
           </CardHeader>
 
           <CardContent className="p-0">
-            <TabsContent value="create" className="mt-0">
-              <div className="p-6">
-                <PlatformPOForm />
-              </div>
-            </TabsContent>
-
             <TabsContent value="list" className="mt-0">
               <div className="p-6">
                 <POListView />
+              </div>
+            </TabsContent>
+
+            <TabsContent value="upload" className="mt-0">
+              <div className="p-6">
+                <UnifiedUploadComponent 
+                  onComplete={() => setActiveTab("list")}
+                />
+              </div>
+            </TabsContent>
+
+            <TabsContent value="create" className="mt-0">
+              <div className="p-6">
+                <PlatformPOForm />
               </div>
             </TabsContent>
 

@@ -22,14 +22,7 @@ const navigation = [
     href: "/platform-po",
     icon: ShoppingCart,
     active: true,
-    description: "Create & manage platform orders"
-  },
-  {
-    name: "Upload PO",
-    href: "/po-upload",
-    icon: Upload,
-    active: true,
-    description: "Upload purchase orders from all platforms"
+    description: "Create, upload & manage platform orders"
   },
   {
     name: "Distributor PO",
