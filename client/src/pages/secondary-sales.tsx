@@ -84,10 +84,15 @@ const BUSINESS_UNITS = [
 
 export default function SecondarySales() {
   const [currentStep, setCurrentStep] = useState<
-    "platform" | "business-unit" | "upload" | "preview"
+    "platform" | "business-unit" | "period-type" | "date-range" | "upload" | "preview"
   >("platform");
   const [selectedPlatform, setSelectedPlatform] = useState<string>("");
   const [selectedBusinessUnit, setSelectedBusinessUnit] = useState<string>("");
+  const [selectedPeriodType, setSelectedPeriodType] = useState<string>("");
+  const [dateRange, setDateRange] = useState<{ startDate: string; endDate: string }>({
+    startDate: "",
+    endDate: ""
+  });
   const [file, setFile] = useState<File | null>(null);
   const [parsedData, setParsedData] = useState<ParsedSecondarySalesData | null>(null);
   const [dragActive, setDragActive] = useState(false);
@@ -103,6 +108,11 @@ export default function SecondarySales() {
       formData.append("file", file);
       formData.append("platform", selectedPlatform);
       formData.append("businessUnit", selectedBusinessUnit);
+      formData.append("periodType", selectedPeriodType);
+      if (selectedPeriodType === "date-range") {
+        formData.append("startDate", dateRange.startDate);
+        formData.append("endDate", dateRange.endDate);
+      }
 
       const response = await fetch("/api/secondary-sales/preview", {
         method: "POST",
@@ -143,6 +153,11 @@ export default function SecondarySales() {
       formData.append("file", file);
       formData.append("platform", selectedPlatform);
       formData.append("businessUnit", selectedBusinessUnit);
+      formData.append("periodType", selectedPeriodType);
+      if (selectedPeriodType === "date-range") {
+        formData.append("startDate", dateRange.startDate);
+        formData.append("endDate", dateRange.endDate);
+      }
 
       const response = await fetch(`/api/secondary-sales/import/${selectedPlatform}`, {
         method: "POST",
@@ -166,6 +181,8 @@ export default function SecondarySales() {
       setCurrentStep("platform");
       setSelectedPlatform("");
       setSelectedBusinessUnit("");
+      setSelectedPeriodType("");
+      setDateRange({ startDate: "", endDate: "" });
       setFile(null);
       setParsedData(null);
       
@@ -222,9 +239,20 @@ export default function SecondarySales() {
         setCurrentStep("platform");
         setSelectedPlatform("");
         break;
-      case "upload":
+      case "period-type":
         setCurrentStep("business-unit");
         setSelectedBusinessUnit("");
+        break;
+      case "date-range":
+        setCurrentStep("period-type");
+        setSelectedPeriodType("");
+        break;
+      case "upload":
+        if (selectedPeriodType === "date-range") {
+          setCurrentStep("date-range");
+        } else {
+          setCurrentStep("period-type");
+        }
         break;
       case "preview":
         setCurrentStep("upload");
@@ -238,6 +266,8 @@ export default function SecondarySales() {
     setCurrentStep("platform");
     setSelectedPlatform("");
     setSelectedBusinessUnit("");
+    setSelectedPeriodType("");
+    setDateRange({ startDate: "", endDate: "" });
     setFile(null);
     setParsedData(null);
   };
@@ -254,31 +284,60 @@ export default function SecondarySales() {
 
         {/* Progress Steps */}
         <div className="mb-8">
-          <div className="flex items-center space-x-4">
-            <div className={`flex items-center space-x-2 ${currentStep === "platform" ? "text-blue-600" : currentStep === "business-unit" || currentStep === "upload" || currentStep === "preview" ? "text-green-600" : "text-gray-400"}`}>
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${currentStep === "platform" ? "bg-blue-100 text-blue-600" : currentStep === "business-unit" || currentStep === "upload" || currentStep === "preview" ? "bg-green-100 text-green-600" : "bg-gray-100"}`}>
+          <div className="flex items-center space-x-2 flex-wrap">
+            {/* Step 1: Platform */}
+            <div className={`flex items-center space-x-2 ${currentStep === "platform" ? "text-blue-600" : ["business-unit", "period-type", "date-range", "upload", "preview"].includes(currentStep) ? "text-green-600" : "text-gray-400"}`}>
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${currentStep === "platform" ? "bg-blue-100 text-blue-600" : ["business-unit", "period-type", "date-range", "upload", "preview"].includes(currentStep) ? "bg-green-100 text-green-600" : "bg-gray-100"}`}>
                 1
               </div>
               <span className="text-sm font-medium">Platform</span>
             </div>
             <ArrowRight className="w-4 h-4 text-gray-400" />
-            <div className={`flex items-center space-x-2 ${currentStep === "business-unit" ? "text-blue-600" : currentStep === "upload" || currentStep === "preview" ? "text-green-600" : "text-gray-400"}`}>
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${currentStep === "business-unit" ? "bg-blue-100 text-blue-600" : currentStep === "upload" || currentStep === "preview" ? "bg-green-100 text-green-600" : "bg-gray-100"}`}>
+            
+            {/* Step 2: Business Unit */}
+            <div className={`flex items-center space-x-2 ${currentStep === "business-unit" ? "text-blue-600" : ["period-type", "date-range", "upload", "preview"].includes(currentStep) ? "text-green-600" : "text-gray-400"}`}>
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${currentStep === "business-unit" ? "bg-blue-100 text-blue-600" : ["period-type", "date-range", "upload", "preview"].includes(currentStep) ? "bg-green-100 text-green-600" : "bg-gray-100"}`}>
                 2
               </div>
               <span className="text-sm font-medium">Business Unit</span>
             </div>
             <ArrowRight className="w-4 h-4 text-gray-400" />
+            
+            {/* Step 3: Period Type */}
+            <div className={`flex items-center space-x-2 ${currentStep === "period-type" ? "text-blue-600" : ["date-range", "upload", "preview"].includes(currentStep) ? "text-green-600" : "text-gray-400"}`}>
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${currentStep === "period-type" ? "bg-blue-100 text-blue-600" : ["date-range", "upload", "preview"].includes(currentStep) ? "bg-green-100 text-green-600" : "bg-gray-100"}`}>
+                3
+              </div>
+              <span className="text-sm font-medium">Period</span>
+            </div>
+            <ArrowRight className="w-4 h-4 text-gray-400" />
+            
+            {/* Step 4: Date Range (conditional) */}
+            {selectedPeriodType === "date-range" && (
+              <>
+                <div className={`flex items-center space-x-2 ${currentStep === "date-range" ? "text-blue-600" : ["upload", "preview"].includes(currentStep) ? "text-green-600" : "text-gray-400"}`}>
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${currentStep === "date-range" ? "bg-blue-100 text-blue-600" : ["upload", "preview"].includes(currentStep) ? "bg-green-100 text-green-600" : "bg-gray-100"}`}>
+                    4
+                  </div>
+                  <span className="text-sm font-medium">Date Range</span>
+                </div>
+                <ArrowRight className="w-4 h-4 text-gray-400" />
+              </>
+            )}
+            
+            {/* Step Upload */}
             <div className={`flex items-center space-x-2 ${currentStep === "upload" ? "text-blue-600" : currentStep === "preview" ? "text-green-600" : "text-gray-400"}`}>
               <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${currentStep === "upload" ? "bg-blue-100 text-blue-600" : currentStep === "preview" ? "bg-green-100 text-green-600" : "bg-gray-100"}`}>
-                3
+                {selectedPeriodType === "date-range" ? "5" : "4"}
               </div>
               <span className="text-sm font-medium">Upload</span>
             </div>
             <ArrowRight className="w-4 h-4 text-gray-400" />
+            
+            {/* Step Preview */}
             <div className={`flex items-center space-x-2 ${currentStep === "preview" ? "text-blue-600" : "text-gray-400"}`}>
               <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${currentStep === "preview" ? "bg-blue-100 text-blue-600" : "bg-gray-100"}`}>
-                4
+                {selectedPeriodType === "date-range" ? "6" : "5"}
               </div>
               <span className="text-sm font-medium">Preview</span>
             </div>
@@ -376,6 +435,147 @@ export default function SecondarySales() {
                 
                 {selectedBusinessUnit && (
                   <Button
+                    onClick={() => setCurrentStep("period-type")}
+                    className="flex items-center space-x-2"
+                  >
+                    <span>Continue</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </Button>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Step 3: Period Type Selection */}
+        {currentStep === "period-type" && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Select Period Type</CardTitle>
+              <CardDescription>
+                Choose whether you want to upload daily data or data for a specific date range
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid gap-4">
+                <div
+                  className={`p-4 border rounded-lg cursor-pointer transition-colors hover:bg-gray-50 ${
+                    selectedPeriodType === "daily"
+                      ? "border-blue-500 bg-blue-50"
+                      : "border-gray-200"
+                  }`}
+                  onClick={() => setSelectedPeriodType("daily")}
+                >
+                  <div className="flex items-center space-x-3">
+                    <Calendar className="w-8 h-8 text-gray-600" />
+                    <div>
+                      <h3 className="font-medium">Daily Upload</h3>
+                      <p className="text-sm text-gray-600">Upload data for today or a single day</p>
+                    </div>
+                  </div>
+                </div>
+                
+                <div
+                  className={`p-4 border rounded-lg cursor-pointer transition-colors hover:bg-gray-50 ${
+                    selectedPeriodType === "date-range"
+                      ? "border-blue-500 bg-blue-50"
+                      : "border-gray-200"
+                  }`}
+                  onClick={() => setSelectedPeriodType("date-range")}
+                >
+                  <div className="flex items-center space-x-3">
+                    <Calendar className="w-8 h-8 text-gray-600" />
+                    <div>
+                      <h3 className="font-medium">Date Range Upload</h3>
+                      <p className="text-sm text-gray-600">Upload data for a specific date range</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="mt-6 flex justify-between">
+                <Button
+                  variant="outline"
+                  onClick={goBack}
+                  className="flex items-center space-x-2"
+                >
+                  <ArrowLeft className="w-4 h-4" />
+                  <span>Back</span>
+                </Button>
+                
+                {selectedPeriodType && (
+                  <Button
+                    onClick={() => {
+                      if (selectedPeriodType === "daily") {
+                        setCurrentStep("upload");
+                      } else {
+                        setCurrentStep("date-range");
+                      }
+                    }}
+                    className="flex items-center space-x-2"
+                  >
+                    <span>Continue</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </Button>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Step 4: Date Range Selection (conditional) */}
+        {currentStep === "date-range" && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Select Date Range</CardTitle>
+              <CardDescription>
+                Choose the start and end dates for your {selectedPlatformData?.name} data upload
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="start-date">Start Date</Label>
+                  <Input
+                    id="start-date"
+                    type="date"
+                    value={dateRange.startDate}
+                    onChange={(e) => setDateRange(prev => ({ ...prev, startDate: e.target.value }))}
+                    className="mt-1"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="end-date">End Date</Label>
+                  <Input
+                    id="end-date"
+                    type="date"
+                    value={dateRange.endDate}
+                    onChange={(e) => setDateRange(prev => ({ ...prev, endDate: e.target.value }))}
+                    className="mt-1"
+                  />
+                </div>
+              </div>
+              
+              {dateRange.startDate && dateRange.endDate && (
+                <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                  <p className="text-sm text-blue-800">
+                    <strong>Selected Range:</strong> {new Date(dateRange.startDate).toLocaleDateString()} to {new Date(dateRange.endDate).toLocaleDateString()}
+                  </p>
+                </div>
+              )}
+              
+              <div className="mt-6 flex justify-between">
+                <Button
+                  variant="outline"
+                  onClick={goBack}
+                  className="flex items-center space-x-2"
+                >
+                  <ArrowLeft className="w-4 h-4" />
+                  <span>Back</span>
+                </Button>
+                
+                {dateRange.startDate && dateRange.endDate && (
+                  <Button
                     onClick={() => setCurrentStep("upload")}
                     className="flex items-center space-x-2"
                   >
@@ -388,13 +588,16 @@ export default function SecondarySales() {
           </Card>
         )}
 
-        {/* Step 3: File Upload */}
+        {/* Step File Upload */}
         {currentStep === "upload" && (
           <Card>
             <CardHeader>
               <CardTitle>Upload File</CardTitle>
               <CardDescription>
                 Upload {selectedPlatformData?.name} secondary sales data for {selectedBusinessUnitData?.name}
+                {selectedPeriodType === "daily" && " (Daily data)"}
+                {selectedPeriodType === "date-range" && dateRange.startDate && dateRange.endDate && 
+                  ` (${new Date(dateRange.startDate).toLocaleDateString()} to ${new Date(dateRange.endDate).toLocaleDateString()})`}
               </CardDescription>
             </CardHeader>
             <CardContent>
