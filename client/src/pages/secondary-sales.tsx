@@ -750,7 +750,7 @@ export default function SecondarySales() {
                 </div>
               </div>
 
-              {/* Debug Information */}
+              {/* Debug Information - Always Show */}
               <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg text-sm">
                 <strong>Debug Info:</strong><br/>
                 Platform: {parsedData.platform}<br/>
@@ -758,11 +758,12 @@ export default function SecondarySales() {
                 Items Length Check: {String(!!(parsedData.items && parsedData.items.length > 0))}<br/>
                 Items Array: {parsedData.items ? `${parsedData.items.length} items` : 'null/undefined'}<br/>
                 Full Data Keys: {JSON.stringify(Object.keys(parsedData))}<br/>
-                Items Type: {Array.isArray(parsedData.items) ? 'Array' : typeof parsedData.items}
+                Items Type: {Array.isArray(parsedData.items) ? 'Array' : typeof parsedData.items}<br/>
+                Raw Items Sample: {parsedData.items && parsedData.items[0] ? JSON.stringify(parsedData.items[0]).substring(0, 200) + '...' : 'No first item'}
               </div>
 
-              {/* Preview Table */}
-              {parsedData.items && parsedData.items.length > 0 && (
+              {/* Preview Table - Force Show for Debug */}
+              {parsedData.items && Array.isArray(parsedData.items) && parsedData.items.length > 0 ? (
                 <div className="border rounded-lg overflow-hidden mb-6">
                   <div className="overflow-x-auto">
                     <div className="max-h-60 overflow-y-auto">
@@ -882,6 +883,14 @@ export default function SecondarySales() {
                   <div className="p-3 bg-gray-50 text-center text-sm text-gray-600 border-t">
                     Showing all {parsedData.items.length} items • Scroll vertically and horizontally to view more
                   </div>
+                </div>
+              ) : (
+                <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-sm">
+                  <strong>Table Not Showing Because:</strong><br/>
+                  parsedData.items exists: {String(!!parsedData.items)}<br/>
+                  parsedData.items is array: {String(Array.isArray(parsedData.items))}<br/>
+                  parsedData.items length: {parsedData.items ? parsedData.items.length : 'N/A'}<br/>
+                  Condition result: {String(parsedData.items && Array.isArray(parsedData.items) && parsedData.items.length > 0)}
                 </div>
               )}
 
