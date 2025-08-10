@@ -21,6 +21,7 @@ import {
   ArrowLeft,
   ShoppingCart,
   Calendar,
+  RotateCcw,
 } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
@@ -793,27 +794,29 @@ export default function SecondarySales() {
                 </div>
               )}
 
-              <div className="mt-6 flex justify-between">
+              <div className="mt-6 flex flex-col sm:flex-row justify-between gap-4">
                 <Button
                   variant="outline"
                   onClick={goBack}
-                  className="flex items-center space-x-2"
+                  className="flex items-center justify-center space-x-2"
                 >
                   <ArrowLeft className="w-4 h-4" />
                   <span>Back</span>
                 </Button>
 
-                <div className="flex space-x-2">
+                <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
                   <Button
                     variant="outline"
                     onClick={goToPlatformSelection}
+                    className="flex items-center justify-center space-x-2"
                   >
-                    Start Over
+                    <RotateCcw className="w-4 h-4" />
+                    <span>Start Over</span>
                   </Button>
                   <Button
                     onClick={() => importMutation.mutate()}
-                    disabled={importMutation.isPending}
-                    className="flex items-center space-x-2"
+                    disabled={importMutation.isPending || !parsedData.items?.length}
+                    className="flex items-center justify-center space-x-2 bg-green-600 hover:bg-green-700 text-white font-medium px-6 py-2 min-w-[140px]"
                   >
                     {importMutation.isPending ? (
                       <>
@@ -823,7 +826,7 @@ export default function SecondarySales() {
                     ) : (
                       <>
                         <Database className="w-4 h-4" />
-                        <span>Import Data</span>
+                        <span>Import to Database</span>
                       </>
                     )}
                   </Button>
