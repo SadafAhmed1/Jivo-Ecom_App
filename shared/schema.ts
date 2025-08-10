@@ -733,3 +733,82 @@ export type BigbasketPoHeader = typeof bigbasketPoHeader.$inferSelect;
 export type InsertBigbasketPoHeader = z.infer<typeof insertBigbasketPoHeaderSchema>;
 export type BigbasketPoLines = typeof bigbasketPoLines.$inferSelect;
 export type InsertBigbasketPoLines = z.infer<typeof insertBigbasketPoLinesSchema>;
+
+// Zomato PO Header Table
+export const zomatoPoHeader = pgTable("zomato_po_header", {
+  id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
+  po_number: varchar("po_number", { length: 100 }).notNull().unique(),
+  po_date: timestamp("po_date"),
+  expected_delivery_date: timestamp("expected_delivery_date"),
+  account_number: varchar("account_number", { length: 50 }),
+  vendor_id: varchar("vendor_id", { length: 50 }),
+  bill_from_name: text("bill_from_name"),
+  bill_from_address: text("bill_from_address"),
+  bill_from_gstin: varchar("bill_from_gstin", { length: 20 }),
+  bill_from_phone: varchar("bill_from_phone", { length: 20 }),
+  bill_to_name: text("bill_to_name"),
+  bill_to_address: text("bill_to_address"),
+  bill_to_gstin: varchar("bill_to_gstin", { length: 20 }),
+  ship_from_name: text("ship_from_name"),
+  ship_from_address: text("ship_from_address"),
+  ship_from_gstin: varchar("ship_from_gstin", { length: 20 }),
+  ship_to_name: text("ship_to_name"),
+  ship_to_address: text("ship_to_address"),
+  ship_to_gstin: varchar("ship_to_gstin", { length: 20 }),
+  total_items: integer("total_items").default(0),
+  total_quantity: decimal("total_quantity", { precision: 15, scale: 2 }).default("0"),
+  grand_total: decimal("grand_total", { precision: 15, scale: 2 }).default("0"),
+  total_tax_amount: decimal("total_tax_amount", { precision: 15, scale: 2 }).default("0"),
+  uploaded_by: varchar("uploaded_by", { length: 100 }).default("admin"),
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow()
+});
+
+// Zomato PO Items Table
+export const zomatoPoItems = pgTable("zomato_po_items", {
+  id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
+  po_header_id: integer("po_header_id").notNull().references(() => zomatoPoHeader.id, { onDelete: "cascade" }),
+  line_number: integer("line_number").notNull(),
+  product_number: varchar("product_number", { length: 100 }),
+  product_name: text("product_name"),
+  hsn_code: varchar("hsn_code", { length: 20 }),
+  quantity_ordered: decimal("quantity_ordered", { precision: 15, scale: 2 }),
+  price_per_unit: decimal("price_per_unit", { precision: 15, scale: 2 }),
+  uom: varchar("uom", { length: 50 }),
+  gst_rate: decimal("gst_rate", { precision: 5, scale: 4 }),
+  total_tax_amount: decimal("total_tax_amount", { precision: 15, scale: 2 }),
+  line_total: decimal("line_total", { precision: 15, scale: 2 }),
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow()
+});
+
+// Zomato Relations
+export const zomatoPoHeaderRelations = relations(zomatoPoHeader, ({ many }) => ({
+  poItems: many(zomatoPoItems),
+}));
+
+export const zomatoPoItemsRelations = relations(zomatoPoItems, ({ one }) => ({
+  po: one(zomatoPoHeader, {
+    fields: [zomatoPoItems.po_header_id],
+    references: [zomatoPoHeader.id],
+  }),
+}));
+
+// Insert schemas for Zomato PO tables
+export const insertZomatoPoHeaderSchema = createInsertSchema(zomatoPoHeader).omit({
+  id: true,
+  created_at: true,
+  updated_at: true
+});
+
+export const insertZomatoPoItemsSchema = createInsertSchema(zomatoPoItems).omit({
+  id: true,
+  po_header_id: true,
+  created_at: true,
+  updated_at: true
+});
+
+export type ZomatoPoHeader = typeof zomatoPoHeader.$inferSelect;
+export type InsertZomatoPoHeader = z.infer<typeof insertZomatoPoHeaderSchema>;
+export type ZomatoPoItems = typeof zomatoPoItems.$inferSelect;
+export type InsertZomatoPoItems = z.infer<typeof insertZomatoPoItemsSchema>;

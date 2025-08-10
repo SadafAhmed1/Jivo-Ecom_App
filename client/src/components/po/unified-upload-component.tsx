@@ -60,6 +60,13 @@ const PLATFORMS: Platform[] = [
     description: "Upload BigBasket PO files",
     endpoint: "/api/bigbasket-pos",
     queryKey: "/api/bigbasket-pos"
+  },
+  {
+    id: "zomato",
+    name: "Zomato",
+    description: "Upload Zomato PO files",
+    endpoint: "/api/zomato-pos",
+    queryKey: "/api/zomato-pos"
   }
 ];
 

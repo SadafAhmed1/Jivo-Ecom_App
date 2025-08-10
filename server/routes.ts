@@ -8,6 +8,7 @@ import { seedTestData } from "./seed-data";
 import { parseFlipkartGroceryPO, parseZeptoPO, parseCityMallPO, parseBlinkitPO } from "./csv-parser";
 import { parseSwiggyPO } from "./swiggy-parser";
 import { parseBigBasketPO } from "./bigbasket-parser";
+import { parseZomatoPO } from "./zomato-parser";
 import multer from 'multer';
 
 const createPoSchema = z.object({
@@ -851,6 +852,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         } else if (platformParam === "bigbasket") {
           detectedVendor = "bigbasket";
           parsedData = await parseBigBasketPO(req.file.buffer, uploadedBy);
+        } else if (platformParam === "zomato") {
+          detectedVendor = "zomato";
+          parsedData = await parseZomatoPO(req.file.buffer, uploadedBy);
         }
         // Fallback to filename detection if platform param not provided or recognized
         else if (filename.includes('flipkart') || filename.includes('grocery')) {
@@ -1194,6 +1198,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
             throw error;
           }
           break;
+        case "zomato":
+          try {
+            createdPo = await storage.createZomatoPo(cleanHeader, cleanLines);
+          } catch (error: any) {
+            if (error.code === '23505' && error.constraint?.includes('po_number_unique')) {
+              return res.status(409).json({ 
+                error: `PO ${cleanHeader.po_number} already exists in Zomato records`,
+                type: 'duplicate_po'
+              });
+            }
+            throw error;
+          }
+          break;
         default:
           return res.status(400).json({ error: "Unsupported vendor" });
       }
@@ -1331,6 +1348,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching distributor order items:", error);
       res.status(500).json({ message: "Failed to fetch distributor order items" });
+    }
+  });
+
+  // Zomato PO routes
+  app.get("/api/zomato-pos", async (_req, res) => {
+    try {
+      const pos = await storage.getAllZomatoPos();
+      res.json(pos);
+    } catch (error) {
+      console.error("Error fetching Zomato POs:", error);
+      res.status(500).json({ message: "Failed to fetch Zomato POs" });
+    }
+  });
+
+  app.get("/api/zomato-pos/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const po = await storage.getZomatoPoById(id);
+      if (!po) {
+        return res.status(404).json({ message: "Zomato PO not found" });
+      }
+      res.json(po);
+    } catch (error) {
+      console.error("Error fetching Zomato PO:", error);
+      res.status(500).json({ message: "Failed to fetch Zomato PO" });
     }
   });
 

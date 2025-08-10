@@ -37,6 +37,10 @@ import {
   type BigbasketPoLines,
   type InsertBigbasketPoHeader,
   type InsertBigbasketPoLines,
+  type ZomatoPoHeader,
+  type ZomatoPoItems,
+  type InsertZomatoPoHeader,
+  type InsertZomatoPoItems,
   type DistributorMst,
   type InsertDistributorMst,
   type DistributorPo,
@@ -62,6 +66,8 @@ import {
   swiggyPoLines,
   bigbasketPoHeader,
   bigbasketPoLines,
+  zomatoPoHeader,
+  zomatoPoItems,
   distributorMst,
   distributorPo,
   distributorOrderItems
@@ -159,6 +165,22 @@ export interface IStorage {
 
   // Distributor Order Items methods
   getAllDistributorOrderItems(): Promise<(DistributorOrderItems & { po_number: string; distributor_name: string; order_date: Date; expiry_date: Date | null; distributor: DistributorMst })[]>;
+
+  // BigBasket PO methods
+  getAllBigbasketPos(): Promise<(BigbasketPoHeader & { poLines: BigbasketPoLines[] })[]>;
+  getBigbasketPoById(id: number): Promise<(BigbasketPoHeader & { poLines: BigbasketPoLines[] }) | undefined>;
+  getBigbasketPoByNumber(poNumber: string): Promise<BigbasketPoHeader | undefined>;
+  createBigbasketPo(header: InsertBigbasketPoHeader, lines: InsertBigbasketPoLines[]): Promise<BigbasketPoHeader>;
+  updateBigbasketPo(id: number, header: Partial<InsertBigbasketPoHeader>, lines?: InsertBigbasketPoLines[]): Promise<BigbasketPoHeader>;
+  deleteBigbasketPo(id: number): Promise<void>;
+
+  // Zomato PO methods
+  getAllZomatoPos(): Promise<(ZomatoPoHeader & { poItems: ZomatoPoItems[] })[]>;
+  getZomatoPoById(id: number): Promise<(ZomatoPoHeader & { poItems: ZomatoPoItems[] }) | undefined>;
+  getZomatoPoByNumber(poNumber: string): Promise<ZomatoPoHeader | undefined>;
+  createZomatoPo(header: InsertZomatoPoHeader, items: InsertZomatoPoItems[]): Promise<ZomatoPoHeader>;
+  updateZomatoPo(id: number, header: Partial<InsertZomatoPoHeader>, items?: InsertZomatoPoItems[]): Promise<ZomatoPoHeader>;
+  deleteZomatoPo(id: number): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1019,6 +1041,87 @@ export class DatabaseStorage implements IStorage {
 
   async deleteBigbasketPo(id: number): Promise<void> {
     await db.delete(bigbasketPoHeader).where(eq(bigbasketPoHeader.id, id));
+  }
+
+  // Zomato PO methods
+  async getAllZomatoPos(): Promise<(ZomatoPoHeader & { poItems: ZomatoPoItems[] })[]> {
+    const pos = await db.select().from(zomatoPoHeader).orderBy(desc(zomatoPoHeader.created_at));
+    
+    const result = [];
+    for (const po of pos) {
+      const poItems = await db.select().from(zomatoPoItems).where(eq(zomatoPoItems.po_header_id, po.id));
+      result.push({
+        ...po,
+        poItems
+      });
+    }
+    
+    return result;
+  }
+
+  async getZomatoPoById(id: number): Promise<(ZomatoPoHeader & { poItems: ZomatoPoItems[] }) | undefined> {
+    const [po] = await db.select().from(zomatoPoHeader).where(eq(zomatoPoHeader.id, id));
+    
+    if (!po) {
+      return undefined;
+    }
+
+    const poItems = await db.select().from(zomatoPoItems).where(eq(zomatoPoItems.po_header_id, po.id));
+    
+    return {
+      ...po,
+      poItems
+    };
+  }
+
+  async getZomatoPoByNumber(poNumber: string): Promise<ZomatoPoHeader | undefined> {
+    const [po] = await db.select().from(zomatoPoHeader).where(eq(zomatoPoHeader.po_number, poNumber));
+    return po || undefined;
+  }
+
+  async createZomatoPo(header: InsertZomatoPoHeader, items: InsertZomatoPoItems[]): Promise<ZomatoPoHeader> {
+    return await db.transaction(async (tx) => {
+      const [createdPo] = await tx.insert(zomatoPoHeader).values(header).returning();
+      
+      if (items.length > 0) {
+        const itemsWithPoId = items.map(item => ({
+          ...item,
+          po_header_id: createdPo.id
+        }));
+        await tx.insert(zomatoPoItems).values(itemsWithPoId);
+      }
+      
+      return createdPo;
+    });
+  }
+
+  async updateZomatoPo(id: number, header: Partial<InsertZomatoPoHeader>, items?: InsertZomatoPoItems[]): Promise<ZomatoPoHeader> {
+    return await db.transaction(async (tx) => {
+      const [updatedPo] = await tx
+        .update(zomatoPoHeader)
+        .set({ ...header, updated_at: new Date() })
+        .where(eq(zomatoPoHeader.id, id))
+        .returning();
+
+      if (items && items.length > 0) {
+        await tx.delete(zomatoPoItems).where(eq(zomatoPoItems.po_header_id, id));
+        
+        const itemsWithPoId = items.map(item => ({
+          ...item,
+          po_header_id: id
+        }));
+        await tx.insert(zomatoPoItems).values(itemsWithPoId);
+      }
+
+      return updatedPo;
+    });
+  }
+
+  async deleteZomatoPo(id: number): Promise<void> {
+    await db.transaction(async (tx) => {
+      await tx.delete(zomatoPoItems).where(eq(zomatoPoItems.po_header_id, id));
+      await tx.delete(zomatoPoHeader).where(eq(zomatoPoHeader.id, id));
+    });
   }
 }
 
