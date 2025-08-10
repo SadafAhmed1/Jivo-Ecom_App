@@ -212,44 +212,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // PO routes with pagination and counts
-  app.get("/api/pos", async (req, res) => {
+  // PO routes
+  app.get("/api/pos", async (_req, res) => {
     try {
-      const { 
-        page = 1, 
-        limit = 10, 
-        status,
-        platform,
-        search 
-      } = req.query;
-
-      const pageNum = parseInt(page as string);
-      const limitNum = parseInt(limit as string);
-      const offset = (pageNum - 1) * limitNum;
-
-      const result = await storage.getAllPosWithPagination({
-        offset,
-        limit: limitNum,
-        status: status as string,
-        platform: platform as string,
-        search: search as string
-      });
-      
-      res.json(result);
+      const pos = await storage.getAllPos();
+      res.json(pos);
     } catch (error) {
-      console.error("Error fetching POs:", error);
       res.status(500).json({ message: "Failed to fetch POs" });
-    }
-  });
-
-  // PO stats/counts endpoint  
-  app.get("/api/pos/stats", async (_req, res) => {
-    try {
-      const stats = await storage.getPoStats();
-      res.json(stats);
-    } catch (error) {
-      console.error("Error fetching PO stats:", error);
-      res.status(500).json({ message: "Failed to fetch PO statistics" });
     }
   });
 
