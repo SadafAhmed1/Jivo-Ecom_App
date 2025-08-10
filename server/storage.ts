@@ -49,6 +49,14 @@ import {
   type SecondarySalesItems,
   type InsertSecondarySalesHeader,
   type InsertSecondarySalesItems,
+  type ScAmJwDaily,
+  type InsertScAmJwDaily,
+  type ScAmJwRange,
+  type InsertScAmJwRange,
+  type ScAmJmDaily,
+  type InsertScAmJmDaily,
+  type ScAmJmRange,
+  type InsertScAmJmRange,
   type DistributorMst,
   type InsertDistributorMst,
   type DistributorPo,
@@ -80,12 +88,16 @@ import {
   dealsharePoItems,
   secondarySalesHeader,
   secondarySalesItems,
+  scAmJwDaily,
+  scAmJwRange,
+  scAmJmDaily,
+  scAmJmRange,
   distributorMst,
   distributorPo,
   distributorOrderItems
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, and, ilike } from "drizzle-orm";
+import { eq, desc, and, ilike, gte, lte } from "drizzle-orm";
 
 export interface IStorage {
   // User methods (legacy)
@@ -200,6 +212,16 @@ export interface IStorage {
   createSecondarySales(header: InsertSecondarySalesHeader, items: InsertSecondarySalesItems[]): Promise<SecondarySalesHeader>;
   updateSecondarySales(id: number, header: Partial<InsertSecondarySalesHeader>, items?: InsertSecondarySalesItems[]): Promise<SecondarySalesHeader>;
   deleteSecondarySales(id: number): Promise<void>;
+
+  // Specific Secondary Sales table methods
+  createScAmJwDaily(items: InsertScAmJwDaily[]): Promise<ScAmJwDaily[]>;
+  createScAmJwRange(items: InsertScAmJwRange[]): Promise<ScAmJwRange[]>;
+  createScAmJmDaily(items: InsertScAmJmDaily[]): Promise<ScAmJmDaily[]>;
+  createScAmJmRange(items: InsertScAmJmRange[]): Promise<ScAmJmRange[]>;
+  getScAmJwDaily(dateStart?: string, dateEnd?: string): Promise<ScAmJwDaily[]>;
+  getScAmJwRange(dateStart?: string, dateEnd?: string): Promise<ScAmJwRange[]>;
+  getScAmJmDaily(dateStart?: string, dateEnd?: string): Promise<ScAmJmDaily[]>;
+  getScAmJmRange(dateStart?: string, dateEnd?: string): Promise<ScAmJmRange[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1307,6 +1329,91 @@ export class DatabaseStorage implements IStorage {
       await tx.delete(secondarySalesItems).where(eq(secondarySalesItems.header_id, id));
       await tx.delete(secondarySalesHeader).where(eq(secondarySalesHeader.id, id));
     });
+  }
+
+  // Specific Secondary Sales table methods
+  async createScAmJwDaily(items: InsertScAmJwDaily[]): Promise<ScAmJwDaily[]> {
+    return await db.insert(scAmJwDaily).values(items).returning();
+  }
+
+  async createScAmJwRange(items: InsertScAmJwRange[]): Promise<ScAmJwRange[]> {
+    return await db.insert(scAmJwRange).values(items).returning();
+  }
+
+  async createScAmJmDaily(items: InsertScAmJmDaily[]): Promise<ScAmJmDaily[]> {
+    return await db.insert(scAmJmDaily).values(items).returning();
+  }
+
+  async createScAmJmRange(items: InsertScAmJmRange[]): Promise<ScAmJmRange[]> {
+    return await db.insert(scAmJmRange).values(items).returning();
+  }
+
+  async getScAmJwDaily(dateStart?: string, dateEnd?: string): Promise<ScAmJwDaily[]> {
+    if (dateStart && dateEnd) {
+      return await db.select().from(scAmJwDaily)
+        .where(
+          and(
+            gte(scAmJwDaily.report_date, new Date(dateStart)),
+            lte(scAmJwDaily.report_date, new Date(dateEnd))
+          )
+        )
+        .orderBy(desc(scAmJwDaily.report_date));
+    } else if (dateStart) {
+      return await db.select().from(scAmJwDaily)
+        .where(eq(scAmJwDaily.report_date, new Date(dateStart)))
+        .orderBy(desc(scAmJwDaily.report_date));
+    }
+    
+    return await db.select().from(scAmJwDaily).orderBy(desc(scAmJwDaily.report_date));
+  }
+
+  async getScAmJwRange(dateStart?: string, dateEnd?: string): Promise<ScAmJwRange[]> {
+    if (dateStart && dateEnd) {
+      return await db.select().from(scAmJwRange)
+        .where(
+          and(
+            gte(scAmJwRange.period_start, new Date(dateStart)),
+            lte(scAmJwRange.period_end, new Date(dateEnd))
+          )
+        )
+        .orderBy(desc(scAmJwRange.period_start));
+    }
+    
+    return await db.select().from(scAmJwRange).orderBy(desc(scAmJwRange.period_start));
+  }
+
+  async getScAmJmDaily(dateStart?: string, dateEnd?: string): Promise<ScAmJmDaily[]> {
+    if (dateStart && dateEnd) {
+      return await db.select().from(scAmJmDaily)
+        .where(
+          and(
+            gte(scAmJmDaily.report_date, new Date(dateStart)),
+            lte(scAmJmDaily.report_date, new Date(dateEnd))
+          )
+        )
+        .orderBy(desc(scAmJmDaily.report_date));
+    } else if (dateStart) {
+      return await db.select().from(scAmJmDaily)
+        .where(eq(scAmJmDaily.report_date, new Date(dateStart)))
+        .orderBy(desc(scAmJmDaily.report_date));
+    }
+    
+    return await db.select().from(scAmJmDaily).orderBy(desc(scAmJmDaily.report_date));
+  }
+
+  async getScAmJmRange(dateStart?: string, dateEnd?: string): Promise<ScAmJmRange[]> {
+    if (dateStart && dateEnd) {
+      return await db.select().from(scAmJmRange)
+        .where(
+          and(
+            gte(scAmJmRange.period_start, new Date(dateStart)),
+            lte(scAmJmRange.period_end, new Date(dateEnd))
+          )
+        )
+        .orderBy(desc(scAmJmRange.period_start));
+    }
+    
+    return await db.select().from(scAmJmRange).orderBy(desc(scAmJmRange.period_start));
   }
 }
 

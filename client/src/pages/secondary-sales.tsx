@@ -41,12 +41,21 @@ import {
 } from "@/components/ui/select";
 
 interface ParsedSecondarySalesData {
-  header?: any;
-  lines?: any[];
+  platform?: string;
+  businessUnit?: string;
+  periodType?: string;
+  reportDate?: string;
+  periodStart?: string;
+  periodEnd?: string;
   totalItems?: number;
-  totalQuantity?: number;
-  totalAmount?: string;
-  detectedBusinessUnit?: string;
+  summary?: {
+    totalOrderedRevenue: number;
+    totalOrderedUnits: number;
+    totalShippedRevenue: number;
+    totalShippedUnits: number;
+    totalCustomerReturns: number;
+  };
+  items?: any[];
 }
 
 const PLATFORMS = [
@@ -80,6 +89,21 @@ const BUSINESS_UNITS = [
     id: "marketplace",
     name: "MarketPlace",
     description: "MarketPlace products sales data",
+  },
+];
+
+const PERIOD_TYPES = [
+  {
+    id: "daily",
+    name: "Daily Report",
+    description: "Upload daily sales report",
+    icon: Calendar,
+  },
+  {
+    id: "date-range",
+    name: "Date Range Report",
+    description: "Upload sales report for a specific date range",
+    icon: Calendar,
   },
 ];
 
@@ -663,7 +687,7 @@ export default function SecondarySales() {
             </CardHeader>
             <CardContent>
               {/* Summary */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
                 <div className="p-4 bg-blue-50 rounded-lg">
                   <div className="text-2xl font-bold text-blue-600">
                     {parsedData.totalItems || 0}
@@ -672,53 +696,92 @@ export default function SecondarySales() {
                 </div>
                 <div className="p-4 bg-green-50 rounded-lg">
                   <div className="text-2xl font-bold text-green-600">
-                    {parsedData.totalQuantity || 0}
+                    {parsedData.summary?.totalOrderedUnits || 0}
                   </div>
-                  <div className="text-sm text-green-600">Total Quantity</div>
+                  <div className="text-sm text-green-600">Ordered Units</div>
                 </div>
                 <div className="p-4 bg-purple-50 rounded-lg">
                   <div className="text-2xl font-bold text-purple-600">
-                    ₹{parsedData.totalAmount || "0.00"}
+                    ₹{parsedData.summary?.totalOrderedRevenue?.toFixed(2) || "0.00"}
                   </div>
-                  <div className="text-sm text-purple-600">Total Amount</div>
+                  <div className="text-sm text-purple-600">Ordered Revenue</div>
+                </div>
+                <div className="p-4 bg-orange-50 rounded-lg">
+                  <div className="text-2xl font-bold text-orange-600">
+                    ₹{parsedData.summary?.totalShippedRevenue?.toFixed(2) || "0.00"}
+                  </div>
+                  <div className="text-sm text-orange-600">Shipped Revenue</div>
+                </div>
+              </div>
+              
+              {/* Period Information */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 p-4 bg-gray-50 rounded-lg">
+                <div>
+                  <span className="text-sm text-gray-600">Business Unit:</span>
+                  <div className="font-medium">{parsedData.businessUnit}</div>
+                </div>
+                <div>
+                  <span className="text-sm text-gray-600">Period Type:</span>
+                  <div className="font-medium">{parsedData.periodType}</div>
+                </div>
+                <div>
+                  <span className="text-sm text-gray-600">Period:</span>
+                  <div className="font-medium">
+                    {parsedData.periodType === 'daily' 
+                      ? new Date(parsedData.reportDate || '').toLocaleDateString()
+                      : `${new Date(parsedData.periodStart || '').toLocaleDateString()} - ${new Date(parsedData.periodEnd || '').toLocaleDateString()}`
+                    }
+                  </div>
                 </div>
               </div>
 
               {/* Preview Table */}
-              {parsedData.lines && parsedData.lines.length > 0 && (
+              {parsedData.items && parsedData.items.length > 0 && (
                 <div className="border rounded-lg overflow-hidden">
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Product Name</TableHead>
-                        <TableHead>SKU/Product Code</TableHead>
-                        <TableHead className="text-right">Quantity</TableHead>
-                        <TableHead className="text-right">Amount</TableHead>
+                        <TableHead>ASIN</TableHead>
+                        <TableHead>Product Title</TableHead>
+                        <TableHead>Brand</TableHead>
+                        <TableHead className="text-right">Ordered Units</TableHead>
+                        <TableHead className="text-right">Ordered Revenue</TableHead>
+                        <TableHead className="text-right">Shipped Units</TableHead>
+                        <TableHead className="text-right">Shipped Revenue</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {parsedData.lines.slice(0, 10).map((line, index) => (
+                      {parsedData.items.slice(0, 10).map((item: any, index: number) => (
                         <TableRow key={index}>
                           <TableCell className="font-medium">
-                            {line.product_name || line.itemName || "N/A"}
+                            {item.asin || "N/A"}
                           </TableCell>
                           <TableCell>
-                            {line.product_number || line.sku || line.productCode || "N/A"}
+                            {item.product_title || "N/A"}
+                          </TableCell>
+                          <TableCell>
+                            {item.brand || "N/A"}
                           </TableCell>
                           <TableCell className="text-right">
-                            {line.quantity || "0"}
+                            {item.ordered_units || 0}
                           </TableCell>
                           <TableCell className="text-right">
-                            ₹{line.line_total || line.amount || "0.00"}
+                            ₹{parseFloat(item.ordered_revenue || "0").toFixed(2)}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            {item.shipped_units || 0}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            ₹{parseFloat(item.shipped_revenue || "0").toFixed(2)}
                           </TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
                   </Table>
                   
-                  {parsedData.lines.length > 10 && (
+                  {parsedData.items.length > 10 && (
                     <div className="p-4 bg-gray-50 text-center text-sm text-gray-600">
-                      Showing 10 of {parsedData.lines.length} items
+                      Showing 10 of {parsedData.items.length} items
                     </div>
                   )}
                 </div>

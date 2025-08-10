@@ -964,3 +964,109 @@ export type SecondarySalesHeader = typeof secondarySalesHeader.$inferSelect;
 export type InsertSecondarySalesHeader = z.infer<typeof insertSecondarySalesHeaderSchema>;
 export type SecondarySalesItems = typeof secondarySalesItems.$inferSelect;
 export type InsertSecondarySalesItems = z.infer<typeof insertSecondarySalesItemsSchema>;
+
+// Secondary Sales Specific Tables for Business Units and Period Types
+// SC_AM_JW_Daily - Amazon Jivo Wellness Daily
+export const scAmJwDaily = pgTable("SC_AM_JW_Daily", {
+  id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
+  report_date: timestamp("report_date").notNull(),
+  asin: varchar("asin", { length: 50 }).notNull(),
+  product_title: text("product_title").notNull(),
+  brand: varchar("brand", { length: 100 }),
+  ordered_revenue: decimal("ordered_revenue", { precision: 15, scale: 2 }),
+  ordered_units: integer("ordered_units"),
+  shipped_revenue: decimal("shipped_revenue", { precision: 15, scale: 2 }),
+  shipped_cogs: decimal("shipped_cogs", { precision: 15, scale: 2 }),
+  shipped_units: integer("shipped_units"),
+  customer_returns: integer("customer_returns"),
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow()
+});
+
+// SC_AM_JW_Range - Amazon Jivo Wellness Date Range
+export const scAmJwRange = pgTable("SC_AM_JW_Range", {
+  id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
+  period_start: timestamp("period_start").notNull(),
+  period_end: timestamp("period_end").notNull(),
+  asin: varchar("asin", { length: 50 }).notNull(),
+  product_title: text("product_title").notNull(),
+  brand: varchar("brand", { length: 100 }),
+  ordered_revenue: decimal("ordered_revenue", { precision: 15, scale: 2 }),
+  ordered_units: integer("ordered_units"),
+  shipped_revenue: decimal("shipped_revenue", { precision: 15, scale: 2 }),
+  shipped_cogs: decimal("shipped_cogs", { precision: 15, scale: 2 }),
+  shipped_units: integer("shipped_units"),
+  customer_returns: integer("customer_returns"),
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow()
+});
+
+// SC_AM_JM_Daily - Amazon Jivo Mart Daily
+export const scAmJmDaily = pgTable("SC_AM_JM_Daily", {
+  id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
+  report_date: timestamp("report_date").notNull(),
+  asin: varchar("asin", { length: 50 }).notNull(),
+  product_title: text("product_title").notNull(),
+  brand: varchar("brand", { length: 100 }),
+  ordered_revenue: decimal("ordered_revenue", { precision: 15, scale: 2 }),
+  ordered_units: integer("ordered_units"),
+  shipped_revenue: decimal("shipped_revenue", { precision: 15, scale: 2 }),
+  shipped_cogs: decimal("shipped_cogs", { precision: 15, scale: 2 }),
+  shipped_units: integer("shipped_units"),
+  customer_returns: integer("customer_returns"),
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow()
+});
+
+// SC_AM_JM_Range - Amazon Jivo Mart Date Range
+export const scAmJmRange = pgTable("SC_AM_JM_Range", {
+  id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
+  period_start: timestamp("period_start").notNull(),
+  period_end: timestamp("period_end").notNull(),
+  asin: varchar("asin", { length: 50 }).notNull(),
+  product_title: text("product_title").notNull(),
+  brand: varchar("brand", { length: 100 }),
+  ordered_revenue: decimal("ordered_revenue", { precision: 15, scale: 2 }),
+  ordered_units: integer("ordered_units"),
+  shipped_revenue: decimal("shipped_revenue", { precision: 15, scale: 2 }),
+  shipped_cogs: decimal("shipped_cogs", { precision: 15, scale: 2 }),
+  shipped_units: integer("shipped_units"),
+  customer_returns: integer("customer_returns"),
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow()
+});
+
+// Insert schemas for the new tables
+export const insertScAmJwDailySchema = createInsertSchema(scAmJwDaily).omit({
+  id: true,
+  created_at: true,
+  updated_at: true
+});
+
+export const insertScAmJwRangeSchema = createInsertSchema(scAmJwRange).omit({
+  id: true,
+  created_at: true,
+  updated_at: true
+});
+
+export const insertScAmJmDailySchema = createInsertSchema(scAmJmDaily).omit({
+  id: true,
+  created_at: true,
+  updated_at: true
+});
+
+export const insertScAmJmRangeSchema = createInsertSchema(scAmJmRange).omit({
+  id: true,
+  created_at: true,
+  updated_at: true
+});
+
+// Types for the new tables
+export type ScAmJwDaily = typeof scAmJwDaily.$inferSelect;
+export type InsertScAmJwDaily = z.infer<typeof insertScAmJwDailySchema>;
+export type ScAmJwRange = typeof scAmJwRange.$inferSelect;
+export type InsertScAmJwRange = z.infer<typeof insertScAmJwRangeSchema>;
+export type ScAmJmDaily = typeof scAmJmDaily.$inferSelect;
+export type InsertScAmJmDaily = z.infer<typeof insertScAmJmDailySchema>;
+export type ScAmJmRange = typeof scAmJmRange.$inferSelect;
+export type InsertScAmJmRange = z.infer<typeof insertScAmJmRangeSchema>;

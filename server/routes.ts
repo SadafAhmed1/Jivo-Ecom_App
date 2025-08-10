@@ -1507,38 +1507,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "No file uploaded" });
       }
 
-      const { platform, businessUnit } = req.body;
+      const { platform, businessUnit, periodType, startDate, endDate } = req.body;
       
-      if (!platform || !businessUnit) {
-        return res.status(400).json({ error: "Platform and business unit are required" });
+      if (!platform || !businessUnit || !periodType) {
+        return res.status(400).json({ error: "Platform, business unit, and period type are required" });
       }
 
-      const uploadedBy = "system";
+      if (platform !== "amazon") {
+        return res.status(400).json({ error: "Only Amazon platform is supported currently" });
+      }
+
+      if (!["jivo-wellness", "jivo-mart"].includes(businessUnit)) {
+        return res.status(400).json({ error: "Business unit must be either jivo-wellness or jivo-mart" });
+      }
+
+      if (!["daily", "date-range"].includes(periodType)) {
+        return res.status(400).json({ error: "Period type must be either daily or date-range" });
+      }
+
       let parsedData;
 
       try {
-        if (platform === "amazon") {
-          parsedData = await parseAmazonSecondarySales(req.file.buffer, businessUnit, uploadedBy);
-        } else {
-          return res.status(400).json({ error: "Unsupported platform" });
-        }
+        parsedData = parseAmazonSecondarySales(
+          req.file.buffer, 
+          platform, 
+          businessUnit, 
+          periodType,
+          startDate,
+          endDate
+        );
 
-        if (!parsedData || !parsedData.lines || parsedData.lines.length === 0) {
+        if (!parsedData.items || parsedData.items.length === 0) {
           return res.status(400).json({ error: "No valid sales data found in file" });
         }
 
-        // Calculate totals
-        const totalItems = parsedData.lines.length;
-        const totalQuantity = parsedData.lines.reduce((sum, line) => sum + (parseInt(line.quantity_sold) || 0), 0);
-        const totalAmount = parsedData.lines.reduce((sum, line) => sum + (parseFloat(line.total_sales) || 0), 0).toFixed(2);
-
         res.json({
-          header: parsedData.header,
-          lines: parsedData.lines,
-          totalItems,
-          totalQuantity,
-          totalAmount,
-          detectedBusinessUnit: businessUnit
+          platform: parsedData.platform,
+          businessUnit: parsedData.businessUnit,
+          periodType: parsedData.periodType,
+          reportDate: parsedData.reportDate,
+          periodStart: parsedData.periodStart,
+          periodEnd: parsedData.periodEnd,
+          totalItems: parsedData.totalItems,
+          summary: parsedData.summary,
+          items: parsedData.items.slice(0, 10) // Preview first 10 items
         });
 
       } catch (parseError) {
@@ -1563,36 +1575,75 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const { platform } = req.params;
-      const { businessUnit } = req.body;
+      const { businessUnit, periodType, startDate, endDate } = req.body;
       
-      if (!platform || !businessUnit) {
-        return res.status(400).json({ error: "Platform and business unit are required" });
+      if (!platform || !businessUnit || !periodType) {
+        return res.status(400).json({ error: "Platform, business unit, and period type are required" });
       }
 
-      const uploadedBy = "system";
+      if (platform !== "amazon") {
+        return res.status(400).json({ error: "Only Amazon platform is supported currently" });
+      }
+
+      if (!["jivo-wellness", "jivo-mart"].includes(businessUnit)) {
+        return res.status(400).json({ error: "Business unit must be either jivo-wellness or jivo-mart" });
+      }
+
+      if (!["daily", "date-range"].includes(periodType)) {
+        return res.status(400).json({ error: "Period type must be either daily or date-range" });
+      }
+
+      if (periodType === "date-range" && (!startDate || !endDate)) {
+        return res.status(400).json({ error: "Start date and end date are required for date-range period type" });
+      }
+
       let parsedData;
 
       try {
-        if (platform === "amazon") {
-          parsedData = await parseAmazonSecondarySales(req.file.buffer, businessUnit, uploadedBy);
-        } else {
-          return res.status(400).json({ error: "Unsupported platform" });
-        }
+        parsedData = parseAmazonSecondarySales(
+          req.file.buffer, 
+          platform, 
+          businessUnit, 
+          periodType,
+          startDate,
+          endDate
+        );
 
-        if (!parsedData || !parsedData.lines || parsedData.lines.length === 0) {
+        if (!parsedData.items || parsedData.items.length === 0) {
           return res.status(400).json({ error: "No valid sales data found in file" });
         }
 
-        // Create the secondary sales record
-        const createdSale = await storage.createSecondarySales(parsedData.header, parsedData.lines);
+        let insertedItems;
+        let tableName;
         
+        // Route to specific table based on business unit and period type
+        if (businessUnit === "jivo-wellness" && periodType === "daily") {
+          insertedItems = await storage.createScAmJwDaily(parsedData.items as any);
+          tableName = "SC_AM_JW_Daily";
+        } else if (businessUnit === "jivo-wellness" && periodType === "date-range") {
+          insertedItems = await storage.createScAmJwRange(parsedData.items as any);
+          tableName = "SC_AM_JW_Range";
+        } else if (businessUnit === "jivo-mart" && periodType === "daily") {
+          insertedItems = await storage.createScAmJmDaily(parsedData.items as any);
+          tableName = "SC_AM_JM_Daily";
+        } else if (businessUnit === "jivo-mart" && periodType === "date-range") {
+          insertedItems = await storage.createScAmJmRange(parsedData.items as any);
+          tableName = "SC_AM_JM_Range";
+        } else {
+          return res.status(400).json({ error: "Invalid business unit and period type combination" });
+        }
+
         res.status(201).json({
-          id: createdSale.id,
-          platform: createdSale.platform,
-          businessUnit: createdSale.business_unit,
-          totalItems: parsedData.lines.length,
-          totalQuantity: parsedData.lines.reduce((sum, line) => sum + (parseInt(line.quantity_sold) || 0), 0),
-          totalAmount: parsedData.lines.reduce((sum, line) => sum + (parseFloat(line.total_sales) || 0), 0).toFixed(2)
+          success: true,
+          platform: parsedData.platform,
+          businessUnit: parsedData.businessUnit,
+          periodType: parsedData.periodType,
+          tableName,
+          totalItems: insertedItems.length,
+          summary: parsedData.summary,
+          reportDate: parsedData.reportDate,
+          periodStart: parsedData.periodStart,
+          periodEnd: parsedData.periodEnd
         });
 
       } catch (parseError) {
