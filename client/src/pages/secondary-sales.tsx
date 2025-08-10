@@ -328,7 +328,7 @@ export default function SecondarySales() {
   };
 
   return (
-    <div className="container mx-auto py-8 px-4">
+    <div className="container mx-auto py-8 px-4 max-h-screen overflow-y-auto" style={{scrollbarWidth: 'thin'}}>
       <div className="max-w-4xl mx-auto">
         <div className="mb-8">
           <h1 className="text-3xl font-bold mb-2">Secondary Sales</h1>
@@ -401,7 +401,7 @@ export default function SecondarySales() {
 
         {/* Step 1: Platform Selection */}
         {currentStep === "platform" && (
-          <Card>
+          <Card className="max-h-[70vh] overflow-y-auto" style={{scrollbarWidth: 'thin'}}>
             <CardHeader>
               <CardTitle>Select Platform</CardTitle>
               <CardDescription>
@@ -448,7 +448,7 @@ export default function SecondarySales() {
 
         {/* Step 2: Business Unit Selection */}
         {currentStep === "business-unit" && (
-          <Card>
+          <Card className="max-h-[70vh] overflow-y-auto" style={{scrollbarWidth: 'thin'}}>
             <CardHeader>
               <CardTitle>Select Business Unit</CardTitle>
               <CardDescription>
@@ -706,7 +706,7 @@ export default function SecondarySales() {
 
         {/* Step 4: Preview Data */}
         {currentStep === "preview" && parsedData && (
-          <Card>
+          <Card className="max-h-[80vh] overflow-y-auto" style={{scrollbarWidth: 'thin'}}>
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
                 <Eye className="w-5 h-5" />
@@ -818,7 +818,7 @@ export default function SecondarySales() {
               {parsedData.items && Array.isArray(parsedData.items) && parsedData.items.length > 0 ? (
                 <div className="border rounded-lg overflow-hidden mb-6">
                   <div className="overflow-x-auto">
-                    <div className="max-h-60 overflow-y-auto">
+                    <div className="max-h-60 overflow-y-auto" style={{scrollbarWidth: 'thin'}}>
                       <Table>
                         <TableHeader className="sticky top-0 bg-white shadow-sm z-10">
                           <TableRow>

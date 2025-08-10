@@ -72,7 +72,7 @@ export function Sidebar() {
         </div>
       </div>
       {/* Navigation Section */}
-      <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto min-h-0">
+      <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-scroll" style={{scrollbarWidth: 'thin'}}>
         {navigation.map((item) => {
           const isActive = location === item.href;
           const Icon = item.icon;
