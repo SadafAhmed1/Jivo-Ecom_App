@@ -43,10 +43,32 @@ export function DistributorPOTabs() {
         </CardHeader>
       </Card>
 
+      {/* Create PO Form Overlay */}
+      {showCreateForm && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-gray-900 rounded-lg shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-auto">
+            <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Create New Distributor Purchase Order</h3>
+              <Button
+                variant="ghost"
+                onClick={() => setShowCreateForm(false)}
+                className="flex items-center gap-2"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                Close
+              </Button>
+            </div>
+            <div className="p-6">
+              <DistributorPOForm onSuccess={() => setShowCreateForm(false)} />
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Main Content with Tabs */}
       <Card className="shadow-lg border-0">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-3 bg-gray-100 dark:bg-gray-800">
+          <TabsList className="grid w-full grid-cols-2 bg-gray-100 dark:bg-gray-800">
             <TabsTrigger value="list" className="flex items-center gap-2">
               <List className="h-4 w-4" />
               View POs
@@ -54,10 +76,6 @@ export function DistributorPOTabs() {
             <TabsTrigger value="order-items" className="flex items-center gap-2">
               <BarChart3 className="h-4 w-4" />
               Order Items
-            </TabsTrigger>
-            <TabsTrigger value="create" className="flex items-center gap-2">
-              <Plus className="h-4 w-4" />
-              Create PO
             </TabsTrigger>
           </TabsList>
 
@@ -68,48 +86,6 @@ export function DistributorPOTabs() {
             
             <TabsContent value="order-items" className="mt-0">
               <DistributorOrderItemsListView />
-            </TabsContent>
-            
-            <TabsContent value="create" className="mt-0">
-              {!showCreateForm ? (
-                <div className="text-center py-12">
-                  <div className="max-w-md mx-auto">
-                    <div className="mb-6">
-                      <Plus className="mx-auto h-12 w-12 text-gray-400" />
-                    </div>
-                    <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
-                      Create New Distributor Purchase Order
-                    </h3>
-                    <p className="text-gray-500 dark:text-gray-400 mb-6">
-                      Get started by creating a new distributor purchase order with all the necessary details.
-                    </p>
-                    <Button
-                      onClick={() => setShowCreateForm(true)}
-                      className="bg-blue-600 hover:bg-blue-700"
-                    >
-                      <Plus className="h-4 w-4 mr-2" />
-                      Create New PO
-                    </Button>
-                  </div>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <Button
-                      variant="ghost"
-                      onClick={() => setShowCreateForm(false)}
-                      className="flex items-center gap-2"
-                    >
-                      <ArrowLeft className="h-4 w-4" />
-                      Back to Overview
-                    </Button>
-                  </div>
-                  <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-700 p-6 rounded-lg">
-                    <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Create New Distributor Purchase Order</h3>
-                  </div>
-                  <DistributorPOForm />
-                </div>
-              )}
             </TabsContent>
           </CardContent>
         </Tabs>
