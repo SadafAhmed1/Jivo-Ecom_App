@@ -906,8 +906,38 @@ export default function SecondarySales() {
                 </div>
               )}
 
-              {/* Action Buttons - Fixed positioning */}
-              <div className="bg-white border-t pt-4 mt-4">
+              {/* Import Button - Prominent Display */}
+              <div className="bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-lg p-6 mt-6">
+                <div className="text-center">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                    Ready to Import Data
+                  </h3>
+                  <p className="text-sm text-gray-600 mb-4">
+                    Click below to import {parsedData.totalItems || 0} items into the database for {selectedPlatformData?.name} - {selectedBusinessUnitData?.name}
+                  </p>
+                  <Button
+                    onClick={() => importMutation.mutate()}
+                    disabled={importMutation.isPending || !parsedData.items?.length}
+                    className="bg-green-600 hover:bg-green-700 text-white font-semibold px-8 py-4 text-lg min-w-[200px] shadow-lg"
+                    size="lg"
+                  >
+                    {importMutation.isPending ? (
+                      <>
+                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                        Importing...
+                      </>
+                    ) : (
+                      <>
+                        <Database className="w-6 h-6 mr-2" />
+                        Import to Database
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </div>
+
+              {/* Action Buttons - Navigation */}
+              <div className="bg-white border-t pt-4 mt-6">
                 <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
                   <Button
                     variant="outline"
@@ -918,33 +948,14 @@ export default function SecondarySales() {
                     <span>Back</span>
                   </Button>
 
-                  <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
-                    <Button
-                      variant="outline"
-                      onClick={goToPlatformSelection}
-                      className="flex items-center justify-center space-x-2 w-full sm:w-auto"
-                    >
-                      <RotateCcw className="w-4 h-4" />
-                      <span>Start Over</span>
-                    </Button>
-                    <Button
-                      onClick={() => importMutation.mutate()}
-                      disabled={importMutation.isPending || !parsedData.items?.length}
-                      className="flex items-center justify-center space-x-2 bg-green-600 hover:bg-green-700 text-white font-semibold px-6 py-3 min-w-[180px] w-full sm:w-auto shadow-md"
-                    >
-                      {importMutation.isPending ? (
-                        <>
-                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                          <span>Importing...</span>
-                        </>
-                      ) : (
-                        <>
-                          <Database className="w-5 h-5" />
-                          <span>Import to Database</span>
-                        </>
-                      )}
-                    </Button>
-                  </div>
+                  <Button
+                    variant="outline"
+                    onClick={goToPlatformSelection}
+                    className="flex items-center justify-center space-x-2 w-full sm:w-auto"
+                  >
+                    <RotateCcw className="w-4 h-4" />
+                    <span>Start Over</span>
+                  </Button>
                 </div>
               </div>
             </CardContent>
