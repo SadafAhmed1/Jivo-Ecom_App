@@ -485,87 +485,87 @@ export function OrderItemsListView() {
                           <ChevronDown className="h-3 w-3" />
                         </Button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="w-52">
+                      <DropdownMenuContent align="end" className="w-52 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg">
                         <DropdownMenuItem 
                           onClick={() => handleStatusUpdate(item.id, 'Pending')}
-                          className="cursor-pointer"
+                          className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-900 dark:text-gray-100 px-3 py-2 font-medium"
                         >
                           <Badge variant="default" className="text-xs mr-2">Pending</Badge>
                           Pending
                         </DropdownMenuItem>
                         <DropdownMenuItem 
                           onClick={() => handleStatusUpdate(item.id, 'Invoiced')}
-                          className="cursor-pointer"
+                          className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-900 dark:text-gray-100 px-3 py-2 font-medium"
                         >
                           <Badge variant="secondary" className="text-xs mr-2">Invoiced</Badge>
                           Invoiced
                         </DropdownMenuItem>
                         <DropdownMenuItem 
                           onClick={() => handleStatusUpdate(item.id, 'Dispatched')}
-                          className="cursor-pointer"
+                          className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-900 dark:text-gray-100 px-3 py-2 font-medium"
                         >
                           <Badge variant="secondary" className="text-xs mr-2">Dispatched</Badge>
                           Dispatched
                         </DropdownMenuItem>
                         <DropdownMenuItem 
                           onClick={() => handleStatusUpdate(item.id, 'Delivered')}
-                          className="cursor-pointer"
+                          className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-900 dark:text-gray-100 px-3 py-2 font-medium"
                         >
                           <Badge variant="secondary" className="text-xs mr-2">Delivered</Badge>
                           Delivered
                         </DropdownMenuItem>
                         <DropdownMenuItem 
                           onClick={() => handleStatusUpdate(item.id, 'Price Difference')}
-                          className="cursor-pointer"
+                          className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-900 dark:text-gray-100 px-3 py-2 font-medium"
                         >
                           <Badge variant="outline" className="text-xs mr-2">Price Difference</Badge>
                           Price Difference
                         </DropdownMenuItem>
                         <DropdownMenuItem 
                           onClick={() => handleStatusUpdate(item.id, 'MOV Issue')}
-                          className="cursor-pointer"
+                          className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-900 dark:text-gray-100 px-3 py-2 font-medium"
                         >
                           <Badge variant="outline" className="text-xs mr-2">MOV Issue</Badge>
                           MOV Issue
                         </DropdownMenuItem>
                         <DropdownMenuItem 
                           onClick={() => handleStatusUpdate(item.id, 'Stock Issue')}
-                          className="cursor-pointer"
+                          className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-900 dark:text-gray-100 px-3 py-2 font-medium"
                         >
                           <Badge variant="outline" className="text-xs mr-2">Stock Issue</Badge>
                           Stock Issue
                         </DropdownMenuItem>
                         <DropdownMenuItem 
                           onClick={() => handleStatusUpdate(item.id, 'Cancelled')}
-                          className="cursor-pointer"
+                          className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-900 dark:text-gray-100 px-3 py-2 font-medium"
                         >
                           <Badge variant="destructive" className="text-xs mr-2">Cancelled</Badge>
                           Cancelled
                         </DropdownMenuItem>
                         <DropdownMenuItem 
                           onClick={() => handleStatusUpdate(item.id, 'Expired')}
-                          className="cursor-pointer"
+                          className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-900 dark:text-gray-100 px-3 py-2 font-medium"
                         >
                           <Badge variant="destructive" className="text-xs mr-2">Expired</Badge>
                           Expired
                         </DropdownMenuItem>
                         <DropdownMenuItem 
                           onClick={() => handleStatusUpdate(item.id, 'Hold')}
-                          className="cursor-pointer"
+                          className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-900 dark:text-gray-100 px-3 py-2 font-medium"
                         >
                           <Badge variant="outline" className="text-xs mr-2">Hold</Badge>
                           Hold
                         </DropdownMenuItem>
                         <DropdownMenuItem 
                           onClick={() => handleStatusUpdate(item.id, 'CN')}
-                          className="cursor-pointer"
+                          className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-900 dark:text-gray-100 px-3 py-2 font-medium"
                         >
                           <Badge variant="outline" className="text-xs mr-2">CN</Badge>
                           CN
                         </DropdownMenuItem>
                         <DropdownMenuItem 
                           onClick={() => handleStatusUpdate(item.id, 'RTV')}
-                          className="cursor-pointer"
+                          className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-900 dark:text-gray-100 px-3 py-2 font-medium"
                         >
                           <Badge variant="outline" className="text-xs mr-2">RTV</Badge>
                           RTV
