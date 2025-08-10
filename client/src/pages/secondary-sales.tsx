@@ -738,52 +738,58 @@ export default function SecondarySales() {
               {/* Preview Table */}
               {parsedData.items && parsedData.items.length > 0 && (
                 <div className="border rounded-lg overflow-hidden">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>ASIN</TableHead>
-                        <TableHead>Product Title</TableHead>
-                        <TableHead>Brand</TableHead>
-                        <TableHead className="text-right">Ordered Units</TableHead>
-                        <TableHead className="text-right">Ordered Revenue</TableHead>
-                        <TableHead className="text-right">Shipped Units</TableHead>
-                        <TableHead className="text-right">Shipped Revenue</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {parsedData.items.slice(0, 10).map((item: any, index: number) => (
-                        <TableRow key={index}>
-                          <TableCell className="font-medium">
-                            {item.asin || "N/A"}
-                          </TableCell>
-                          <TableCell>
-                            {item.product_title || "N/A"}
-                          </TableCell>
-                          <TableCell>
-                            {item.brand || "N/A"}
-                          </TableCell>
-                          <TableCell className="text-right">
-                            {item.ordered_units || 0}
-                          </TableCell>
-                          <TableCell className="text-right">
-                            ₹{parseFloat(item.ordered_revenue || "0").toFixed(2)}
-                          </TableCell>
-                          <TableCell className="text-right">
-                            {item.shipped_units || 0}
-                          </TableCell>
-                          <TableCell className="text-right">
-                            ₹{parseFloat(item.shipped_revenue || "0").toFixed(2)}
-                          </TableCell>
+                  <div className="max-h-96 overflow-y-auto">
+                    <Table>
+                      <TableHeader className="sticky top-0 bg-white z-10">
+                        <TableRow>
+                          <TableHead className="min-w-[120px]">ASIN</TableHead>
+                          <TableHead className="min-w-[200px]">Product Title</TableHead>
+                          <TableHead className="min-w-[120px]">Brand</TableHead>
+                          <TableHead className="text-right min-w-[100px]">Ordered Units</TableHead>
+                          <TableHead className="text-right min-w-[120px]">Ordered Revenue</TableHead>
+                          <TableHead className="text-right min-w-[100px]">Shipped Units</TableHead>
+                          <TableHead className="text-right min-w-[120px]">Shipped Revenue</TableHead>
                         </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
+                      </TableHeader>
+                      <TableBody>
+                        {parsedData.items.map((item: any, index: number) => (
+                          <TableRow key={index} className="hover:bg-gray-50">
+                            <TableCell className="font-medium">
+                              <div className="truncate max-w-[120px]" title={item.asin || "N/A"}>
+                                {item.asin || "N/A"}
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <div className="truncate max-w-[200px]" title={item.product_title || "N/A"}>
+                                {item.product_title || "N/A"}
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <div className="truncate max-w-[120px]" title={item.brand || "N/A"}>
+                                {item.brand || "N/A"}
+                              </div>
+                            </TableCell>
+                            <TableCell className="text-right">
+                              {item.ordered_units || 0}
+                            </TableCell>
+                            <TableCell className="text-right">
+                              ₹{parseFloat(item.ordered_revenue || "0").toFixed(2)}
+                            </TableCell>
+                            <TableCell className="text-right">
+                              {item.shipped_units || 0}
+                            </TableCell>
+                            <TableCell className="text-right">
+                              ₹{parseFloat(item.shipped_revenue || "0").toFixed(2)}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
                   
-                  {parsedData.items.length > 10 && (
-                    <div className="p-4 bg-gray-50 text-center text-sm text-gray-600">
-                      Showing 10 of {parsedData.items.length} items
-                    </div>
-                  )}
+                  <div className="p-4 bg-gray-50 text-center text-sm text-gray-600 border-t">
+                    Showing all {parsedData.items.length} items • Scroll to view more
+                  </div>
                 </div>
               )}
 
