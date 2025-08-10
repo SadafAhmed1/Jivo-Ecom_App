@@ -754,7 +754,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Invalid ID" });
       }
       
-      const zeptoPo = await storage.getZeptoPoById(id);
+      const zeptoPo = await storage.getZeptoPOById(id);
       if (!zeptoPo) {
         return res.status(404).json({ error: "Zepto PO not found" });
       }

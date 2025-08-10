@@ -445,6 +445,7 @@ export class DatabaseStorage implements IStorage {
         category: pfOrderItems.category,
         subcategory: pfOrderItems.subcategory,
         total_litres: pfOrderItems.total_litres,
+        hsn_code: pfOrderItems.hsn_code,
         // PO fields
         po_number: pfPo.po_number,
         order_date: pfPo.order_date,
@@ -471,6 +472,7 @@ export class DatabaseStorage implements IStorage {
       category: result.category,
       subcategory: result.subcategory,
       total_litres: result.total_litres,
+      hsn_code: result.hsn_code,
       po_number: result.po_number,
       platform_name: result.platform_name,
       order_date: result.order_date,
@@ -614,6 +616,11 @@ export class DatabaseStorage implements IStorage {
       ...header,
       poLines: lines
     };
+  }
+
+  async getZeptoPoByNumber(poNumber: string): Promise<ZeptoPoHeader | undefined> {
+    const [header] = await db.select().from(zeptoPoHeader).where(eq(zeptoPoHeader.po_number, poNumber));
+    return header || undefined;
   }
 
   async createZeptoPo(header: InsertZeptoPoHeader, lines: InsertZeptoPoLines[]): Promise<ZeptoPoHeader> {

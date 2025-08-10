@@ -88,7 +88,8 @@ export const pfOrderItems = pgTable("pf_order_items", {
   gst_rate: decimal("gst_rate", { precision: 5, scale: 2 }).notNull(),
   landing_rate: decimal("landing_rate", { precision: 10, scale: 2 }).notNull(),
   total_litres: decimal("total_litres", { precision: 10, scale: 3 }),
-  status: varchar("status", { length: 50 }).default('Pending')
+  status: varchar("status", { length: 50 }).default('Pending'),
+  hsn_code: varchar("hsn_code", { length: 20 })
 });
 
 // Distributor Master Table (for managing distributor information)

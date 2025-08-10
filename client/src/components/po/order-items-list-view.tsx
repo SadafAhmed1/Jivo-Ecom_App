@@ -20,6 +20,7 @@ interface OrderItemWithDetails extends PfOrderItems {
   order_date: Date;
   expiry_date: Date | null;
   platform: PfMst;
+  hsn_code?: string | null;
 }
 
 export function OrderItemsListView() {
@@ -45,10 +46,19 @@ export function OrderItemsListView() {
   // Status update mutation
   const updateStatusMutation = useMutation({
     mutationFn: async ({ itemId, status }: { itemId: number, status: string }) => {
-      return await apiRequest(`/api/order-items/${itemId}`, {
+      const response = await fetch(`/api/order-items/${itemId}`, {
         method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json'
+        },
         body: JSON.stringify({ status })
       });
+      
+      if (!response.ok) {
+        throw new Error('Failed to update status');
+      }
+      
+      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/order-items"] });
