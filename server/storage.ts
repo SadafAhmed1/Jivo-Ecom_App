@@ -351,79 +351,168 @@ export class DatabaseStorage implements IStorage {
   }> {
     const { offset, limit, status, platform, search } = options;
     
-    // Build where conditions
-    const whereConditions = [];
-    if (status && status !== 'all') {
-      whereConditions.push(eq(pfPo.status, status));
-    }
-    if (platform && platform !== 'all') {
-      whereConditions.push(eq(pfMst.pf_name, platform));
-    }
-    if (search) {
-      whereConditions.push(
-        or(
-          like(pfPo.po_number, `%${search}%`),
-          like(pfPo.serving_distributor, `%${search}%`),
-          like(pfMst.pf_name, `%${search}%`)
-        )
-      );
-    }
+    try {
+      // Get all unified POs from different platform tables
+      const allPOs = [];
 
-    // Get total count
-    const totalQuery = db
-      .select({ count: count() })
-      .from(pfPo)
-      .leftJoin(pfMst, eq(pfPo.platform, pfMst.id));
+      // 1. Get regular POs from pf_po table
+      const regularPos = await db
+        .select({
+          po: pfPo,
+          platform: pfMst
+        })
+        .from(pfPo)
+        .leftJoin(pfMst, eq(pfPo.platform, pfMst.id))
+        .orderBy(desc(pfPo.created_at));
+
+      // Process regular POs
+      for (const { po, platform } of regularPos) {
+        const orderItems = await db
+          .select()
+          .from(pfOrderItems)
+          .where(eq(pfOrderItems.po_id, po.id));
+        
+        const { platform: platformId, ...poWithoutPlatform } = po;
+        allPOs.push({
+          ...poWithoutPlatform,
+          platform: platform!,
+          orderItems,
+          source: 'regular'
+        });
+      }
+
+      // Add platform-specific POs with simplified mapping
+      // 2. Get Dealshare POs
+      try {
+        const dealsharePOs = await db.select().from(dealsharePoHeader).orderBy(desc(dealsharePoHeader.created_at));
+        for (const po of dealsharePOs) {
+          const items = await db.select().from(dealsharePoItems).where(eq(dealsharePoItems.po_header_id, po.id));
+          
+          allPOs.push({
+            id: po.id,
+            po_number: po.po_number,
+            status: 'Open',
+            order_date: po.created_at || new Date(),
+            expiry_date: null,
+            appointment_date: null,
+            region: 'India',
+            state: 'Unknown',
+            city: 'Unknown',
+            area: '',
+            serving_distributor: po.shipped_by || '',
+            attachment: '',
+            created_at: po.created_at,
+            updated_at: po.updated_at,
+            platform: { id: 8, pf_name: 'Dealshare', created_at: new Date(), updated_at: new Date() },
+            orderItems: items.map(item => ({
+              id: item.id,
+              po_id: po.id,
+              item_name: item.product_name || 'Unknown Item',
+              quantity: item.quantity || 0,
+              basic_rate: item.buying_price?.toString() || '0',
+              gst_rate: item.gst_percent?.toString() || '0',
+              landing_rate: item.gross_amount?.toString() || '0',
+              sap_code: item.sku || '',
+              category: '',
+              subcategory: '',
+              total_litres: null,
+              status: 'Open',
+              hsn_code: item.hsn_code || null
+            })),
+            source: 'dealshare'
+          });
+        }
+      } catch (err) {
+        console.log("Error loading Dealshare POs:", err);
+      }
+
+      // 3. Get Swiggy POs
+      try {
+        const swiggyPOs = await db.select().from(swiggyPos).orderBy(desc(swiggyPos.created_at));
+        for (const po of swiggyPOs) {
+          const lines = await db.select().from(swiggyPoLines).where(eq(swiggyPoLines.po_id, po.id));
+          
+          allPOs.push({
+            id: po.id,
+            po_number: po.po_number,
+            status: 'Open',
+            order_date: po.po_date || po.created_at || new Date(),
+            expiry_date: po.po_expiry_date,
+            appointment_date: po.expected_delivery_date,
+            region: 'India',
+            state: 'Unknown',
+            city: 'Unknown',
+            area: '',
+            serving_distributor: po.vendor_name || '',
+            attachment: '',
+            created_at: po.created_at,
+            updated_at: po.updated_at,
+            platform: { id: 2, pf_name: 'Swiggy Instamart', created_at: new Date(), updated_at: new Date() },
+            orderItems: lines.map(line => ({
+              id: line.id,
+              po_id: po.id,
+              item_name: line.item_description || 'Unknown Item',
+              quantity: line.quantity || 0,
+              basic_rate: line.unit_base_cost || '0',
+              gst_rate: '0',
+              landing_rate: line.taxable_value || line.unit_base_cost || '0',
+              sap_code: line.item_code || '',
+              category: '',
+              subcategory: '',
+              total_litres: null,
+              status: 'Open',
+              hsn_code: line.hsn_code || null
+            })),
+            source: 'swiggy'
+          });
+        }
+      } catch (err) {
+        console.log("Error loading Swiggy POs:", err);
+      }
+
+      // Sort all POs by creation date descending
+      allPOs.sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime());
+
+      // Apply filters
+      let filteredPOs = allPOs;
       
-    if (whereConditions.length > 0) {
-      totalQuery.where(and(...whereConditions));
-    }
-    
-    const [{ count: totalCount }] = await totalQuery;
-
-    // Get paginated data
-    const dataQuery = db
-      .select({
-        po: pfPo,
-        platform: pfMst
-      })
-      .from(pfPo)
-      .leftJoin(pfMst, eq(pfPo.platform, pfMst.id))
-      .orderBy(desc(pfPo.created_at))
-      .limit(limit)
-      .offset(offset);
+      if (status && status !== 'all') {
+        filteredPOs = filteredPOs.filter(po => po.status?.toLowerCase() === status.toLowerCase());
+      }
       
-    if (whereConditions.length > 0) {
-      dataQuery.where(and(...whereConditions));
-    }
-
-    const posData = await dataQuery;
-
-    // Get order items for each PO
-    const result = [];
-    for (const { po, platform } of posData) {
-      const orderItems = await db
-        .select()
-        .from(pfOrderItems)
-        .where(eq(pfOrderItems.po_id, po.id));
+      if (platform && platform !== 'all') {
+        filteredPOs = filteredPOs.filter(po => po.platform.pf_name === platform);
+      }
       
-      const { platform: platformId, ...poWithoutPlatform } = po;
-      result.push({
-        ...poWithoutPlatform,
-        platform: platform!,
-        orderItems
-      });
+      if (search) {
+        const searchLower = search.toLowerCase();
+        filteredPOs = filteredPOs.filter(po => 
+          po.po_number.toLowerCase().includes(searchLower) ||
+          (po.serving_distributor && po.serving_distributor.toLowerCase().includes(searchLower)) ||
+          po.platform.pf_name.toLowerCase().includes(searchLower)
+        );
+      }
+
+      const totalCount = filteredPOs.length;
+      const totalPages = Math.ceil(totalCount / limit);
+      const page = Math.floor(offset / limit) + 1;
+
+      // Apply pagination
+      const paginatedPOs = filteredPOs.slice(offset, offset + limit);
+
+      // Remove source field from result
+      const result = paginatedPOs.map(({ source, ...po }) => po);
+
+      return {
+        data: result,
+        total: totalCount,
+        page,
+        totalPages
+      };
+    } catch (error) {
+      console.error("Error in getAllPosWithPagination:", error);
+      throw error;
     }
-
-    const totalPages = Math.ceil(totalCount / limit);
-    const page = Math.floor(offset / limit) + 1;
-
-    return {
-      data: result,
-      total: totalCount,
-      page,
-      totalPages
-    };
   }
 
   async getPoStats(): Promise<{
@@ -433,20 +522,49 @@ export class DatabaseStorage implements IStorage {
     cancelled: number;
   }> {
     try {
-      // Get total count
-      const totalResult = await db.select({ count: count() }).from(pfPo);
-      const totalCount = totalResult[0]?.count || 0;
+      let total = 0, open = 0, closed = 0, cancelled = 0;
+
+      // Count regular POs
+      const regularPOCount = await db.select({ count: count() }).from(pfPo);
+      const regularPOs = regularPOCount[0]?.count || 0;
+      total += regularPOs;
       
-      // Get counts by status
-      const openResult = await db.select({ count: count() }).from(pfPo).where(eq(pfPo.status, 'Open'));
-      const closedResult = await db.select({ count: count() }).from(pfPo).where(eq(pfPo.status, 'Closed'));
-      const cancelledResult = await db.select({ count: count() }).from(pfPo).where(eq(pfPo.status, 'Cancelled'));
+      if (regularPOs > 0) {
+        const regularStats = await Promise.all([
+          db.select({ count: count() }).from(pfPo).where(eq(pfPo.status, 'Open')),
+          db.select({ count: count() }).from(pfPo).where(eq(pfPo.status, 'Closed')),
+          db.select({ count: count() }).from(pfPo).where(eq(pfPo.status, 'Cancelled'))
+        ]);
+        
+        open += regularStats[0][0]?.count || 0;
+        closed += regularStats[1][0]?.count || 0;
+        cancelled += regularStats[2][0]?.count || 0;
+      }
+
+      // Count platform-specific POs
+      const platformCounts = await Promise.all([
+        db.select({ count: count() }).from(blinkitPoHeader),
+        db.select({ count: count() }).from(flipkartGroceryPoHeader),
+        db.select({ count: count() }).from(zeptoPoHeader),
+        db.select({ count: count() }).from(cityMallPoHeader),
+        db.select({ count: count() }).from(swiggyPos),
+        db.select({ count: count() }).from(bigbasketPoHeader),
+        db.select({ count: count() }).from(zomatoPoHeader),
+        db.select({ count: count() }).from(dealsharePoHeader)
+      ]);
+
+      // Add platform PO counts to total (most platform POs are "Open" by default)
+      for (const countResult of platformCounts) {
+        const count = countResult[0]?.count || 0;
+        total += count;
+        open += count; // Most platform POs default to Open status
+      }
 
       return {
-        total: totalCount,
-        open: openResult[0]?.count || 0,
-        closed: closedResult[0]?.count || 0,
-        cancelled: cancelledResult[0]?.count || 0
+        total,
+        open,
+        closed,
+        cancelled
       };
     } catch (error) {
       console.error("Error getting PO stats:", error);
