@@ -603,6 +603,17 @@ export function UnifiedUploadComponent({ onComplete }: UnifiedUploadComponentPro
                                         <th className="text-left p-2 font-medium">MRP</th>
                                         <th className="text-left p-2 font-medium">Total Value</th>
                                       </>
+                                    ) : selectedPlatformData?.id === 'zomato' ? (
+                                      <>
+                                        <th className="text-left p-2 font-medium">Product Name</th>
+                                        <th className="text-left p-2 font-medium">Product Number</th>
+                                        <th className="text-left p-2 font-medium">HSN Code</th>
+                                        <th className="text-left p-2 font-medium">Quantity</th>
+                                        <th className="text-left p-2 font-medium">Price Per Unit</th>
+                                        <th className="text-left p-2 font-medium">UoM</th>
+                                        <th className="text-left p-2 font-medium">GST Rate</th>
+                                        <th className="text-left p-2 font-medium">Line Total</th>
+                                      </>
                                     ) : (
                                       <>
                                         <th className="text-left p-2 font-medium">Item</th>
@@ -663,6 +674,17 @@ export function UnifiedUploadComponent({ onComplete }: UnifiedUploadComponentPro
                                           <td className="p-2">{line.quantity || 0}</td>
                                           <td className="p-2">₹{line.mrp || '0.00'}</td>
                                           <td className="p-2">₹{line.total_value || '0.00'}</td>
+                                        </>
+                                      ) : selectedPlatformData?.id === 'zomato' ? (
+                                        <>
+                                          <td className="p-2">{line.product_name || 'N/A'}</td>
+                                          <td className="p-2">{line.product_number || 'N/A'}</td>
+                                          <td className="p-2">{line.hsn_code || 'N/A'}</td>
+                                          <td className="p-2">{line.quantity_ordered || 0}</td>
+                                          <td className="p-2">₹{line.price_per_unit || '0.00'}</td>
+                                          <td className="p-2">{line.uom || 'N/A'}</td>
+                                          <td className="p-2">{line.gst_rate || '0.00'}%</td>
+                                          <td className="p-2">₹{line.line_total || '0.00'}</td>
                                         </>
                                       ) : (
                                         <>
