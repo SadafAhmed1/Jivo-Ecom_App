@@ -522,37 +522,95 @@ export function parseBlinkitPO(fileContent: Buffer, uploadedBy: string): {
     lines: InsertBlinkitPoLines[];
   }>;
 } {
-  const csvContent = fileContent.toString('utf-8');
-  const parsedData = Papa.parse(csvContent, {
-    header: true,
-    skipEmptyLines: true,
-    transformHeader: (header: string) => header.trim()
-  });
+  let rows: any[];
+  
+  try {
+    // Try to parse as Excel file first
+    const workbook = XLSX.read(fileContent, { type: 'buffer' });
+    const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+    
+    // Convert to JSON with header row
+    const jsonData = XLSX.utils.sheet_to_json(worksheet, {
+      header: 1,
+      defval: '',
+      blankrows: false
+    });
+    
+    if (jsonData.length === 0) {
+      throw new Error('Excel file appears to be empty');
+    }
+    
+    // Convert to object format with headers
+    const headers = jsonData[0] as string[];
+    rows = (jsonData.slice(1) as any[]).map((row: any[]) => {
+      const obj: any = {};
+      headers.forEach((header, index) => {
+        obj[header.toString().trim()] = row[index] || '';
+      });
+      return obj;
+    });
+  } catch (xlsxError) {
+    // Fallback to CSV parsing if Excel parsing fails
+    try {
+      const csvContent = fileContent.toString('utf-8');
+      const parsedData = Papa.parse(csvContent, {
+        header: true,
+        skipEmptyLines: true,
+        transformHeader: (header: string) => header.trim()
+      });
 
-  if (parsedData.errors.length > 0) {
-    throw new Error(`CSV parsing errors: ${parsedData.errors.map(e => e.message).join(', ')}`);
+      if (parsedData.errors.length > 0) {
+        throw new Error(`CSV parsing errors: ${parsedData.errors.map(e => e.message).join(', ')}`);
+      }
+
+      rows = parsedData.data as any[];
+    } catch (csvError) {
+      throw new Error(`Failed to parse file as both Excel and CSV: ${xlsxError instanceof Error ? xlsxError.message : 'Excel error'}, ${csvError instanceof Error ? csvError.message : 'CSV error'}`);
+    }
   }
 
-  const rows = parsedData.data as any[];
   if (rows.length === 0) {
-    throw new Error('CSV file appears to be empty');
+    throw new Error('File appears to be empty');
   }
 
-  // Check for required headers - using the actual column names from the new format
-  const requiredHeaders = ['po_number', 'item_id', 'name', 'remaining_quantity'];
+  // Check for required headers with flexible matching
   const headers = Object.keys(rows[0]);
-  const missingHeaders = requiredHeaders.filter(header => !headers.includes(header));
-  if (missingHeaders.length > 0) {
-    throw new Error(`Missing required headers: ${missingHeaders.join(', ')}`);
+  const headerMap: { [key: string]: string } = {};
+  
+  // Map common header variations to standard field names
+  const headerMappings = {
+    po_number: ['po_number', 'po number', 'ponumber', 'po_no', 'po no', 'purchase order number'],
+    item_id: ['item_id', 'item id', 'itemid', 'product_id', 'product id', 'sku'],
+    name: ['name', 'product_name', 'product name', 'item_name', 'item name', 'description', 'product_description'],
+    remaining_quantity: ['remaining_quantity', 'remaining quantity', 'quantity', 'qty', 'ordered_quantity', 'ordered quantity']
+  };
+  
+  // Find matching headers (case-insensitive)
+  for (const [standardField, variations] of Object.entries(headerMappings)) {
+    const matchedHeader = headers.find(header => 
+      variations.some(variation => 
+        header.toLowerCase().trim() === variation.toLowerCase()
+      )
+    );
+    if (matchedHeader) {
+      headerMap[standardField] = matchedHeader;
+    }
+  }
+  
+  // Check if we found all required headers
+  const requiredFields = ['po_number', 'item_id', 'name', 'remaining_quantity'];
+  const missingFields = requiredFields.filter(field => !headerMap[field]);
+  if (missingFields.length > 0) {
+    throw new Error(`Missing required fields: ${missingFields.join(', ')}. Available headers: ${headers.join(', ')}`);
   }
 
   // Group rows by PO number
   const poGroups: { [poNumber: string]: any[] } = {};
   
   rows.forEach(row => {
-    const poNumber = row.po_number?.toString().trim();
+    const poNumber = row[headerMap.po_number]?.toString().trim();
     if (!poNumber) {
-      throw new Error('po no is not available please check you upload po');
+      throw new Error('PO number is not available, please check your uploaded file');
     }
     
     if (!poGroups[poNumber]) {
@@ -567,33 +625,33 @@ export function parseBlinkitPO(fileContent: Buffer, uploadedBy: string): {
     let totalAmount = 0;
 
     const blinkitLines: InsertBlinkitPoLines[] = poRows.map((row: any, index: number) => {
-      // Use the correct field mappings as specified
-      const quantity = Number(row.remaining_quantity) || 0; // remaining_quantity → quantity
-      const lineTotal = Number(row.total_amount) || 0;
+      // Use the flexible field mappings
+      const quantity = Number(row[headerMap.remaining_quantity] || row['remaining_quantity'] || row['quantity'] || row['qty'] || 0);
+      const lineTotal = Number(row['total_amount'] || row['line_total'] || row['amount'] || 0);
       
       totalQuantity += quantity;
       totalAmount += lineTotal;
 
       return {
         line_number: index + 1,
-        item_code: String(row.item_id || ''), // item_id → item_code
-        hsn_code: '', // Not present in this CSV format
-        product_upc: String(row.upc || ''),
-        product_description: String(row.name || ''), // name → item_name 
-        grammage: String(row.uom_text || ''), // uom_text → uom
-        basic_cost_price: (Number(row.cost_price) || 0).toString(),
-        cgst_percent: (Number(row.cgst_value) || 0).toString(),
-        sgst_percent: (Number(row.sgst_value) || 0).toString(),
-        igst_percent: (Number(row.igst_value) || 0).toString(),
-        cess_percent: (Number(row.cess_value) || 0).toString(),
+        item_code: String(row[headerMap.item_id] || row['item_id'] || row['sku'] || ''),
+        hsn_code: String(row['hsn_code'] || row['hsn'] || ''),
+        product_upc: String(row['upc'] || row['barcode'] || ''),
+        product_description: String(row[headerMap.name] || row['name'] || row['description'] || ''),
+        grammage: String(row['uom_text'] || row['uom'] || row['unit'] || ''),
+        basic_cost_price: (Number(row['cost_price'] || row['base_price'] || 0)).toString(),
+        cgst_percent: (Number(row['cgst_value'] || row['cgst'] || 0)).toString(),
+        sgst_percent: (Number(row['sgst_value'] || row['sgst'] || 0)).toString(),
+        igst_percent: (Number(row['igst_value'] || row['igst'] || 0)).toString(),
+        cess_percent: (Number(row['cess_value'] || row['cess'] || 0)).toString(),
         additional_cess: '0',
-        tax_amount: (Number(row.tax_value) || 0).toString(),
-        landing_rate: (Number(row.landing_rate) || 0).toString(),
+        tax_amount: (Number(row['tax_value'] || row['tax_amount'] || row['tax'] || 0)).toString(),
+        landing_rate: (Number(row['landing_rate'] || row['unit_price'] || row['price'] || 0)).toString(),
         quantity: quantity,
-        mrp: (Number(row.mrp) || 0).toString(),
-        margin_percent: (Number(row.margin_percentage) || 0).toString(),
+        mrp: (Number(row['mrp'] || row['max_retail_price'] || 0)).toString(),
+        margin_percent: (Number(row['margin_percentage'] || row['margin'] || 0)).toString(),
         total_amount: lineTotal.toString(),
-        status: row.po_state || "Active",
+        status: String(row['po_state'] || row['status'] || "Active"),
         created_by: uploadedBy
       };
     });
