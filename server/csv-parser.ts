@@ -205,6 +205,7 @@ export function parseFlipkartGroceryPO(csvContent: string, uploadedBy: string): 
           };
 
           lines.push(line);
+          console.log('Parsed line item:', line);
           
           // Update totals
           totalQuantity += line.quantity;

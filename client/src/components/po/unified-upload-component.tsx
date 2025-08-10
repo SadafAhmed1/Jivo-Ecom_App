@@ -561,6 +561,15 @@ export function UnifiedUploadComponent({ onComplete }: UnifiedUploadComponentPro
                                         <th className="text-left p-2 font-medium">Price</th>
                                         <th className="text-left p-2 font-medium">Total</th>
                                       </>
+                                    ) : selectedPlatformData?.id === 'flipkart' ? (
+                                      <>
+                                        <th className="text-left p-2 font-medium">Title</th>
+                                        <th className="text-left p-2 font-medium">FSN/ISBN</th>
+                                        <th className="text-left p-2 font-medium">Brand</th>
+                                        <th className="text-left p-2 font-medium">Quantity</th>
+                                        <th className="text-left p-2 font-medium">Supplier Price</th>
+                                        <th className="text-left p-2 font-medium">Total</th>
+                                      </>
                                     ) : (
                                       <>
                                         <th className="text-left p-2 font-medium">Item</th>
@@ -593,6 +602,15 @@ export function UnifiedUploadComponent({ onComplete }: UnifiedUploadComponentPro
                                           <td className="p-2">{line.article_id || 'N/A'}</td>
                                           <td className="p-2">{line.quantity || 0}</td>
                                           <td className="p-2">₹{line.base_cost_price || '0.00'}</td>
+                                          <td className="p-2">₹{line.total_amount || '0.00'}</td>
+                                        </>
+                                      ) : selectedPlatformData?.id === 'flipkart' ? (
+                                        <>
+                                          <td className="p-2">{line.title || 'N/A'}</td>
+                                          <td className="p-2">{line.fsn_isbn || 'N/A'}</td>
+                                          <td className="p-2">{line.brand || 'N/A'}</td>
+                                          <td className="p-2">{line.quantity || 0}</td>
+                                          <td className="p-2">₹{line.supplier_price || '0.00'}</td>
                                           <td className="p-2">₹{line.total_amount || '0.00'}</td>
                                         </>
                                       ) : (
