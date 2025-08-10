@@ -2,6 +2,7 @@ import * as XLSX from 'xlsx';
 
 export interface SwiggySecondarySalesItem {
   brand: string;
+  report_date: Date;
   ordered_date: Date;
   city: string;
   area_name?: string;
@@ -143,6 +144,7 @@ export function parseSwiggySecondarySalesFile(
       
       const item: SwiggySecondarySalesItem = {
         brand: row[columnIndexes.brand]?.toString() || '',
+        report_date: reportDate ? new Date(reportDate) : new Date(),
         ordered_date: orderedDate,
         city: row[columnIndexes.city]?.toString() || '',
         area_name: row[columnIndexes.area_name]?.toString() || undefined,

@@ -1667,10 +1667,53 @@ export async function registerRoutes(app: Express): Promise<Server> {
         } else if (platform === "swiggy") {
           // Swiggy only supports Jivo Mart
           if (periodType === "daily") {
-            insertedItems = await storage.createScSwiggyJmDaily(parsedData.items as any);
+            // Transform SwiggySecondarySalesItem[] to InsertScSwiggyJmDaily[]
+            const dailyItems = (parsedData.items as any[]).map((item: any) => ({
+              report_date: item.report_date,
+              brand: item.brand,
+              ordered_date: item.ordered_date,
+              city: item.city,
+              area_name: item.area_name || null,
+              store_id: item.store_id || null,
+              l1_category: item.l1_category || null,
+              l2_category: item.l2_category || null,
+              l3_category: item.l3_category || null,
+              product_name: item.product_name,
+              variant: item.variant || null,
+              item_code: item.item_code || null,
+              combo: item.combo || null,
+              combo_item_code: item.combo_item_code || null,
+              combo_units_sold: item.combo_units_sold || null,
+              base_mrp: item.base_mrp?.toString() || null,
+              units_sold: item.units_sold || null,
+              gmv: item.gmv?.toString() || null
+            }));
+            insertedItems = await storage.createScSwiggyJmDaily(dailyItems);
             tableName = "SC_Swiggy_JM_Daily";
           } else if (periodType === "date-range") {
-            insertedItems = await storage.createScSwiggyJmRange(parsedData.items as any);
+            // Transform SwiggySecondarySalesItem[] to InsertScSwiggyJmRange[]
+            const rangeItems = (parsedData.items as any[]).map((item: any) => ({
+              period_start: parsedData.periodStart ? new Date(parsedData.periodStart) : new Date(),
+              period_end: parsedData.periodEnd ? new Date(parsedData.periodEnd) : new Date(),
+              brand: item.brand,
+              ordered_date: item.ordered_date,
+              city: item.city,
+              area_name: item.area_name || null,
+              store_id: item.store_id || null,
+              l1_category: item.l1_category || null,
+              l2_category: item.l2_category || null,
+              l3_category: item.l3_category || null,
+              product_name: item.product_name,
+              variant: item.variant || null,
+              item_code: item.item_code || null,
+              combo: item.combo || null,
+              combo_item_code: item.combo_item_code || null,
+              combo_units_sold: item.combo_units_sold || null,
+              base_mrp: item.base_mrp?.toString() || null,
+              units_sold: item.units_sold || null,
+              gmv: item.gmv?.toString() || null
+            }));
+            insertedItems = await storage.createScSwiggyJmRange(rangeItems);
             tableName = "SC_Swiggy_JM_Range";
           }
         }
