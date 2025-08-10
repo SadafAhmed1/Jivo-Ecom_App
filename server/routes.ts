@@ -268,6 +268,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.patch("/api/order-items/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const { status } = req.body;
+      
+      if (!status) {
+        return res.status(400).json({ message: "Status is required" });
+      }
+
+      const updatedItem = await storage.updateOrderItemStatus(id, status);
+      res.json(updatedItem);
+    } catch (error) {
+      console.error("Error updating order item status:", error);
+      res.status(500).json({ message: "Failed to update order item status" });
+    }
+  });
+
   // CSV parsing endpoint
   app.post("/api/parse-flipkart-csv", upload.single('file'), async (req, res) => {
     try {

@@ -1,14 +1,16 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { format, isAfter, isBefore, isEqual } from "date-fns";
-import { Search, Filter, Download, RefreshCw, X, Calendar, Package } from "lucide-react";
+import { Search, Filter, Download, RefreshCw, X, Calendar, Package, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
 import * as XLSX from 'xlsx';
 import type { PfMst, PfOrderItems } from "@shared/schema";
 
@@ -22,6 +24,7 @@ interface OrderItemWithDetails extends PfOrderItems {
 
 export function OrderItemsListView() {
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState("");
   const [showFilter, setShowFilter] = useState(false);
   const [statusFilter, setStatusFilter] = useState("all");
@@ -38,6 +41,34 @@ export function OrderItemsListView() {
   const { data: platforms = [] } = useQuery<PfMst[]>({
     queryKey: ["/api/platforms"]
   });
+
+  // Status update mutation
+  const updateStatusMutation = useMutation({
+    mutationFn: async ({ itemId, status }: { itemId: number, status: string }) => {
+      return await apiRequest(`/api/order-items/${itemId}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ status })
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/order-items"] });
+      toast({
+        title: "Status Updated",
+        description: "Order item status has been updated successfully"
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Update Failed",
+        description: "Failed to update order item status",
+        variant: "destructive"
+      });
+    }
+  });
+
+  const handleStatusUpdate = (itemId: number, newStatus: string) => {
+    updateStatusMutation.mutate({ itemId, status: newStatus });
+  };
 
   const handleRefresh = () => {
     refetch();
@@ -411,12 +442,61 @@ export function OrderItemsListView() {
                         {item.po_number} • {item.platform_name}
                       </p>
                     </div>
-                    <Badge 
-                      variant={getStatusBadgeVariant(item.status || 'pending')}
-                      className="px-3 py-1 text-xs font-semibold"
-                    >
-                      {item.status || 'Pending'}
-                    </Badge>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          className="flex items-center space-x-2 px-3 py-1"
+                          disabled={updateStatusMutation.isPending}
+                        >
+                          <Badge 
+                            variant={getStatusBadgeVariant(item.status || 'pending')}
+                            className="text-xs font-semibold border-none bg-transparent p-0"
+                          >
+                            {item.status || 'Pending'}
+                          </Badge>
+                          <ChevronDown className="h-3 w-3" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem 
+                          onClick={() => handleStatusUpdate(item.id, 'Pending')}
+                          className="cursor-pointer"
+                        >
+                          <Badge variant="default" className="text-xs mr-2">Pending</Badge>
+                          Pending
+                        </DropdownMenuItem>
+                        <DropdownMenuItem 
+                          onClick={() => handleStatusUpdate(item.id, 'Confirmed')}
+                          className="cursor-pointer"
+                        >
+                          <Badge variant="secondary" className="text-xs mr-2">Confirmed</Badge>
+                          Confirmed
+                        </DropdownMenuItem>
+                        <DropdownMenuItem 
+                          onClick={() => handleStatusUpdate(item.id, 'Shipped')}
+                          className="cursor-pointer"
+                        >
+                          <Badge variant="secondary" className="text-xs mr-2">Shipped</Badge>
+                          Shipped
+                        </DropdownMenuItem>
+                        <DropdownMenuItem 
+                          onClick={() => handleStatusUpdate(item.id, 'Delivered')}
+                          className="cursor-pointer"
+                        >
+                          <Badge variant="secondary" className="text-xs mr-2">Delivered</Badge>
+                          Delivered
+                        </DropdownMenuItem>
+                        <DropdownMenuItem 
+                          onClick={() => handleStatusUpdate(item.id, 'Cancelled')}
+                          className="cursor-pointer"
+                        >
+                          <Badge variant="destructive" className="text-xs mr-2">Cancelled</Badge>
+                          Cancelled
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
                   <div className="text-right">
                     <p className="text-lg font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">

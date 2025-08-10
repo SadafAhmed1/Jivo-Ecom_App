@@ -95,6 +95,7 @@ export interface IStorage {
   
   // Order Items methods
   getAllOrderItems(): Promise<(PfOrderItems & { po_number: string; platform_name: string; order_date: Date; expiry_date: Date | null; platform: PfMst })[]>;
+  updateOrderItemStatus(id: number, status: string): Promise<PfOrderItems>;
 
   // Flipkart Grocery PO methods
   getAllFlipkartGroceryPos(): Promise<(FlipkartGroceryPoHeader & { poLines: FlipkartGroceryPoLines[] })[]>;
@@ -476,6 +477,20 @@ export class DatabaseStorage implements IStorage {
       expiry_date: result.expiry_date,
       platform: result.platform
     }));
+  }
+
+  async updateOrderItemStatus(id: number, status: string): Promise<PfOrderItems> {
+    const [updatedItem] = await db
+      .update(pfOrderItems)
+      .set({ status })
+      .where(eq(pfOrderItems.id, id))
+      .returning();
+    
+    if (!updatedItem) {
+      throw new Error('Order item not found');
+    }
+    
+    return updatedItem;
   }
 
   // Flipkart Grocery PO methods
