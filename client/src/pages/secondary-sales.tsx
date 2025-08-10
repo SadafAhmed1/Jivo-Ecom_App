@@ -786,7 +786,7 @@ export default function SecondarySales() {
               {parsedData.items && parsedData.items.length > 0 && (
                 <div className="border rounded-lg overflow-hidden mb-6">
                   <div className="overflow-x-auto">
-                    <div className="max-h-80 overflow-y-auto">
+                    <div className="max-h-60 overflow-y-auto">
                       <Table>
                         <TableHeader className="sticky top-0 bg-white shadow-sm z-10">
                           <TableRow>
@@ -906,33 +906,35 @@ export default function SecondarySales() {
                 </div>
               )}
 
-              {/* Import Button - Prominent Display */}
-              <div className="bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-lg p-6 mt-6">
-                <div className="text-center">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                    Ready to Import Data
-                  </h3>
-                  <p className="text-sm text-gray-600 mb-4">
-                    Click below to import {parsedData.totalItems || 0} items into the database for {selectedPlatformData?.name} - {selectedBusinessUnitData?.name}
-                  </p>
-                  <Button
-                    onClick={() => importMutation.mutate()}
-                    disabled={importMutation.isPending || !parsedData.items?.length}
-                    className="bg-green-600 hover:bg-green-700 text-white font-semibold px-8 py-4 text-lg min-w-[200px] shadow-lg"
-                    size="lg"
-                  >
-                    {importMutation.isPending ? (
-                      <>
-                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
-                        Importing...
-                      </>
-                    ) : (
-                      <>
-                        <Database className="w-6 h-6 mr-2" />
-                        Import to Database
-                      </>
-                    )}
-                  </Button>
+              {/* Import Button - Always Visible */}
+              <div className="sticky bottom-0 bg-white border-t-2 border-green-200 mt-4 mb-4 p-4 rounded-lg shadow-lg">
+                <div className="bg-gradient-to-r from-green-50 to-blue-50 border-2 border-green-300 rounded-lg p-6">
+                  <div className="text-center">
+                    <h3 className="text-xl font-bold text-gray-900 mb-2">
+                      🗄️ Ready to Import Data
+                    </h3>
+                    <p className="text-sm text-gray-700 mb-4 font-medium">
+                      Import {parsedData.totalItems || 0} items into {selectedPlatformData?.name} - {selectedBusinessUnitData?.name} database
+                    </p>
+                    <Button
+                      onClick={() => importMutation.mutate()}
+                      disabled={importMutation.isPending || !parsedData.items?.length}
+                      className="bg-green-600 hover:bg-green-700 text-white font-bold px-10 py-5 text-xl min-w-[250px] shadow-xl border-2 border-green-700"
+                      size="lg"
+                    >
+                      {importMutation.isPending ? (
+                        <>
+                          <div className="w-6 h-6 border-3 border-white border-t-transparent rounded-full animate-spin mr-3" />
+                          Importing...
+                        </>
+                      ) : (
+                        <>
+                          <Database className="w-7 h-7 mr-3" />
+                          Import to Database
+                        </>
+                      )}
+                    </Button>
+                  </div>
                 </div>
               </div>
 
