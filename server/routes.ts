@@ -765,11 +765,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let parsedData;
       let detectedVendor = "";
 
-      // Try to detect vendor and parse accordingly
+      // Check platform parameter first, then try to detect vendor from filename
+      const platformParam = req.body.platform || req.query.platform;
       const filename = req.file.originalname.toLowerCase();
       
       try {
-        if (filename.includes('flipkart') || filename.includes('grocery')) {
+        // Use platform parameter if provided
+        if (platformParam === "blinkit") {
+          detectedVendor = "blinkit";
+          console.log("Processing Blinkit file with multiple POs (platform param)...");
+          const blinkitResult = parseBlinkitPO(req.file.buffer, uploadedBy);
+          console.log("Found", blinkitResult.poList.length, "POs in Blinkit file");
+          // Return the multiple POs structure for Blinkit
+          return res.json({
+            poList: blinkitResult.poList.map(po => ({
+              header: po.header,
+              lines: po.lines,
+              totalItems: po.lines.length,
+              totalQuantity: po.header.total_quantity,
+              totalAmount: po.lines.reduce((sum, line) => sum + parseFloat(line.total_amount || '0'), 0).toFixed(2)
+            })),
+            detectedVendor: 'blinkit',
+            totalPOs: blinkitResult.poList.length
+          });
+        } else if (platformParam === "flipkart") {
+          detectedVendor = "flipkart";
+          parsedData = await parseFlipkartGroceryPO(req.file.buffer.toString('utf-8'), uploadedBy);
+        } else if (platformParam === "zepto") {
+          detectedVendor = "zepto";
+          parsedData = parseZeptoPO(req.file.buffer.toString('utf-8'), uploadedBy);
+        } else if (platformParam === "citymall") {
+          detectedVendor = "citymall";
+          parsedData = await parseCityMallPO(req.file.buffer.toString('utf-8'), uploadedBy);
+        } else if (platformParam === "swiggy") {
+          detectedVendor = "swiggy";
+          parsedData = await parseSwiggyPO(req.file.buffer, uploadedBy);
+        }
+        // Fallback to filename detection if platform param not provided or recognized
+        else if (filename.includes('flipkart') || filename.includes('grocery')) {
           detectedVendor = "flipkart";
           parsedData = await parseFlipkartGroceryPO(req.file.buffer.toString('utf-8'), uploadedBy);
         } else if (filename.includes('zepto')) {
@@ -780,7 +813,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           parsedData = await parseCityMallPO(req.file.buffer.toString('utf-8'), uploadedBy);
         } else if (filename.includes('blinkit')) {
           detectedVendor = "blinkit";
-          console.log("Processing Blinkit file with multiple POs...");
+          console.log("Processing Blinkit file with multiple POs (filename detection)...");
           try {
             const blinkitResult = parseBlinkitPO(req.file.buffer, uploadedBy);
             console.log("Found", blinkitResult.poList.length, "POs in Blinkit file");

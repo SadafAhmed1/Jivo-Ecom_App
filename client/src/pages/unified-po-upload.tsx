@@ -39,11 +39,21 @@ import {
 } from "@/components/ui/select";
 
 interface ParsedPOData {
-  header: any;
-  lines: any[];
+  header?: any;
+  lines?: any[];
   totalItems?: number;
   totalQuantity?: number;
   totalAmount?: string;
+  // For multi-PO platforms like Blinkit
+  poList?: Array<{
+    header: any;
+    lines: any[];
+    totalItems: number;
+    totalQuantity: number;
+    totalAmount: string;
+  }>;
+  totalPOs?: number;
+  detectedVendor?: string;
 }
 
 const PLATFORMS = [
@@ -773,7 +783,7 @@ export default function UnifiedPOUpload() {
                 <h4 className="font-medium">
                   Line Items Preview (First 5 items)
                 </h4>
-                {selectedPlatform === "citymall" && parsedData.lines[0] && (
+                {selectedPlatform === "citymall" && parsedData.lines && parsedData.lines[0] && (
                   <div className="text-xs text-gray-500 mb-2 p-2 bg-gray-50 rounded">
                     <div><strong>Debug Info:</strong></div>
                     <div>Article ID: {parsedData.lines[0].article_id || 'MISSING'}</div>
@@ -837,7 +847,7 @@ export default function UnifiedPOUpload() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {parsedData.lines.slice(0, 5).map((line, index) => (
+                      {parsedData.lines?.slice(0, 5).map((line, index) => (
                         <TableRow key={index}>
                           {selectedPlatform === "flipkart" ? (
                             <>
