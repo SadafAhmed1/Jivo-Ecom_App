@@ -79,7 +79,7 @@ import {
   distributorOrderItems
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, and, ilike } from "drizzle-orm";
+import { eq, desc, and, ilike, or, like, count, sum, sql } from "drizzle-orm";
 
 export interface IStorage {
   // User methods (legacy)
@@ -106,6 +106,18 @@ export interface IStorage {
   
   // PO methods
   getAllPos(): Promise<(Omit<PfPo, 'platform'> & { platform: PfMst; orderItems: PfOrderItems[] })[]>;
+  getAllPosWithPagination(options: { offset: number; limit: number; status?: string; platform?: string; search?: string }): Promise<{
+    data: (Omit<PfPo, 'platform'> & { platform: PfMst; orderItems: PfOrderItems[] })[];
+    total: number;
+    page: number;
+    totalPages: number;
+  }>;
+  getPoStats(): Promise<{
+    total: number;
+    open: number;
+    closed: number;
+    cancelled: number;
+  }>;
   getPoById(id: number): Promise<(Omit<PfPo, 'platform'> & { platform: PfMst; orderItems: PfOrderItems[] }) | undefined>;
   createPo(po: InsertPfPo, items: InsertPfOrderItems[]): Promise<PfPo>;
   updatePo(id: number, po: Partial<InsertPfPo>, items?: InsertPfOrderItems[]): Promise<PfPo>;
@@ -329,6 +341,122 @@ export class DatabaseStorage implements IStorage {
     result.sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime());
 
     return result;
+  }
+
+  async getAllPosWithPagination(options: { offset: number; limit: number; status?: string; platform?: string; search?: string }): Promise<{
+    data: (Omit<PfPo, 'platform'> & { platform: PfMst; orderItems: PfOrderItems[] })[];
+    total: number;
+    page: number;
+    totalPages: number;
+  }> {
+    const { offset, limit, status, platform, search } = options;
+    
+    // Build where conditions
+    const whereConditions = [];
+    if (status && status !== 'all') {
+      whereConditions.push(eq(pfPo.status, status));
+    }
+    if (platform && platform !== 'all') {
+      whereConditions.push(eq(pfMst.pf_name, platform));
+    }
+    if (search) {
+      whereConditions.push(
+        or(
+          like(pfPo.po_number, `%${search}%`),
+          like(pfPo.serving_distributor, `%${search}%`),
+          like(pfMst.pf_name, `%${search}%`)
+        )
+      );
+    }
+
+    // Get total count
+    const totalQuery = db
+      .select({ count: count() })
+      .from(pfPo)
+      .leftJoin(pfMst, eq(pfPo.platform, pfMst.id));
+      
+    if (whereConditions.length > 0) {
+      totalQuery.where(and(...whereConditions));
+    }
+    
+    const [{ count: totalCount }] = await totalQuery;
+
+    // Get paginated data
+    const dataQuery = db
+      .select({
+        po: pfPo,
+        platform: pfMst
+      })
+      .from(pfPo)
+      .leftJoin(pfMst, eq(pfPo.platform, pfMst.id))
+      .orderBy(desc(pfPo.created_at))
+      .limit(limit)
+      .offset(offset);
+      
+    if (whereConditions.length > 0) {
+      dataQuery.where(and(...whereConditions));
+    }
+
+    const posData = await dataQuery;
+
+    // Get order items for each PO
+    const result = [];
+    for (const { po, platform } of posData) {
+      const orderItems = await db
+        .select()
+        .from(pfOrderItems)
+        .where(eq(pfOrderItems.po_id, po.id));
+      
+      const { platform: platformId, ...poWithoutPlatform } = po;
+      result.push({
+        ...poWithoutPlatform,
+        platform: platform!,
+        orderItems
+      });
+    }
+
+    const totalPages = Math.ceil(totalCount / limit);
+    const page = Math.floor(offset / limit) + 1;
+
+    return {
+      data: result,
+      total: totalCount,
+      page,
+      totalPages
+    };
+  }
+
+  async getPoStats(): Promise<{
+    total: number;
+    open: number;
+    closed: number;
+    cancelled: number;
+  }> {
+    try {
+      // Get total count
+      const totalResult = await db.select({ count: count() }).from(pfPo);
+      const totalCount = totalResult[0]?.count || 0;
+      
+      // Get counts by status
+      const openResult = await db.select({ count: count() }).from(pfPo).where(eq(pfPo.status, 'Open'));
+      const closedResult = await db.select({ count: count() }).from(pfPo).where(eq(pfPo.status, 'Closed'));
+      const cancelledResult = await db.select({ count: count() }).from(pfPo).where(eq(pfPo.status, 'Cancelled'));
+
+      return {
+        total: totalCount,
+        open: openResult[0]?.count || 0,
+        closed: closedResult[0]?.count || 0,
+        cancelled: cancelledResult[0]?.count || 0
+      };
+    } catch (error) {
+      console.error("Error getting PO stats:", error);
+      return {
+        total: 0,
+        open: 0,
+        closed: 0,
+        cancelled: 0
+      };
+    }
   }
 
   async getPoById(id: number): Promise<(Omit<PfPo, 'platform'> & { platform: PfMst; orderItems: PfOrderItems[] }) | undefined> {

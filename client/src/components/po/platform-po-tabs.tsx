@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PlatformPOForm } from "./platform-po-form";
 import { POListView } from "./po-list-view";
+import { EnhancedPOList } from "./enhanced-po-list";
 import { OrderItemsListView } from "./order-items-list-view";
 import { NewPODropdown } from "./new-po-dropdown";
 import { UnifiedUploadComponent } from "./unified-upload-component";
@@ -79,7 +80,7 @@ export function PlatformPOTabs() {
               <>
                 <TabsContent value="list" className="mt-0">
                   <div className="p-6">
-                    <POListView />
+                    <EnhancedPOList />
                   </div>
                 </TabsContent>
 
