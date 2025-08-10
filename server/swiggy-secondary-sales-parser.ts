@@ -2,7 +2,7 @@ import * as XLSX from 'xlsx';
 
 export interface SwiggySecondarySalesItem {
   brand: string;
-  ordered_date: string;
+  ordered_date: Date;
   city: string;
   area_name?: string;
   store_id?: string;
@@ -108,20 +108,25 @@ export function parseSwiggySecondarySalesFile(
       if (!row || row.length === 0) continue;
       
       // Parse ordered_date
-      let orderedDate = '';
+      let orderedDate: Date;
       const orderedDateRaw = row[columnIndexes.ordered_date];
       if (orderedDateRaw) {
         if (typeof orderedDateRaw === 'number') {
           // Excel date serial number
-          const excelDate = new Date((orderedDateRaw - 25569) * 86400 * 1000);
-          orderedDate = excelDate.toISOString().split('T')[0];
+          orderedDate = new Date((orderedDateRaw - 25569) * 86400 * 1000);
         } else {
           // String date
           const parsedDate = new Date(orderedDateRaw.toString());
           if (!isNaN(parsedDate.getTime())) {
-            orderedDate = parsedDate.toISOString().split('T')[0];
+            orderedDate = parsedDate;
+          } else {
+            // Fallback to current date if parsing fails
+            orderedDate = new Date();
           }
         }
+      } else {
+        // Use report date or current date as fallback
+        orderedDate = reportDate ? new Date(reportDate) : new Date();
       }
       
       const unitsRaw = row[columnIndexes.units_sold];
