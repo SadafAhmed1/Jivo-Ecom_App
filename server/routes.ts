@@ -1557,7 +1557,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           periodEnd: parsedData.periodEnd,
           totalItems: parsedData.totalItems,
           summary: parsedData.summary,
-          items: parsedData.items.slice(0, 10) // Preview first 10 items
+          items: parsedData.items // Send all items for preview
         });
 
       } catch (parseError: any) {

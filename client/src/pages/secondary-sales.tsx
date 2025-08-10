@@ -752,10 +752,13 @@ export default function SecondarySales() {
 
               {/* Debug Information */}
               <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg text-sm">
-                <strong>Debug Info:</strong> 
-                Platform: {parsedData.platform} | 
-                Items Array: {parsedData.items ? `${parsedData.items.length} items` : 'null/undefined'} | 
-                First Item: {parsedData.items && parsedData.items[0] ? JSON.stringify(Object.keys(parsedData.items[0])) : 'N/A'}
+                <strong>Debug Info:</strong><br/>
+                Platform: {parsedData.platform}<br/>
+                Items Check: {String(!!parsedData.items)}<br/>
+                Items Length Check: {String(!!(parsedData.items && parsedData.items.length > 0))}<br/>
+                Items Array: {parsedData.items ? `${parsedData.items.length} items` : 'null/undefined'}<br/>
+                Full Data Keys: {JSON.stringify(Object.keys(parsedData))}<br/>
+                Items Type: {Array.isArray(parsedData.items) ? 'Array' : typeof parsedData.items}
               </div>
 
               {/* Preview Table */}
