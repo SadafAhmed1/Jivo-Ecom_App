@@ -1008,7 +1008,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Check if PO number exists
       if (!header.po_number) {
-        return res.status(400).json({ error: "po no is not available please check you upload po" });
+        return res.status(400).json({ error: "PO number is not available. Please check your uploaded PO file." });
       }
 
       // Check for duplicate PO numbers
@@ -1033,7 +1033,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
         
         if (existingPo) {
-          return res.status(400).json({ error: "po is already exist" });
+          return res.status(400).json({ error: "PO already exists" });
         }
       } catch (error) {
         // If the method doesn't exist, continue - it means no duplicate check is implemented yet
