@@ -540,7 +540,7 @@ export default function UnifiedPOUpload() {
                             </TableRow>
                           </TableHeader>
                           <TableBody>
-                            {po.lines.slice(0, 5).map((line: any, lineIndex: number) => (
+                            {po.lines.map((line: any, lineIndex: number) => (
                               <TableRow key={lineIndex}>
                                 <TableCell className="font-medium">{line.item_code}</TableCell>
                                 <TableCell>{line.product_description}</TableCell>
@@ -552,11 +552,7 @@ export default function UnifiedPOUpload() {
                             ))}
                           </TableBody>
                         </Table>
-                        {po.lines.length > 5 && (
-                          <p className="text-sm text-gray-500 mt-2">
-                            ...and {po.lines.length - 5} more items
-                          </p>
-                        )}
+
                       </div>
                     </div>
                   ))}
@@ -847,7 +843,7 @@ export default function UnifiedPOUpload() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {parsedData.lines?.slice(0, 5).map((line, index) => (
+                      {parsedData.lines?.map((line, index) => (
                         <TableRow key={index}>
                           {selectedPlatform === "flipkart" ? (
                             <>

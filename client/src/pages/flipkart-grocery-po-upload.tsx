@@ -380,7 +380,7 @@ export default function FlipkartGroceryPOUpload() {
                 {/* Line Items Preview */}
                 <div className="space-y-2">
                   <h4 className="font-medium">
-                    Line Items Preview (First 5 items)
+                    Line Items Preview
                   </h4>
                   <div className="border rounded-lg overflow-hidden">
                     <Table>
@@ -394,7 +394,7 @@ export default function FlipkartGroceryPOUpload() {
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {parsedData.lines.slice(0, 5).map((line, index) => (
+                        {parsedData.lines.map((line, index) => (
                           <TableRow key={index}>
                             <TableCell className="font-medium">
                               {line.item_code || "N/A"}
@@ -419,11 +419,7 @@ export default function FlipkartGroceryPOUpload() {
                       </TableBody>
                     </Table>
                   </div>
-                  {parsedData.lines.length > 5 && (
-                    <p className="text-sm text-gray-500 text-center">
-                      Showing 5 of {parsedData.lines.length} items
-                    </p>
-                  )}
+
                 </div>
 
                 {/* Import Action */}

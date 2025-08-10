@@ -474,7 +474,7 @@ export function UnifiedUploadComponent({ onComplete }: UnifiedUploadComponentPro
                                         </tr>
                                       </thead>
                                       <tbody>
-                                        {po.lines.slice(0, 5).map((line: any, lineIndex: number) => (
+                                        {po.lines.map((line: any, lineIndex: number) => (
                                           <tr key={lineIndex} className="border-t">
                                             <td className="p-3 font-medium">{line.item_code || 'N/A'}</td>
                                             <td className="p-3">{line.product_description || 'N/A'}</td>
@@ -486,11 +486,7 @@ export function UnifiedUploadComponent({ onComplete }: UnifiedUploadComponentPro
                                         ))}
                                       </tbody>
                                     </table>
-                                    {po.lines.length > 5 && (
-                                      <div className="text-center py-2 text-gray-500 bg-gray-50 border-t">
-                                        ... and {po.lines.length - 5} more items
-                                      </div>
-                                    )}
+
                                   </div>
                                 </div>
                               )}
@@ -555,7 +551,7 @@ export function UnifiedUploadComponent({ onComplete }: UnifiedUploadComponentPro
                           <CardHeader>
                             <CardTitle className="text-base">Line Items Preview</CardTitle>
                             <CardDescription>
-                              Showing first 5 items. Total: {parsedData.lines.length} items
+                              Showing all {parsedData.lines.length} items
                             </CardDescription>
                           </CardHeader>
                           <CardContent>
@@ -644,7 +640,7 @@ export function UnifiedUploadComponent({ onComplete }: UnifiedUploadComponentPro
                                   </tr>
                                 </thead>
                                 <tbody>
-                                  {parsedData.lines.slice(0, 5).map((line: any, index: number) => (
+                                  {parsedData.lines.map((line: any, index: number) => (
                                     <tr key={index} className="border-b last:border-b-0">
                                       {selectedPlatformData?.id === 'zepto' ? (
                                         <>
@@ -728,11 +724,7 @@ export function UnifiedUploadComponent({ onComplete }: UnifiedUploadComponentPro
                                   ))}
                                 </tbody>
                               </table>
-                              {parsedData.lines.length > 5 && (
-                                <div className="text-center py-2 text-gray-500">
-                                  ... and {parsedData.lines.length - 5} more items
-                                </div>
-                              )}
+
                             </div>
                           </CardContent>
                         </Card>

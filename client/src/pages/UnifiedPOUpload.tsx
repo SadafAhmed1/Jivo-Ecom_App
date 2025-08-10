@@ -357,7 +357,7 @@ export default function UnifiedPOUpload() {
 
               {/* Line Items Preview */}
               <div className="space-y-2">
-                <h4 className="font-medium">Line Items Preview (First 5 items)</h4>
+                <h4 className="font-medium">Line Items Preview</h4>
                 <div className="border rounded-lg overflow-hidden">
                   <Table>
                     <TableHeader>
@@ -370,7 +370,7 @@ export default function UnifiedPOUpload() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {previewData.lines.slice(0, 5).map((line, index) => (
+                      {previewData.lines.map((line, index) => (
                         <TableRow key={index}>
                           <TableCell className="font-medium">{line.item_code || "N/A"}</TableCell>
                           <TableCell>{line.item_name || line.product_description || "N/A"}</TableCell>
@@ -382,11 +382,7 @@ export default function UnifiedPOUpload() {
                     </TableBody>
                   </Table>
                 </div>
-                {previewData.lines.length > 5 && (
-                  <p className="text-sm text-gray-500 text-center">
-                    Showing 5 of {previewData.lines.length} items
-                  </p>
-                )}
+
               </div>
 
               {/* Import Action */}

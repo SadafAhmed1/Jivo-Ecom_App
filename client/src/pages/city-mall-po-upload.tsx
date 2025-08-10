@@ -206,16 +206,12 @@ export default function CityMallPoUpload() {
                 <div>
                   <Label className="text-sm font-medium text-gray-600">HSN Codes</Label>
                   <div className="flex flex-wrap gap-1 mt-1">
-                    {parsedData.header.unique_hsn_codes?.slice(0, 5).map((hsn, index) => (
+                    {parsedData.header.unique_hsn_codes?.map((hsn, index) => (
                       <Badge key={index} variant="secondary" className="text-xs">
                         {hsn}
                       </Badge>
                     ))}
-                    {(parsedData.header.unique_hsn_codes?.length || 0) > 5 && (
-                      <Badge variant="secondary" className="text-xs">
-                        +{(parsedData.header.unique_hsn_codes?.length || 0) - 5} more
-                      </Badge>
-                    )}
+
                   </div>
                 </div>
 
