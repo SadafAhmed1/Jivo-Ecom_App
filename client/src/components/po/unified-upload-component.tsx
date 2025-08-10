@@ -586,6 +586,15 @@ export function UnifiedUploadComponent({ onComplete }: UnifiedUploadComponentPro
                                         <th className="text-left p-2 font-medium">MRP</th>
                                         <th className="text-left p-2 font-medium">Line Total</th>
                                       </>
+                                    ) : selectedPlatformData?.id === 'bigbasket' ? (
+                                      <>
+                                        <th className="text-left p-2 font-medium">Description</th>
+                                        <th className="text-left p-2 font-medium">SKU Code</th>
+                                        <th className="text-left p-2 font-medium">HSN Code</th>
+                                        <th className="text-left p-2 font-medium">Quantity</th>
+                                        <th className="text-left p-2 font-medium">MRP</th>
+                                        <th className="text-left p-2 font-medium">Total Value</th>
+                                      </>
                                     ) : (
                                       <>
                                         <th className="text-left p-2 font-medium">Item</th>
@@ -637,6 +646,15 @@ export function UnifiedUploadComponent({ onComplete }: UnifiedUploadComponentPro
                                           <td className="p-2">{line.quantity || 0}</td>
                                           <td className="p-2">₹{line.mrp || '0.00'}</td>
                                           <td className="p-2">₹{line.line_total || '0.00'}</td>
+                                        </>
+                                      ) : selectedPlatformData?.id === 'bigbasket' ? (
+                                        <>
+                                          <td className="p-2">{line.description || 'N/A'}</td>
+                                          <td className="p-2">{line.sku_code || 'N/A'}</td>
+                                          <td className="p-2">{line.hsn_code || 'N/A'}</td>
+                                          <td className="p-2">{line.quantity || 0}</td>
+                                          <td className="p-2">₹{line.mrp || '0.00'}</td>
+                                          <td className="p-2">₹{line.total_value || '0.00'}</td>
                                         </>
                                       ) : (
                                         <>
