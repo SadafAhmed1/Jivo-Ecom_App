@@ -291,68 +291,7 @@ export class DatabaseStorage implements IStorage {
       });
     }
 
-    // Get Zepto POs and convert them to the same format
-    const zeptoPos = await db
-      .select()
-      .from(zeptoPoHeader)
-      .orderBy(desc(zeptoPoHeader.created_at));
-
-    // Get Zepto platform info
-    const zeptoPlatform = await db
-      .select()
-      .from(pfMst)
-      .where(eq(pfMst.pf_name, 'Zepto'))
-      .limit(1);
-
-    if (zeptoPlatform.length > 0) {
-      for (const zeptoPo of zeptoPos) {
-        // Get line items for this Zepto PO
-        const zeptoLines = await db
-          .select()
-          .from(zeptoPoLines)
-          .where(eq(zeptoPoLines.po_number, zeptoPo.po_number));
-
-        // Convert Zepto line items to standard format
-        const orderItems = zeptoLines.map(line => ({
-          id: line.id,
-          po_id: zeptoPo.id,
-          item_name: `${line.brand || ''} - ${line.sku || ''}`.trim(),
-          quantity: line.po_qty || 0,
-          sap_code: line.sap_id || null,
-          category: null,
-          subcategory: null,
-          basic_rate: line.cost_price || '0.00',
-          gst_rate: ((parseFloat(line.cgst || '0') + parseFloat(line.sgst || '0') + parseFloat(line.igst || '0') + parseFloat(line.cess || '0'))).toString(),
-          landing_rate: line.total_value || '0.00',
-          total_litres: null,
-          status: line.status || 'Pending'
-        }));
-
-        // Convert Zepto PO to standard format
-        const convertedPo = {
-          id: zeptoPo.id,
-          po_number: zeptoPo.po_number,
-          serving_distributor: null,
-          order_date: zeptoPo.created_at || new Date(),
-          expiry_date: null,
-          appointment_date: null,
-          region: 'India',
-          state: 'Unknown',
-          city: 'Unknown',
-          area: null,
-          status: zeptoPo.status || 'Open',
-          attachment: null,
-          created_at: new Date(zeptoPo.created_at || Date.now()),
-          updated_at: new Date(zeptoPo.updated_at || Date.now()),
-          platform: zeptoPlatform[0],
-          orderItems: orderItems
-        };
-
-        result.push(convertedPo);
-      }
-    }
-
-    // Sort all results by created_at descending
+    // Sort results by created_at descending  
     result.sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime());
 
     return result;
