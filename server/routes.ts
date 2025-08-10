@@ -1117,22 +1117,82 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       switch (vendor) {
         case "flipkart":
-          createdPo = await storage.createFlipkartGroceryPo(cleanHeader, cleanLines);
+          try {
+            createdPo = await storage.createFlipkartGroceryPo(cleanHeader, cleanLines);
+          } catch (error: any) {
+            if (error.code === '23505' && error.constraint?.includes('po_number_unique')) {
+              return res.status(409).json({ 
+                error: `PO ${cleanHeader.po_number} already exists in Flipkart records`,
+                type: 'duplicate_po'
+              });
+            }
+            throw error;
+          }
           break;
         case "zepto":
-          createdPo = await storage.createZeptoPo(cleanHeader, cleanLines);
+          try {
+            createdPo = await storage.createZeptoPo(cleanHeader, cleanLines);
+          } catch (error: any) {
+            if (error.code === '23505' && error.constraint?.includes('po_number_unique')) {
+              return res.status(409).json({ 
+                error: `PO ${cleanHeader.po_number} already exists in Zepto records`,
+                type: 'duplicate_po'
+              });
+            }
+            throw error;
+          }
           break;
         case "citymall":
-          createdPo = await storage.createCityMallPo(cleanHeader, cleanLines);
+          try {
+            createdPo = await storage.createCityMallPo(cleanHeader, cleanLines);
+          } catch (error: any) {
+            if (error.code === '23505' && error.constraint?.includes('po_number_unique')) {
+              return res.status(409).json({ 
+                error: `PO ${cleanHeader.po_number} already exists in City Mall records`,
+                type: 'duplicate_po'
+              });
+            }
+            throw error;
+          }
           break;
         case "blinkit":
-          createdPo = await storage.createBlinkitPo(cleanHeader, cleanLines);
+          try {
+            createdPo = await storage.createBlinkitPo(cleanHeader, cleanLines);
+          } catch (error: any) {
+            if (error.code === '23505' && error.constraint?.includes('po_number_unique')) {
+              return res.status(409).json({ 
+                error: `PO ${cleanHeader.po_number} already exists in Blinkit records`,
+                type: 'duplicate_po'
+              });
+            }
+            throw error;
+          }
           break;
         case "swiggy":
-          createdPo = await storage.createSwiggyPo(cleanHeader, cleanLines);
+          try {
+            createdPo = await storage.createSwiggyPo(cleanHeader, cleanLines);
+          } catch (error: any) {
+            if (error.code === '23505' && error.constraint?.includes('po_number_unique')) {
+              return res.status(409).json({ 
+                error: `PO ${cleanHeader.po_number} already exists in Swiggy records`,
+                type: 'duplicate_po'
+              });
+            }
+            throw error;
+          }
           break;
         case "bigbasket":
-          createdPo = await storage.createBigbasketPo(cleanHeader, cleanLines);
+          try {
+            createdPo = await storage.createBigbasketPo(cleanHeader, cleanLines);
+          } catch (error: any) {
+            if (error.code === '23505' && error.constraint === 'bigbasket_po_header_po_number_unique') {
+              return res.status(409).json({ 
+                error: `PO ${cleanHeader.po_number} already exists in BigBasket records`,
+                type: 'duplicate_po'
+              });
+            }
+            throw error;
+          }
           break;
         default:
           return res.status(400).json({ error: "Unsupported vendor" });

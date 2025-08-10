@@ -129,6 +129,9 @@ export function UnifiedUploadComponent({ onComplete }: UnifiedUploadComponentPro
 
       if (!response.ok) {
         const error = await response.json();
+        if (response.status === 409 && error.type === 'duplicate_po') {
+          throw new Error(error.error);
+        }
         throw new Error(error.error || "Failed to import PO");
       }
 
