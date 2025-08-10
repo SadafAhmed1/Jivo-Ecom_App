@@ -1,35 +1,49 @@
-import xlsx from 'xlsx';
+import XLSX from 'xlsx';
 import fs from 'fs';
 
-try {
-  // Read the Zomato Excel file
-  const workbook = xlsx.readFile('attached_assets/Zomoto Po_1754820109811.xlsx');
-  const sheetNames = workbook.SheetNames;
-  console.log('Available sheets:', sheetNames);
+// Read the Zomato Excel file
+const filePath = 'attached_assets/Zomoto Po_1754821079870.xlsx';
+const workbook = XLSX.readFile(filePath);
 
-  // Read the first sheet
-  const firstSheet = workbook.Sheets[sheetNames[0]];
-  
-  // Convert to JSON to see the structure
-  const jsonData = xlsx.utils.sheet_to_json(firstSheet, { header: 1 });
-  
-  console.log('\n=== First 10 rows of Zomato PO ===');
-  jsonData.slice(0, 10).forEach((row, index) => {
-    console.log(`Row ${index + 1}:`, row);
-  });
+console.log('Sheet Names:', workbook.SheetNames);
 
-  // Also get column headers
-  console.log('\n=== Column Headers ===');
-  if (jsonData.length > 0) {
-    console.log('Headers:', jsonData[0]);
+// Get the first sheet
+const sheetName = workbook.SheetNames[0];
+const worksheet = workbook.Sheets[sheetName];
+
+// Convert to JSON to see the structure
+const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: '' });
+
+console.log('\n=== FIRST 20 ROWS OF DATA ===');
+jsonData.slice(0, 20).forEach((row, index) => {
+  console.log(`Row ${index + 1}:`, row);
+});
+
+console.log('\n=== LOOKING FOR HEADER ROW ===');
+// Look for potential header row
+jsonData.slice(0, 15).forEach((row, index) => {
+  if (row.some(cell => typeof cell === 'string' && 
+    (cell.toLowerCase().includes('product') || 
+     cell.toLowerCase().includes('item') || 
+     cell.toLowerCase().includes('quantity') ||
+     cell.toLowerCase().includes('rate') ||
+     cell.toLowerCase().includes('amount')))) {
+    console.log(`Potential header at Row ${index + 1}:`, row);
   }
+});
 
-  // Sample a few data rows
-  console.log('\n=== Sample Data Rows ===');
-  jsonData.slice(1, 6).forEach((row, index) => {
-    console.log(`Data Row ${index + 1}:`, row);
-  });
+console.log('\n=== PO HEADER INFORMATION ===');
+// Look for PO details
+jsonData.slice(0, 15).forEach((row, index) => {
+  if (row.some(cell => typeof cell === 'string' && 
+    (cell.toLowerCase().includes('po') || 
+     cell.toLowerCase().includes('order') || 
+     cell.toLowerCase().includes('date') ||
+     cell.toLowerCase().includes('vendor') ||
+     cell.toLowerCase().includes('bill')))) {
+    console.log(`PO Info at Row ${index + 1}:`, row);
+  }
+});
 
-} catch (error) {
-  console.error('Error reading Zomato file:', error);
-}
+console.log('\n=== FULL SHEET RANGE ===');
+console.log('Sheet range:', worksheet['!ref']);
