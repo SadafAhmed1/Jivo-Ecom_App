@@ -59,7 +59,7 @@ export async function parseDealsharePO(buffer: Buffer, uploadedBy: string) {
       header.po_number = String(poNumberRow[0]);
     }
 
-    // Extract PO dates from rows 5, 7, 9 (indices 4, 6, 8)
+    // Extract PO dates from rows 5, 7, 9 (indices 4, 6, 8) - but only if they are valid numbers
     const dateRows = [
       { row: jsonData[4], field: 'po_created_date' },
       { row: jsonData[6], field: 'po_delivery_date' },
@@ -68,9 +68,15 @@ export async function parseDealsharePO(buffer: Buffer, uploadedBy: string) {
 
     for (const { row, field } of dateRows) {
       if (row && row[0]) {
-        const excelDate = parseFloat(String(row[0]));
-        if (!isNaN(excelDate)) {
-          (header as any)[field] = excelDateToJSDate(excelDate);
+        const dateValue = String(row[0]);
+        const excelDate = parseFloat(dateValue);
+        if (!isNaN(excelDate) && excelDate > 0 && excelDate < 100000) {
+          try {
+            (header as any)[field] = excelDateToJSDate(excelDate);
+          } catch (error) {
+            console.warn(`Failed to convert date for field ${field}:`, dateValue);
+            (header as any)[field] = null;
+          }
         }
       }
     }
@@ -194,20 +200,33 @@ export async function parseDealsharePO(buffer: Buffer, uploadedBy: string) {
       const grossAmount = row[9];
 
       if (!sku || !quantity) continue;
+      
+      // Skip total/summary rows or invalid data
+      const skuStr = String(sku).toLowerCase().trim();
+      const productStr = String(productName || '').toLowerCase().trim();
+      if (skuStr.includes('total') || productStr.includes('total') || 
+          skuStr.startsWith('total sku') || skuStr === '' || 
+          productStr === '' || productStr === '...') continue;
 
       const line: DealsharePoItem = {
         line_number: i - 11, // Adjust for header rows
-        sku: String(sku),
-        product_name: String(productName || ''),
-        hsn_code: String(hsnCode || ''),
-        quantity: parseInt(String(quantity || '0')),
-        mrp_tax_inclusive: parseFloat(String(mrpTaxInclusive || '0')).toFixed(2),
-        buying_price: parseFloat(String(buyingPrice || '0')).toFixed(2),
-        gst_percent: parseFloat(String(gstPercent || '0')).toFixed(2),
-        cess_percent: parseFloat(String(cessPercent || '0')).toFixed(2),
-        gross_amount: parseFloat(String(grossAmount || '0')).toFixed(2)
+        sku: String(sku).trim(),
+        product_name: String(productName || '').trim(),
+        hsn_code: String(hsnCode || '').trim(),
+        quantity: parseInt(String(quantity || '0')) || 0,
+        mrp_tax_inclusive: String(parseFloat(String(mrpTaxInclusive || '0')).toFixed(2)),
+        buying_price: String(parseFloat(String(buyingPrice || '0')).toFixed(2)),
+        gst_percent: String(parseFloat(String(gstPercent || '0')).toFixed(2)),
+        cess_percent: String(parseFloat(String(cessPercent || '0')).toFixed(2)),
+        gross_amount: String(parseFloat(String(grossAmount || '0')).toFixed(2))
       };
 
+      // Additional filter check after line creation
+      if (line.sku?.includes('Total SKU') || line.sku?.toLowerCase().includes('total')) {
+        console.log('Skipping total row after parsing:', line.sku);
+        continue;
+      }
+      
       lines.push(line);
 
       // Calculate totals
@@ -251,7 +270,15 @@ export async function parseDealsharePO(buffer: Buffer, uploadedBy: string) {
 
 function excelDateToJSDate(excelDate: number): Date {
   // Excel date is days since 1900-01-01, but Excel incorrectly treats 1900 as a leap year
-  const epochDiff = 25569; // Days between 1900-01-01 and 1970-01-01
+  // Adjusted for the correct calculation
+  const epochDiff = 25568; // Corrected difference 
   const millisecondsPerDay = 86400000;
-  return new Date((excelDate - epochDiff) * millisecondsPerDay);
+  const jsDate = new Date((excelDate - epochDiff) * millisecondsPerDay);
+  
+  // If the result is in 1900s, it's likely just a placeholder. Return a reasonable default
+  if (jsDate.getFullYear() < 1950) {
+    return new Date(); // Return current date as fallback
+  }
+  
+  return jsDate;
 }

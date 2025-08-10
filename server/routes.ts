@@ -1217,8 +1217,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
           break;
         case "dealshare":
           try {
-            createdPo = await storage.createDealsharePo(cleanHeader, cleanLines);
+            // Clean dates for Dealshare
+            const dealshareHeader = { ...cleanHeader };
+            const dateFields = ['po_created_date', 'po_delivery_date', 'po_expiry_date'];
+            dateFields.forEach(field => {
+              if (dealshareHeader[field]) {
+                dealshareHeader[field] = safeConvertDate(dealshareHeader[field]);
+              }
+            });
+            
+            createdPo = await storage.createDealsharePo(dealshareHeader, cleanLines);
           } catch (error: any) {
+            console.error("Dealshare import error:", error);
             if (error.code === '23505' && error.constraint?.includes('po_number_unique')) {
               return res.status(409).json({ 
                 error: `PO ${cleanHeader.po_number} already exists in Dealshare records`,
