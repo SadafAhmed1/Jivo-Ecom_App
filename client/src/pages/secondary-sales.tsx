@@ -56,11 +56,6 @@ interface ParsedSecondarySalesData {
     totalShippedRevenue?: number;
     totalShippedUnits?: number;
     totalCustomerReturns?: number;
-    // Swiggy fields
-    totalUnits?: number;
-    totalGmv?: number;
-    totalBaseMrp?: number;
-    avgBaseMrp?: number;
   };
   items?: any[];
 }
@@ -70,12 +65,6 @@ const PLATFORMS = [
     id: "amazon",
     name: "Amazon",
     description: "Upload Amazon secondary sales data",
-    icon: ShoppingCart,
-  },
-  {
-    id: "swiggy",
-    name: "Swiggy",
-    description: "Upload Swiggy secondary sales data",
     icon: ShoppingCart,
   },
 ];
@@ -737,28 +726,7 @@ export default function SecondarySales() {
                   </>
                 )}
                 
-                {parsedData.platform === "swiggy" && (
-                  <>
-                    <div className="p-4 bg-green-50 rounded-lg">
-                      <div className="text-2xl font-bold text-green-600">
-                        {parsedData.summary?.totalUnits || 0}
-                      </div>
-                      <div className="text-sm text-green-600">Total Units</div>
-                    </div>
-                    <div className="p-4 bg-purple-50 rounded-lg">
-                      <div className="text-2xl font-bold text-purple-600">
-                        ₹{parsedData.summary?.totalGmv?.toFixed(2) || "0.00"}
-                      </div>
-                      <div className="text-sm text-purple-600">Total GMV</div>
-                    </div>
-                    <div className="p-4 bg-orange-50 rounded-lg">
-                      <div className="text-2xl font-bold text-orange-600">
-                        ₹{parsedData.summary?.avgBaseMrp?.toFixed(2) || "0.00"}
-                      </div>
-                      <div className="text-sm text-orange-600">Avg Base MRP</div>
-                    </div>
-                  </>
-                )}
+
               </div>
               
               {/* Period Information */}

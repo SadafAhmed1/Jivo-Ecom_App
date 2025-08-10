@@ -11,7 +11,7 @@ import { parseBigBasketPO } from "./bigbasket-parser";
 import { parseZomatoPO } from "./zomato-parser";
 import { parseDealsharePO } from "./dealshare-parser";
 import { parseAmazonSecondarySales } from "./amazon-secondary-sales-parser";
-import { parseSwiggySecondarySalesFile } from "./swiggy-secondary-sales-parser";
+
 import multer from 'multer';
 
 const createPoSchema = z.object({
@@ -1514,8 +1514,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Platform, business unit, and period type are required" });
       }
 
-      if (!["amazon", "swiggy"].includes(platform)) {
-        return res.status(400).json({ error: "Only Amazon and Swiggy platforms are supported" });
+      if (!["amazon"].includes(platform)) {
+        return res.status(400).json({ error: "Only Amazon platform is supported" });
       }
 
       if (!["jivo-wellness", "jivo-mart"].includes(businessUnit)) {
@@ -1538,20 +1538,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
             startDate,
             endDate
           );
-        } else if (platform === "swiggy") {
-          // Note: Swiggy only supports Jivo Mart currently based on user requirements
-          if (businessUnit !== "jivo-mart") {
-            return res.status(400).json({ error: "Swiggy platform only supports jivo-mart business unit" });
-          }
-          
-          parsedData = parseSwiggySecondarySalesFile(
-            req.file.buffer, 
-            businessUnit, 
-            periodType,
-            periodType === "daily" ? startDate : undefined,
-            startDate,
-            endDate
-          );
+        }
+
+        if (!parsedData) {
+          return res.status(400).json({ error: "Unsupported platform" });
         }
 
         if (!parsedData.items || parsedData.items.length === 0) {
@@ -1570,7 +1560,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           items: parsedData.items.slice(0, 10) // Preview first 10 items
         });
 
-      } catch (parseError) {
+      } catch (parseError: any) {
         console.error("Parse error:", parseError);
         return res.status(400).json({ 
           error: "Failed to parse file", 
@@ -1598,8 +1588,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Platform, business unit, and period type are required" });
       }
 
-      if (!["amazon", "swiggy"].includes(platform)) {
-        return res.status(400).json({ error: "Only Amazon and Swiggy platforms are supported" });
+      if (!["amazon"].includes(platform)) {
+        return res.status(400).json({ error: "Only Amazon platform is supported" });
       }
 
       if (!["jivo-wellness", "jivo-mart"].includes(businessUnit)) {
@@ -1626,20 +1616,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
             startDate,
             endDate
           );
-        } else if (platform === "swiggy") {
-          // Note: Swiggy only supports Jivo Mart currently based on user requirements
-          if (businessUnit !== "jivo-mart") {
-            return res.status(400).json({ error: "Swiggy platform only supports jivo-mart business unit" });
-          }
-          
-          parsedData = parseSwiggySecondarySalesFile(
-            req.file.buffer, 
-            businessUnit, 
-            periodType,
-            periodType === "daily" ? startDate : undefined,
-            startDate,
-            endDate
-          );
+        }
+
+        if (!parsedData) {
+          return res.status(400).json({ error: "Unsupported platform" });
         }
 
         if (!parsedData.items || parsedData.items.length === 0) {
@@ -1664,58 +1644,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
             insertedItems = await storage.createScAmJmRange(parsedData.items as any);
             tableName = "SC_AM_JM_Range";
           }
-        } else if (platform === "swiggy") {
-          // Swiggy only supports Jivo Mart
-          if (periodType === "daily") {
-            // Transform SwiggySecondarySalesItem[] to InsertScSwiggyJmDaily[]
-            const dailyItems = (parsedData.items as any[]).map((item: any) => ({
-              report_date: item.report_date,
-              brand: item.brand,
-              ordered_date: item.ordered_date,
-              city: item.city,
-              area_name: item.area_name || null,
-              store_id: item.store_id || null,
-              l1_category: item.l1_category || null,
-              l2_category: item.l2_category || null,
-              l3_category: item.l3_category || null,
-              product_name: item.product_name,
-              variant: item.variant || null,
-              item_code: item.item_code || null,
-              combo: item.combo || null,
-              combo_item_code: item.combo_item_code || null,
-              combo_units_sold: item.combo_units_sold || null,
-              base_mrp: item.base_mrp?.toString() || null,
-              units_sold: item.units_sold || null,
-              gmv: item.gmv?.toString() || null
-            }));
-            insertedItems = await storage.createScSwiggyJmDaily(dailyItems);
-            tableName = "SC_Swiggy_JM_Daily";
-          } else if (periodType === "date-range") {
-            // Transform SwiggySecondarySalesItem[] to InsertScSwiggyJmRange[]
-            const rangeItems = (parsedData.items as any[]).map((item: any) => ({
-              period_start: parsedData.periodStart ? new Date(parsedData.periodStart) : new Date(),
-              period_end: parsedData.periodEnd ? new Date(parsedData.periodEnd) : new Date(),
-              brand: item.brand,
-              ordered_date: item.ordered_date,
-              city: item.city,
-              area_name: item.area_name || null,
-              store_id: item.store_id || null,
-              l1_category: item.l1_category || null,
-              l2_category: item.l2_category || null,
-              l3_category: item.l3_category || null,
-              product_name: item.product_name,
-              variant: item.variant || null,
-              item_code: item.item_code || null,
-              combo: item.combo || null,
-              combo_item_code: item.combo_item_code || null,
-              combo_units_sold: item.combo_units_sold || null,
-              base_mrp: item.base_mrp?.toString() || null,
-              units_sold: item.units_sold || null,
-              gmv: item.gmv?.toString() || null
-            }));
-            insertedItems = await storage.createScSwiggyJmRange(rangeItems);
-            tableName = "SC_Swiggy_JM_Range";
-          }
         }
 
         if (!insertedItems) {
@@ -1735,7 +1663,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           periodEnd: parsedData.periodEnd
         });
 
-      } catch (parseError) {
+      } catch (parseError: any) {
         console.error("Parse error:", parseError);
         return res.status(400).json({ 
           error: "Failed to parse file", 
@@ -1743,7 +1671,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error importing secondary sales:", error);
       if (error.message && error.message.includes("unique")) {
         res.status(409).json({ error: "Secondary sales data already exists" });
