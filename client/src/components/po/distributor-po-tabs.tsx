@@ -43,50 +43,66 @@ export function DistributorPOTabs() {
         </CardHeader>
       </Card>
 
-      {/* Create PO Form Overlay */}
-      {showCreateForm && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-gray-900 rounded-lg shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-auto">
-            <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Create New Distributor Purchase Order</h3>
-              <Button
-                variant="ghost"
-                onClick={() => setShowCreateForm(false)}
-                className="flex items-center gap-2"
-              >
-                <ArrowLeft className="h-4 w-4" />
-                Close
-              </Button>
-            </div>
-            <div className="p-6">
-              <DistributorPOForm onSuccess={() => setShowCreateForm(false)} />
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Main Content with Tabs */}
       <Card className="shadow-lg border-0">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-2 bg-gray-100 dark:bg-gray-800">
-            <TabsTrigger value="list" className="flex items-center gap-2">
-              <List className="h-4 w-4" />
-              View POs
-            </TabsTrigger>
-            <TabsTrigger value="order-items" className="flex items-center gap-2">
-              <BarChart3 className="h-4 w-4" />
-              Order Items
-            </TabsTrigger>
-          </TabsList>
+          {!showCreateForm && (
+            <CardHeader className="border-b border-gray-100 dark:border-gray-700 bg-gradient-to-r from-slate-50 to-gray-50 dark:from-gray-800 dark:to-gray-900">
+              <TabsList className="grid w-full grid-cols-2 bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm shadow-md rounded-xl">
+                <TabsTrigger 
+                  value="list" 
+                  className="flex items-center space-x-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-600 data-[state=active]:to-emerald-600 data-[state=active]:text-white"
+                >
+                  <List className="h-4 w-4" />
+                  <span>View POs</span>
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="order-items" 
+                  className="flex items-center space-x-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-pink-600 data-[state=active]:text-white"
+                >
+                  <BarChart3 className="h-4 w-4" />
+                  <span>Order Items</span>
+                </TabsTrigger>
+              </TabsList>
+            </CardHeader>
+          )}
 
-          <CardContent className="p-6">
-            <TabsContent value="list" className="mt-0">
-              <DistributorPOListView />
-            </TabsContent>
-            
-            <TabsContent value="order-items" className="mt-0">
-              <DistributorOrderItemsListView />
-            </TabsContent>
+          <CardContent className="p-0">
+            {!showCreateForm && (
+              <>
+                <TabsContent value="list" className="mt-0">
+                  <div className="p-6">
+                    <DistributorPOListView />
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="order-items" className="mt-0">
+                  <div className="p-6">
+                    <DistributorOrderItemsListView />
+                  </div>
+                </TabsContent>
+              </>
+            )}
+
+            {showCreateForm && (
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center space-x-3">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setShowCreateForm(false)}
+                      className="flex items-center space-x-2"
+                    >
+                      <ArrowLeft className="h-4 w-4" />
+                      <span>Back</span>
+                    </Button>
+                    <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Create New Distributor Purchase Order</h3>
+                  </div>
+                </div>
+                <DistributorPOForm />
+              </div>
+            )}
           </CardContent>
         </Tabs>
       </Card>
