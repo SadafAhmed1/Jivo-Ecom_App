@@ -650,3 +650,86 @@ export type SwiggyPo = typeof swiggyPos.$inferSelect;
 export type InsertSwiggyPo = z.infer<typeof insertSwiggyPoSchema>;
 export type SwiggyPoLine = typeof swiggyPoLines.$inferSelect;
 export type InsertSwiggyPoLine = z.infer<typeof insertSwiggyPoLinesSchema>;
+
+// BigBasket PO tables
+export const bigbasketPoHeader = pgTable("bigbasket_po_header", {
+  id: serial("id").primaryKey(),
+  po_number: varchar("po_number", { length: 100 }).notNull().unique(),
+  po_date: timestamp("po_date"),
+  po_expiry_date: timestamp("po_expiry_date"),
+  warehouse_address: text("warehouse_address"),
+  delivery_address: text("delivery_address"),
+  supplier_name: varchar("supplier_name", { length: 255 }),
+  supplier_address: text("supplier_address"),
+  supplier_gstin: varchar("supplier_gstin", { length: 50 }),
+  dc_address: text("dc_address"),
+  dc_gstin: varchar("dc_gstin", { length: 50 }),
+  total_items: integer("total_items").default(0),
+  total_quantity: integer("total_quantity").default(0),
+  total_basic_cost: decimal("total_basic_cost", { precision: 15, scale: 2 }),
+  total_gst_amount: decimal("total_gst_amount", { precision: 15, scale: 2 }),
+  total_cess_amount: decimal("total_cess_amount", { precision: 15, scale: 2 }),
+  grand_total: decimal("grand_total", { precision: 15, scale: 2 }),
+  status: varchar("status", { length: 50 }).default("pending"),
+  created_by: varchar("created_by", { length: 100 }),
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow(),
+});
+
+export const bigbasketPoLines = pgTable("bigbasket_po_lines", {
+  id: serial("id").primaryKey(),
+  po_id: integer("po_id").references(() => bigbasketPoHeader.id, { onDelete: "cascade" }),
+  s_no: integer("s_no").notNull(),
+  hsn_code: varchar("hsn_code", { length: 20 }),
+  sku_code: varchar("sku_code", { length: 100 }).notNull(),
+  description: text("description"),
+  ean_upc_code: varchar("ean_upc_code", { length: 50 }),
+  case_quantity: integer("case_quantity"),
+  quantity: integer("quantity").notNull(),
+  basic_cost: decimal("basic_cost", { precision: 10, scale: 2 }),
+  sgst_percent: decimal("sgst_percent", { precision: 5, scale: 2 }),
+  sgst_amount: decimal("sgst_amount", { precision: 10, scale: 2 }),
+  cgst_percent: decimal("cgst_percent", { precision: 5, scale: 2 }),
+  cgst_amount: decimal("cgst_amount", { precision: 10, scale: 2 }),
+  igst_percent: decimal("igst_percent", { precision: 5, scale: 2 }),
+  igst_amount: decimal("igst_amount", { precision: 10, scale: 2 }),
+  gst_percent: decimal("gst_percent", { precision: 5, scale: 2 }),
+  gst_amount: decimal("gst_amount", { precision: 10, scale: 2 }),
+  cess_percent: decimal("cess_percent", { precision: 5, scale: 2 }),
+  cess_value: decimal("cess_value", { precision: 10, scale: 2 }),
+  state_cess_percent: decimal("state_cess_percent", { precision: 5, scale: 2 }),
+  state_cess: decimal("state_cess", { precision: 10, scale: 2 }),
+  landing_cost: decimal("landing_cost", { precision: 10, scale: 2 }),
+  mrp: decimal("mrp", { precision: 10, scale: 2 }),
+  total_value: decimal("total_value", { precision: 12, scale: 2 }),
+  created_at: timestamp("created_at").defaultNow(),
+});
+
+export const bigbasketPoHeaderRelations = relations(bigbasketPoHeader, ({ many }) => ({
+  poLines: many(bigbasketPoLines),
+}));
+
+export const bigbasketPoLinesRelations = relations(bigbasketPoLines, ({ one }) => ({
+  po: one(bigbasketPoHeader, {
+    fields: [bigbasketPoLines.po_id],
+    references: [bigbasketPoHeader.id],
+  }),
+}));
+
+// Insert schemas for BigBasket PO tables
+export const insertBigbasketPoHeaderSchema = createInsertSchema(bigbasketPoHeader).omit({
+  id: true,
+  created_at: true,
+  updated_at: true
+});
+
+export const insertBigbasketPoLinesSchema = createInsertSchema(bigbasketPoLines).omit({
+  id: true,
+  po_id: true,
+  created_at: true
+});
+
+export type BigbasketPoHeader = typeof bigbasketPoHeader.$inferSelect;
+export type InsertBigbasketPoHeader = z.infer<typeof insertBigbasketPoHeaderSchema>;
+export type BigbasketPoLines = typeof bigbasketPoLines.$inferSelect;
+export type InsertBigbasketPoLines = z.infer<typeof insertBigbasketPoLinesSchema>;

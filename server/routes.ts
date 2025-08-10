@@ -7,6 +7,7 @@ import { z } from "zod";
 import { seedTestData } from "./seed-data";
 import { parseFlipkartGroceryPO, parseZeptoPO, parseCityMallPO, parseBlinkitPO } from "./csv-parser";
 import { parseSwiggyPO } from "./swiggy-parser";
+import { parseBigBasketPO } from "./bigbasket-parser";
 import multer from 'multer';
 
 const createPoSchema = z.object({
@@ -847,6 +848,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         } else if (platformParam === "swiggy") {
           detectedVendor = "swiggy";
           parsedData = await parseSwiggyPO(req.file.buffer, uploadedBy);
+        } else if (platformParam === "bigbasket") {
+          detectedVendor = "bigbasket";
+          parsedData = await parseBigBasketPO(req.file.buffer, uploadedBy);
         }
         // Fallback to filename detection if platform param not provided or recognized
         else if (filename.includes('flipkart') || filename.includes('grocery')) {
@@ -1126,6 +1130,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           break;
         case "swiggy":
           createdPo = await storage.createSwiggyPo(cleanHeader, cleanLines);
+          break;
+        case "bigbasket":
+          createdPo = await storage.createBigbasketPo(cleanHeader, cleanLines);
           break;
         default:
           return res.status(400).json({ error: "Unsupported vendor" });

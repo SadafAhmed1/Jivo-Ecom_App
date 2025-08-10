@@ -53,6 +53,13 @@ const PLATFORMS: Platform[] = [
     description: "Upload Swiggy PO files",
     endpoint: "/api/swiggy-pos",
     queryKey: "/api/swiggy-pos"
+  },
+  {
+    id: "bigbasket",
+    name: "BigBasket",
+    description: "Upload BigBasket PO files",
+    endpoint: "/api/bigbasket-pos",
+    queryKey: "/api/bigbasket-pos"
   }
 ];
 

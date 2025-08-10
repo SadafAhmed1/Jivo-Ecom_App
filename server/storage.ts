@@ -33,6 +33,10 @@ import {
   type SwiggyPoLine,
   type InsertSwiggyPo,
   type InsertSwiggyPoLine,
+  type BigbasketPoHeader,
+  type BigbasketPoLines,
+  type InsertBigbasketPoHeader,
+  type InsertBigbasketPoLines,
   type DistributorMst,
   type InsertDistributorMst,
   type DistributorPo,
@@ -56,6 +60,8 @@ import {
   blinkitPoLines,
   swiggyPos,
   swiggyPoLines,
+  bigbasketPoHeader,
+  bigbasketPoLines,
   distributorMst,
   distributorPo,
   distributorOrderItems
@@ -260,11 +266,6 @@ export class DatabaseStorage implements IStorage {
   async createPlatformItem(item: InsertPfItemMst): Promise<PfItemMst> {
     const [result] = await db.insert(pfItemMst).values(item).returning();
     return result;
-  }
-
-  // Distributor methods
-  async getAllDistributors(): Promise<DistributorMst[]> {
-    return await db.select().from(distributorMst).where(eq(distributorMst.status, 'Active')).orderBy(distributorMst.distributor_name);
   }
 
   // PO methods
@@ -982,6 +983,42 @@ export class DatabaseStorage implements IStorage {
     
     // Type assertion to fix the return type mismatch
     return items as (DistributorOrderItems & { po_number: string; distributor_name: string; order_date: Date; expiry_date: Date | null; distributor: DistributorMst })[];
+  }
+
+  // BigBasket PO methods
+  async getAllBigbasketPos(): Promise<BigbasketPoHeader[]> {
+    return await db.select().from(bigbasketPoHeader).orderBy(desc(bigbasketPoHeader.created_at));
+  }
+
+  async getBigbasketPoById(id: number): Promise<BigbasketPoHeader | undefined> {
+    const [po] = await db.select().from(bigbasketPoHeader).where(eq(bigbasketPoHeader.id, id));
+    return po || undefined;
+  }
+
+  async createBigbasketPo(po: InsertBigbasketPoHeader, lines: InsertBigbasketPoLines[]): Promise<BigbasketPoHeader> {
+    return await db.transaction(async (tx) => {
+      const [createdPo] = await tx.insert(bigbasketPoHeader).values(po).returning();
+      
+      if (lines.length > 0) {
+        const linesWithPoId = lines.map(line => ({ ...line, po_id: createdPo.id }));
+        await tx.insert(bigbasketPoLines).values(linesWithPoId);
+      }
+      
+      return createdPo;
+    });
+  }
+
+  async updateBigbasketPo(id: number, po: Partial<InsertBigbasketPoHeader>): Promise<BigbasketPoHeader | undefined> {
+    const [updated] = await db
+      .update(bigbasketPoHeader)
+      .set({ ...po, updated_at: new Date() })
+      .where(eq(bigbasketPoHeader.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteBigbasketPo(id: number): Promise<void> {
+    await db.delete(bigbasketPoHeader).where(eq(bigbasketPoHeader.id, id));
   }
 }
 
