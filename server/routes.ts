@@ -1668,60 +1668,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // Swiggy only supports Jivo Mart
           if (periodType === "daily") {
             // Transform SwiggySecondarySalesItem[] to InsertScSwiggyJmDaily[]
-            const dailyItems = (parsedData.items as any[]).map((item: any) => {
-              const transformed = {
-                report_date: item.report_date && typeof item.report_date === 'object' ? item.report_date : 
-                           item.report_date ? new Date(item.report_date) : new Date(),
-                brand: item.brand || null,
-                ordered_date: item.ordered_date && typeof item.ordered_date === 'object' ? item.ordered_date :
-                            item.ordered_date ? new Date(item.ordered_date) : null,
-                city: item.city || null,
-                area_name: item.area_name || null,
-                store_id: item.store_id ? item.store_id.toString() : null,
-                l1_category: item.l1_category || null,
-                l2_category: item.l2_category || null,
-                l3_category: item.l3_category || null,
-                product_name: item.product_name || null,
-                variant: item.variant || null,
-                item_code: item.item_code ? item.item_code.toString() : null,
-                combo: item.combo || null,
-                combo_item_code: item.combo_item_code ? item.combo_item_code.toString() : null,
-                combo_units_sold: item.combo_units_sold ? parseInt(item.combo_units_sold.toString()) : null,
-                base_mrp: item.base_mrp ? parseFloat(item.base_mrp.toString()) : null,
-                units_sold: item.units_sold ? parseInt(item.units_sold.toString()) : null,
-                gmv: item.gmv ? parseFloat(item.gmv.toString()) : null
-              };
-              return transformed;
-            });
+            const dailyItems = (parsedData.items as any[]).map((item: any) => ({
+              report_date: item.report_date,
+              brand: item.brand,
+              ordered_date: item.ordered_date,
+              city: item.city,
+              area_name: item.area_name || null,
+              store_id: item.store_id || null,
+              l1_category: item.l1_category || null,
+              l2_category: item.l2_category || null,
+              l3_category: item.l3_category || null,
+              product_name: item.product_name,
+              variant: item.variant || null,
+              item_code: item.item_code || null,
+              combo: item.combo || null,
+              combo_item_code: item.combo_item_code || null,
+              combo_units_sold: item.combo_units_sold || null,
+              base_mrp: item.base_mrp?.toString() || null,
+              units_sold: item.units_sold || null,
+              gmv: item.gmv?.toString() || null
+            }));
             insertedItems = await storage.createScSwiggyJmDaily(dailyItems);
             tableName = "SC_Swiggy_JM_Daily";
           } else if (periodType === "date-range") {
             // Transform SwiggySecondarySalesItem[] to InsertScSwiggyJmRange[]
-            const rangeItems = (parsedData.items as any[]).map((item: any) => {
-              const transformed = {
-                period_start: parsedData.periodStart ? new Date(parsedData.periodStart) : new Date(),
-                period_end: parsedData.periodEnd ? new Date(parsedData.periodEnd) : new Date(),
-                brand: item.brand || null,
-                ordered_date: item.ordered_date && typeof item.ordered_date === 'object' ? item.ordered_date :
-                            item.ordered_date ? new Date(item.ordered_date) : null,
-                city: item.city || null,
-                area_name: item.area_name || null,
-                store_id: item.store_id ? item.store_id.toString() : null,
-                l1_category: item.l1_category || null,
-                l2_category: item.l2_category || null,
-                l3_category: item.l3_category || null,
-                product_name: item.product_name || null,
-                variant: item.variant || null,
-                item_code: item.item_code ? item.item_code.toString() : null,
-                combo: item.combo || null,
-                combo_item_code: item.combo_item_code ? item.combo_item_code.toString() : null,
-                combo_units_sold: item.combo_units_sold ? parseInt(item.combo_units_sold.toString()) : null,
-                base_mrp: item.base_mrp ? parseFloat(item.base_mrp.toString()) : null,
-                units_sold: item.units_sold ? parseInt(item.units_sold.toString()) : null,
-                gmv: item.gmv ? parseFloat(item.gmv.toString()) : null
-              };
-              return transformed;
-            });
+            const rangeItems = (parsedData.items as any[]).map((item: any) => ({
+              period_start: parsedData.periodStart ? new Date(parsedData.periodStart) : new Date(),
+              period_end: parsedData.periodEnd ? new Date(parsedData.periodEnd) : new Date(),
+              brand: item.brand,
+              ordered_date: item.ordered_date,
+              city: item.city,
+              area_name: item.area_name || null,
+              store_id: item.store_id || null,
+              l1_category: item.l1_category || null,
+              l2_category: item.l2_category || null,
+              l3_category: item.l3_category || null,
+              product_name: item.product_name,
+              variant: item.variant || null,
+              item_code: item.item_code || null,
+              combo: item.combo || null,
+              combo_item_code: item.combo_item_code || null,
+              combo_units_sold: item.combo_units_sold || null,
+              base_mrp: item.base_mrp?.toString() || null,
+              units_sold: item.units_sold || null,
+              gmv: item.gmv?.toString() || null
+            }));
             insertedItems = await storage.createScSwiggyJmRange(rangeItems);
             tableName = "SC_Swiggy_JM_Range";
           }
