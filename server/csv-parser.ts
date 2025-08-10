@@ -529,25 +529,59 @@ export function parseBlinkitPO(fileContent: Buffer, uploadedBy: string): {
     const workbook = XLSX.read(fileContent, { type: 'buffer' });
     const worksheet = workbook.Sheets[workbook.SheetNames[0]];
     
-    // Convert to JSON with header row
-    const jsonData = XLSX.utils.sheet_to_json(worksheet, {
+    // Convert to JSON - try different approaches for Blinkit files
+    let jsonData: any[];
+    
+    // First try: Get all data as arrays to understand structure
+    const rawData = XLSX.utils.sheet_to_json(worksheet, {
       header: 1,
       defval: '',
-      blankrows: false
+      blankrows: false,
+      range: undefined  // Get all data
     });
     
-    if (jsonData.length === 0) {
+    if (rawData.length === 0) {
       throw new Error('Excel file appears to be empty');
     }
     
+    // Look for actual data rows - skip title/header rows that might be merged
+    let dataStartRow = 0;
+    let headers: string[] = [];
+    
+    // Find the row with actual column headers
+    for (let i = 0; i < Math.min(10, rawData.length); i++) {
+      const row = rawData[i] as any[];
+      if (row && row.length > 1) {
+        // Check if this looks like a header row with multiple meaningful columns
+        const nonEmptyColumns = row.filter(cell => cell && cell.toString().trim() !== '').length;
+        if (nonEmptyColumns >= 4) { // At least 4 columns with data
+          headers = row.map(cell => (cell || '').toString().trim());
+          dataStartRow = i + 1;
+          break;
+        }
+      }
+    }
+    
+    if (headers.length === 0) {
+      throw new Error('Could not find column headers in the Excel file. Please ensure the file has proper column headers.');
+    }
+    
+    // Get data rows
+    const dataRows = rawData.slice(dataStartRow);
+    if (dataRows.length === 0) {
+      throw new Error('No data rows found in the Excel file');
+    }
+    
     // Convert to object format with headers
-    const headers = jsonData[0] as string[];
-    rows = (jsonData.slice(1) as any[]).map((row: any[]) => {
+    rows = dataRows.map((row: any[]) => {
       const obj: any = {};
       headers.forEach((header, index) => {
-        obj[header.toString().trim()] = row[index] || '';
+        obj[header] = (row[index] || '').toString().trim();
       });
       return obj;
+    }).filter(row => {
+      // Filter out completely empty rows
+      return Object.values(row).some(value => value !== '');
     });
   } catch (xlsxError) {
     // Fallback to CSV parsing if Excel parsing fails
@@ -575,14 +609,15 @@ export function parseBlinkitPO(fileContent: Buffer, uploadedBy: string): {
 
   // Check for required headers with flexible matching
   const headers = Object.keys(rows[0]);
+  console.log('Blinkit file headers found:', headers);
   const headerMap: { [key: string]: string } = {};
   
-  // Map common header variations to standard field names
+  // Map common header variations to standard field names (case-insensitive)
   const headerMappings = {
-    po_number: ['po_number', 'po number', 'ponumber', 'po_no', 'po no', 'purchase order number'],
-    item_id: ['item_id', 'item id', 'itemid', 'product_id', 'product id', 'sku'],
-    name: ['name', 'product_name', 'product name', 'item_name', 'item name', 'description', 'product_description'],
-    remaining_quantity: ['remaining_quantity', 'remaining quantity', 'quantity', 'qty', 'ordered_quantity', 'ordered quantity']
+    po_number: ['po_number', 'po number', 'ponumber', 'po_no', 'po no', 'purchase order number', 'purchase order', 'po #', 'po#', 'order number', 'order no'],
+    item_id: ['item_id', 'item id', 'itemid', 'product_id', 'product id', 'sku', 'item code', 'item_code', 'product code', 'product_code', 'barcode', 'article id'],
+    name: ['name', 'product_name', 'product name', 'item_name', 'item name', 'description', 'product_description', 'product description', 'item description', 'title', 'product title'],
+    remaining_quantity: ['remaining_quantity', 'remaining quantity', 'quantity', 'qty', 'ordered_quantity', 'ordered quantity', 'order qty', 'order quantity', 'req qty', 'required quantity']
   };
   
   // Find matching headers (case-insensitive)
@@ -600,8 +635,18 @@ export function parseBlinkitPO(fileContent: Buffer, uploadedBy: string): {
   // Check if we found all required headers
   const requiredFields = ['po_number', 'item_id', 'name', 'remaining_quantity'];
   const missingFields = requiredFields.filter(field => !headerMap[field]);
+  
+  console.log('Header mapping result:', headerMap);
+  console.log('Missing fields:', missingFields);
+  
   if (missingFields.length > 0) {
-    throw new Error(`Missing required fields: ${missingFields.join(', ')}. Available headers: ${headers.join(', ')}`);
+    // If we're missing critical fields, provide more helpful error message
+    const suggestions = missingFields.map(field => {
+      const variations = headerMappings[field as keyof typeof headerMappings];
+      return `${field} (expected one of: ${variations.join(', ')})`;
+    });
+    
+    throw new Error(`Missing required fields: ${suggestions.join(' | ')}. Available headers: ${headers.join(', ')}. Please check if your file has the correct column names.`);
   }
 
   // Group rows by PO number
