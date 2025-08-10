@@ -87,7 +87,7 @@ export function PlatformPOForm() {
       state: "",
       city: "",
       area: "",
-      serving_distributor: "",
+      serving_distributor: "none",
       attachment: ""
     }
   });
@@ -181,7 +181,13 @@ export function PlatformPOForm() {
       po_id: 0 // Will be set by the backend
     }));
 
-    createPoMutation.mutate({ po: data, items });
+    // Convert "none" back to null for database storage
+    const processedData = {
+      ...data,
+      serving_distributor: data.serving_distributor === "none" ? null : data.serving_distributor
+    };
+
+    createPoMutation.mutate({ po: processedData, items });
   };
 
   const { totalQuantity, totalValue } = calculateTotals();
@@ -443,14 +449,14 @@ export function PlatformPOForm() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Serving Distributor</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value || ""}>
+                      <Select onValueChange={field.onChange} value={field.value || "none"}>
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Select Distributor" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="">-- No Distributor --</SelectItem>
+                          <SelectItem value="none">-- No Distributor --</SelectItem>
                           {distributors.map((distributor) => (
                             <SelectItem key={distributor.id} value={distributor.distributor_name}>
                               {distributor.distributor_name}
