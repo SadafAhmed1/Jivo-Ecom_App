@@ -1430,11 +1430,80 @@ export class DatabaseStorage implements IStorage {
 
   // Swiggy Secondary Sales methods
   async createScSwiggyJmDaily(items: InsertScSwiggyJmDaily[]): Promise<ScSwiggyJmDaily[]> {
-    return await db.insert(scSwiggyJmDaily).values(items).returning();
+    if (items.length === 0) return [];
+    
+    // Clean and validate data to prevent circular references
+    const cleanItems = items.map(item => ({
+      report_date: item.report_date instanceof Date ? item.report_date : new Date(item.report_date),
+      brand: String(item.brand || ''),
+      ordered_date: item.ordered_date instanceof Date ? item.ordered_date : new Date(item.ordered_date),
+      city: String(item.city || ''),
+      area_name: item.area_name ? String(item.area_name) : null,
+      store_id: item.store_id ? String(item.store_id) : null,
+      l1_category: item.l1_category ? String(item.l1_category) : null,
+      l2_category: item.l2_category ? String(item.l2_category) : null,
+      l3_category: item.l3_category ? String(item.l3_category) : null,
+      product_name: String(item.product_name || ''),
+      variant: item.variant ? String(item.variant) : null,
+      item_code: item.item_code ? String(item.item_code) : null,
+      combo: item.combo ? String(item.combo) : null,
+      combo_item_code: item.combo_item_code ? String(item.combo_item_code) : null,
+      combo_units_sold: item.combo_units_sold ? Number(item.combo_units_sold) : null,
+      base_mrp: item.base_mrp ? String(item.base_mrp) : null,
+      units_sold: item.units_sold ? Number(item.units_sold) : null,
+      gmv: item.gmv ? String(item.gmv) : null
+    }));
+
+    // Use batch insertion for large datasets to prevent stack overflow
+    const BATCH_SIZE = 500;
+    const allInserted: ScSwiggyJmDaily[] = [];
+    
+    for (let i = 0; i < cleanItems.length; i += BATCH_SIZE) {
+      const batch = cleanItems.slice(i, i + BATCH_SIZE);
+      const inserted = await db.insert(scSwiggyJmDaily).values(batch).returning();
+      allInserted.push(...inserted);
+    }
+    
+    return allInserted;
   }
 
   async createScSwiggyJmRange(items: InsertScSwiggyJmRange[]): Promise<ScSwiggyJmRange[]> {
-    return await db.insert(scSwiggyJmRange).values(items).returning();
+    if (items.length === 0) return [];
+    
+    // Clean and validate data to prevent circular references
+    const cleanItems = items.map(item => ({
+      period_start: item.period_start instanceof Date ? item.period_start : new Date(item.period_start),
+      period_end: item.period_end instanceof Date ? item.period_end : new Date(item.period_end),
+      brand: String(item.brand || ''),
+      ordered_date: item.ordered_date instanceof Date ? item.ordered_date : new Date(item.ordered_date),
+      city: String(item.city || ''),
+      area_name: item.area_name ? String(item.area_name) : null,
+      store_id: item.store_id ? String(item.store_id) : null,
+      l1_category: item.l1_category ? String(item.l1_category) : null,
+      l2_category: item.l2_category ? String(item.l2_category) : null,
+      l3_category: item.l3_category ? String(item.l3_category) : null,
+      product_name: String(item.product_name || ''),
+      variant: item.variant ? String(item.variant) : null,
+      item_code: item.item_code ? String(item.item_code) : null,
+      combo: item.combo ? String(item.combo) : null,
+      combo_item_code: item.combo_item_code ? String(item.combo_item_code) : null,
+      combo_units_sold: item.combo_units_sold ? Number(item.combo_units_sold) : null,
+      base_mrp: item.base_mrp ? String(item.base_mrp) : null,
+      units_sold: item.units_sold ? Number(item.units_sold) : null,
+      gmv: item.gmv ? String(item.gmv) : null
+    }));
+
+    // Use batch insertion for large datasets to prevent stack overflow
+    const BATCH_SIZE = 500;
+    const allInserted: ScSwiggyJmRange[] = [];
+    
+    for (let i = 0; i < cleanItems.length; i += BATCH_SIZE) {
+      const batch = cleanItems.slice(i, i + BATCH_SIZE);
+      const inserted = await db.insert(scSwiggyJmRange).values(batch).returning();
+      allInserted.push(...inserted);
+    }
+    
+    return allInserted;
   }
 
   async getScSwiggyJmDaily(dateStart?: string, dateEnd?: string): Promise<ScSwiggyJmDaily[]> {
