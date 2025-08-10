@@ -25,7 +25,8 @@ export function parseAmazonSecondarySales(
   businessUnit: string, 
   periodType: string,
   startDate?: string,
-  endDate?: string
+  endDate?: string,
+  attachmentPath?: string
 ): ParsedAmazonSecondarySalesData {
   try {
     const workbook = XLSX.read(buffer, { type: 'buffer' });
@@ -100,7 +101,8 @@ export function parseAmazonSecondarySales(
         shipped_revenue: shippedRevenue.toString(),
         shipped_cogs: (parseFloat(String(row[colIndices.shippedCogs] || '0')) || 0).toString(),
         shipped_units: shippedUnits,
-        customer_returns: customerReturns
+        customer_returns: customerReturns,
+        attachment_path: attachmentPath || null
       };
       
       // Add period-specific fields

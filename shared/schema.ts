@@ -979,6 +979,7 @@ export const scAmJwDaily = pgTable("SC_AM_JW_Daily", {
   shipped_cogs: decimal("shipped_cogs", { precision: 15, scale: 2 }),
   shipped_units: integer("shipped_units"),
   customer_returns: integer("customer_returns"),
+  attachment_path: text("attachment_path"),
   created_at: timestamp("created_at").defaultNow(),
   updated_at: timestamp("updated_at").defaultNow()
 });
@@ -997,6 +998,7 @@ export const scAmJwRange = pgTable("SC_AM_JW_Range", {
   shipped_cogs: decimal("shipped_cogs", { precision: 15, scale: 2 }),
   shipped_units: integer("shipped_units"),
   customer_returns: integer("customer_returns"),
+  attachment_path: text("attachment_path"),
   created_at: timestamp("created_at").defaultNow(),
   updated_at: timestamp("updated_at").defaultNow()
 });
@@ -1014,6 +1016,7 @@ export const scAmJmDaily = pgTable("SC_AM_JM_Daily", {
   shipped_cogs: decimal("shipped_cogs", { precision: 15, scale: 2 }),
   shipped_units: integer("shipped_units"),
   customer_returns: integer("customer_returns"),
+  attachment_path: text("attachment_path"),
   created_at: timestamp("created_at").defaultNow(),
   updated_at: timestamp("updated_at").defaultNow()
 });
@@ -1032,6 +1035,7 @@ export const scAmJmRange = pgTable("SC_AM_JM_Range", {
   shipped_cogs: decimal("shipped_cogs", { precision: 15, scale: 2 }),
   shipped_units: integer("shipped_units"),
   customer_returns: integer("customer_returns"),
+  attachment_path: text("attachment_path"),
   created_at: timestamp("created_at").defaultNow(),
   updated_at: timestamp("updated_at").defaultNow()
 });

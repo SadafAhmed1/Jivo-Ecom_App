@@ -1606,6 +1606,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       let parsedData;
 
+      // Upload file to object storage first
+      let attachmentPath = null;
+      try {
+        const { ObjectStorageService } = await import("./objectStorage");
+        const objectStorageService = new ObjectStorageService();
+        const uploadURL = await objectStorageService.getObjectEntityUploadURL();
+        
+        // Upload the file
+        const uploadResponse = await fetch(uploadURL, {
+          method: 'PUT',
+          body: req.file.buffer,
+          headers: {
+            'Content-Type': req.file.mimetype
+          }
+        });
+        
+        if (uploadResponse.ok) {
+          attachmentPath = objectStorageService.normalizeObjectEntityPath(uploadURL);
+        }
+      } catch (uploadError) {
+        console.error("Error uploading file to object storage:", uploadError);
+        // Continue without attachment if upload fails
+      }
+
       try {
         if (platform === "amazon") {
           parsedData = parseAmazonSecondarySales(
@@ -1614,7 +1638,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             businessUnit, 
             periodType,
             startDate,
-            endDate
+            endDate,
+            attachmentPath || undefined
           );
         }
 
@@ -1702,6 +1727,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error deleting secondary sales:", error);
       res.status(500).json({ error: "Failed to delete secondary sales" });
+    }
+  });
+
+  // Object Storage routes
+  app.post("/api/objects/upload", async (req, res) => {
+    try {
+      const { ObjectStorageService } = await import("./objectStorage");
+      const objectStorageService = new ObjectStorageService();
+      const uploadURL = await objectStorageService.getObjectEntityUploadURL();
+      res.json({ uploadURL });
+    } catch (error) {
+      console.error("Error getting upload URL:", error);
+      res.status(500).json({ error: "Failed to get upload URL" });
+    }
+  });
+
+  app.get("/objects/:objectPath(*)", async (req, res) => {
+    try {
+      const { ObjectStorageService, ObjectNotFoundError } = await import("./objectStorage");
+      const objectStorageService = new ObjectStorageService();
+      const objectFile = await objectStorageService.getObjectEntityFile(
+        req.path,
+      );
+      objectStorageService.downloadObject(objectFile, res);
+    } catch (error) {
+      console.error("Error accessing object:", error);
+      if (error instanceof (await import("./objectStorage")).ObjectNotFoundError) {
+        return res.sendStatus(404);
+      }
+      return res.sendStatus(500);
     }
   });
 
