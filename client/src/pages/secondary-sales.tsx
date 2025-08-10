@@ -750,6 +750,11 @@ export default function SecondarySales() {
                 </div>
               </div>
 
+              {/* Force Show Debug - Should Always Appear */}
+              <div className="mb-4 p-3 bg-red-100 border border-red-400 rounded-lg text-sm font-bold">
+                🔍 FORCE DEBUG: This should always show if preview renders
+              </div>
+              
               {/* Debug Information - Always Show */}
               <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg text-sm">
                 <strong>Debug Info:</strong><br/>
