@@ -738,98 +738,103 @@ export default function SecondarySales() {
 
               {/* Preview Table */}
               {parsedData.items && parsedData.items.length > 0 && (
-                <div className="border rounded-lg overflow-hidden">
-                  <div className="max-h-96 overflow-y-auto">
-                    <Table>
-                      <TableHeader className="sticky top-0 bg-white z-10">
-                        <TableRow>
-                          <TableHead className="min-w-[120px]">ASIN</TableHead>
-                          <TableHead className="min-w-[200px]">Product Title</TableHead>
-                          <TableHead className="min-w-[120px]">Brand</TableHead>
-                          <TableHead className="text-right min-w-[100px]">Ordered Units</TableHead>
-                          <TableHead className="text-right min-w-[120px]">Ordered Revenue</TableHead>
-                          <TableHead className="text-right min-w-[100px]">Shipped Units</TableHead>
-                          <TableHead className="text-right min-w-[120px]">Shipped Revenue</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {parsedData.items.map((item: any, index: number) => (
-                          <TableRow key={index} className="hover:bg-gray-50">
-                            <TableCell className="font-medium">
-                              <div className="truncate max-w-[120px]" title={item.asin || "N/A"}>
-                                {item.asin || "N/A"}
-                              </div>
-                            </TableCell>
-                            <TableCell>
-                              <div className="truncate max-w-[200px]" title={item.product_title || "N/A"}>
-                                {item.product_title || "N/A"}
-                              </div>
-                            </TableCell>
-                            <TableCell>
-                              <div className="truncate max-w-[120px]" title={item.brand || "N/A"}>
-                                {item.brand || "N/A"}
-                              </div>
-                            </TableCell>
-                            <TableCell className="text-right">
-                              {item.ordered_units || 0}
-                            </TableCell>
-                            <TableCell className="text-right">
-                              ₹{parseFloat(item.ordered_revenue || "0").toFixed(2)}
-                            </TableCell>
-                            <TableCell className="text-right">
-                              {item.shipped_units || 0}
-                            </TableCell>
-                            <TableCell className="text-right">
-                              ₹{parseFloat(item.shipped_revenue || "0").toFixed(2)}
-                            </TableCell>
+                <div className="border rounded-lg overflow-hidden mb-6">
+                  <div className="overflow-x-auto">
+                    <div className="max-h-80 overflow-y-auto">
+                      <Table>
+                        <TableHeader className="sticky top-0 bg-white shadow-sm z-10">
+                          <TableRow>
+                            <TableHead className="min-w-[120px] px-4 py-3 font-semibold">ASIN</TableHead>
+                            <TableHead className="min-w-[250px] px-4 py-3 font-semibold">Product Title</TableHead>
+                            <TableHead className="min-w-[120px] px-4 py-3 font-semibold">Brand</TableHead>
+                            <TableHead className="text-right min-w-[100px] px-4 py-3 font-semibold">Ordered Units</TableHead>
+                            <TableHead className="text-right min-w-[120px] px-4 py-3 font-semibold">Ordered Revenue</TableHead>
+                            <TableHead className="text-right min-w-[100px] px-4 py-3 font-semibold">Shipped Units</TableHead>
+                            <TableHead className="text-right min-w-[120px] px-4 py-3 font-semibold">Shipped Revenue</TableHead>
                           </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
+                        </TableHeader>
+                        <TableBody>
+                          {parsedData.items.map((item: any, index: number) => (
+                            <TableRow key={index} className="hover:bg-gray-50 border-b">
+                              <TableCell className="font-medium px-4 py-3">
+                                <div className="truncate max-w-[120px]" title={item.asin || "N/A"}>
+                                  {item.asin || "N/A"}
+                                </div>
+                              </TableCell>
+                              <TableCell className="px-4 py-3">
+                                <div className="truncate max-w-[250px]" title={item.product_title || "N/A"}>
+                                  {item.product_title || "N/A"}
+                                </div>
+                              </TableCell>
+                              <TableCell className="px-4 py-3">
+                                <div className="truncate max-w-[120px]" title={item.brand || "N/A"}>
+                                  {item.brand || "N/A"}
+                                </div>
+                              </TableCell>
+                              <TableCell className="text-right px-4 py-3">
+                                {item.ordered_units || 0}
+                              </TableCell>
+                              <TableCell className="text-right px-4 py-3">
+                                ₹{parseFloat(item.ordered_revenue || "0").toFixed(2)}
+                              </TableCell>
+                              <TableCell className="text-right px-4 py-3">
+                                {item.shipped_units || 0}
+                              </TableCell>
+                              <TableCell className="text-right px-4 py-3">
+                                ₹{parseFloat(item.shipped_revenue || "0").toFixed(2)}
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
                   </div>
                   
-                  <div className="p-4 bg-gray-50 text-center text-sm text-gray-600 border-t">
-                    Showing all {parsedData.items.length} items • Scroll to view more
+                  <div className="p-3 bg-gray-50 text-center text-sm text-gray-600 border-t">
+                    Showing all {parsedData.items.length} items • Scroll vertically and horizontally to view more
                   </div>
                 </div>
               )}
 
-              <div className="mt-6 flex flex-col sm:flex-row justify-between gap-4">
-                <Button
-                  variant="outline"
-                  onClick={goBack}
-                  className="flex items-center justify-center space-x-2"
-                >
-                  <ArrowLeft className="w-4 h-4" />
-                  <span>Back</span>
-                </Button>
-
-                <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
+              {/* Action Buttons - Fixed positioning */}
+              <div className="bg-white border-t pt-4 mt-4">
+                <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
                   <Button
                     variant="outline"
-                    onClick={goToPlatformSelection}
-                    className="flex items-center justify-center space-x-2"
+                    onClick={goBack}
+                    className="flex items-center justify-center space-x-2 w-full sm:w-auto"
                   >
-                    <RotateCcw className="w-4 h-4" />
-                    <span>Start Over</span>
+                    <ArrowLeft className="w-4 h-4" />
+                    <span>Back</span>
                   </Button>
-                  <Button
-                    onClick={() => importMutation.mutate()}
-                    disabled={importMutation.isPending || !parsedData.items?.length}
-                    className="flex items-center justify-center space-x-2 bg-green-600 hover:bg-green-700 text-white font-medium px-6 py-2 min-w-[140px]"
-                  >
-                    {importMutation.isPending ? (
-                      <>
-                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                        <span>Importing...</span>
-                      </>
-                    ) : (
-                      <>
-                        <Database className="w-4 h-4" />
-                        <span>Import to Database</span>
-                      </>
-                    )}
-                  </Button>
+
+                  <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+                    <Button
+                      variant="outline"
+                      onClick={goToPlatformSelection}
+                      className="flex items-center justify-center space-x-2 w-full sm:w-auto"
+                    >
+                      <RotateCcw className="w-4 h-4" />
+                      <span>Start Over</span>
+                    </Button>
+                    <Button
+                      onClick={() => importMutation.mutate()}
+                      disabled={importMutation.isPending || !parsedData.items?.length}
+                      className="flex items-center justify-center space-x-2 bg-green-600 hover:bg-green-700 text-white font-semibold px-6 py-3 min-w-[180px] w-full sm:w-auto shadow-md"
+                    >
+                      {importMutation.isPending ? (
+                        <>
+                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                          <span>Importing...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Database className="w-5 h-5" />
+                          <span>Import to Database</span>
+                        </>
+                      )}
+                    </Button>
+                  </div>
                 </div>
               </div>
             </CardContent>
