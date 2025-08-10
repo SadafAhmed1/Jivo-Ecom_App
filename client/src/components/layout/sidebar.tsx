@@ -59,7 +59,7 @@ export function Sidebar() {
   const [location] = useLocation();
 
   return (
-    <div className="w-64 bg-white shadow-lg border-r border-gray-200 flex flex-col">
+    <div className="w-64 bg-white shadow-lg border-r border-gray-200 flex flex-col h-screen">
       {/* Logo Section */}
       <div className="p-6 border-b border-gray-200">
         <div className="flex items-center space-x-3">
@@ -72,7 +72,7 @@ export function Sidebar() {
         </div>
       </div>
       {/* Navigation Section */}
-      <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
+      <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto min-h-0">
         {navigation.map((item) => {
           const isActive = location === item.href;
           const Icon = item.icon;
