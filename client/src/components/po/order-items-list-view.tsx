@@ -127,6 +127,13 @@ export function OrderItemsListView() {
            matchesExpiryDateFrom && matchesExpiryDateTo;
   });
 
+  // Calculate totals
+  const totalItems = filteredOrderItems.length;
+  const totalQuantity = filteredOrderItems.reduce((sum, item) => sum + item.quantity, 0);
+  const totalValue = filteredOrderItems.reduce((sum, item) => 
+    sum + (parseFloat(item.landing_rate || '0') * item.quantity), 0
+  );
+
   const getStatusBadgeVariant = (status: string) => {
     switch (status.toLowerCase()) {
       case 'pending': return 'default';
@@ -324,6 +331,43 @@ export function OrderItemsListView() {
             </CardContent>
           </Card>
         )}
+      </div>
+
+      {/* Summary Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center">
+              <Package className="h-4 w-4 text-muted-foreground" />
+              <div className="ml-2">
+                <div className="text-2xl font-bold">{totalItems}</div>
+                <p className="text-xs text-muted-foreground">Total Items</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center">
+              <Calendar className="h-4 w-4 text-muted-foreground" />
+              <div className="ml-2">
+                <div className="text-2xl font-bold">{totalQuantity}</div>
+                <p className="text-xs text-muted-foreground">Total Quantity</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center">
+              <Package className="h-4 w-4 text-muted-foreground" />
+              <div className="ml-2">
+                <div className="text-2xl font-bold">₹{totalValue.toLocaleString('en-IN')}</div>
+                <p className="text-xs text-muted-foreground">Total Value</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Order Items Cards */}
