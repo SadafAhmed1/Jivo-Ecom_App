@@ -485,90 +485,102 @@ export function OrderItemsListView() {
                           <ChevronDown className="h-3 w-3" />
                         </Button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="w-52 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg">
+                      <DropdownMenuContent align="end" className="w-52 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg [&>*]:text-gray-900 [&>*]:dark:text-gray-100">
                         <DropdownMenuItem 
                           onClick={() => handleStatusUpdate(item.id, 'Pending')}
-                          className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-900 dark:text-gray-100 px-3 py-2 font-medium"
+                          className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 px-3 py-2 font-medium"
+                          style={{ color: '#111827' }}
                         >
                           <Badge variant="default" className="text-xs mr-2">Pending</Badge>
-                          Pending
+                          <span style={{ color: '#111827' }}>Pending</span>
                         </DropdownMenuItem>
                         <DropdownMenuItem 
                           onClick={() => handleStatusUpdate(item.id, 'Invoiced')}
-                          className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-900 dark:text-gray-100 px-3 py-2 font-medium"
+                          className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 px-3 py-2 font-medium"
+                          style={{ color: '#111827' }}
                         >
                           <Badge variant="secondary" className="text-xs mr-2">Invoiced</Badge>
-                          Invoiced
+                          <span style={{ color: '#111827' }}>Invoiced</span>
                         </DropdownMenuItem>
                         <DropdownMenuItem 
                           onClick={() => handleStatusUpdate(item.id, 'Dispatched')}
-                          className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-900 dark:text-gray-100 px-3 py-2 font-medium"
+                          className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 px-3 py-2 font-medium"
+                          style={{ color: '#111827' }}
                         >
                           <Badge variant="secondary" className="text-xs mr-2">Dispatched</Badge>
-                          Dispatched
+                          <span style={{ color: '#111827' }}>Dispatched</span>
                         </DropdownMenuItem>
                         <DropdownMenuItem 
                           onClick={() => handleStatusUpdate(item.id, 'Delivered')}
-                          className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-900 dark:text-gray-100 px-3 py-2 font-medium"
+                          className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 px-3 py-2 font-medium"
+                          style={{ color: '#111827' }}
                         >
                           <Badge variant="secondary" className="text-xs mr-2">Delivered</Badge>
-                          Delivered
+                          <span style={{ color: '#111827' }}>Delivered</span>
                         </DropdownMenuItem>
                         <DropdownMenuItem 
                           onClick={() => handleStatusUpdate(item.id, 'Price Difference')}
-                          className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-900 dark:text-gray-100 px-3 py-2 font-medium"
+                          className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 px-3 py-2 font-medium"
+                          style={{ color: '#111827' }}
                         >
                           <Badge variant="outline" className="text-xs mr-2">Price Difference</Badge>
-                          Price Difference
+                          <span style={{ color: '#111827' }}>Price Difference</span>
                         </DropdownMenuItem>
                         <DropdownMenuItem 
                           onClick={() => handleStatusUpdate(item.id, 'MOV Issue')}
-                          className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-900 dark:text-gray-100 px-3 py-2 font-medium"
+                          className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 px-3 py-2 font-medium"
+                          style={{ color: '#111827' }}
                         >
                           <Badge variant="outline" className="text-xs mr-2">MOV Issue</Badge>
-                          MOV Issue
+                          <span style={{ color: '#111827' }}>MOV Issue</span>
                         </DropdownMenuItem>
                         <DropdownMenuItem 
                           onClick={() => handleStatusUpdate(item.id, 'Stock Issue')}
-                          className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-900 dark:text-gray-100 px-3 py-2 font-medium"
+                          className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 px-3 py-2 font-medium"
+                          style={{ color: '#111827' }}
                         >
                           <Badge variant="outline" className="text-xs mr-2">Stock Issue</Badge>
-                          Stock Issue
+                          <span style={{ color: '#111827' }}>Stock Issue</span>
                         </DropdownMenuItem>
                         <DropdownMenuItem 
                           onClick={() => handleStatusUpdate(item.id, 'Cancelled')}
-                          className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-900 dark:text-gray-100 px-3 py-2 font-medium"
+                          className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 px-3 py-2 font-medium"
+                          style={{ color: '#111827' }}
                         >
                           <Badge variant="destructive" className="text-xs mr-2">Cancelled</Badge>
-                          Cancelled
+                          <span style={{ color: '#111827' }}>Cancelled</span>
                         </DropdownMenuItem>
                         <DropdownMenuItem 
                           onClick={() => handleStatusUpdate(item.id, 'Expired')}
-                          className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-900 dark:text-gray-100 px-3 py-2 font-medium"
+                          className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 px-3 py-2 font-medium"
+                          style={{ color: '#111827' }}
                         >
                           <Badge variant="destructive" className="text-xs mr-2">Expired</Badge>
-                          Expired
+                          <span style={{ color: '#111827' }}>Expired</span>
                         </DropdownMenuItem>
                         <DropdownMenuItem 
                           onClick={() => handleStatusUpdate(item.id, 'Hold')}
-                          className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-900 dark:text-gray-100 px-3 py-2 font-medium"
+                          className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 px-3 py-2 font-medium"
+                          style={{ color: '#111827' }}
                         >
                           <Badge variant="outline" className="text-xs mr-2">Hold</Badge>
-                          Hold
+                          <span style={{ color: '#111827' }}>Hold</span>
                         </DropdownMenuItem>
                         <DropdownMenuItem 
                           onClick={() => handleStatusUpdate(item.id, 'CN')}
-                          className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-900 dark:text-gray-100 px-3 py-2 font-medium"
+                          className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 px-3 py-2 font-medium"
+                          style={{ color: '#111827' }}
                         >
                           <Badge variant="outline" className="text-xs mr-2">CN</Badge>
-                          CN
+                          <span style={{ color: '#111827' }}>CN</span>
                         </DropdownMenuItem>
                         <DropdownMenuItem 
                           onClick={() => handleStatusUpdate(item.id, 'RTV')}
-                          className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-900 dark:text-gray-100 px-3 py-2 font-medium"
+                          className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 px-3 py-2 font-medium"
+                          style={{ color: '#111827' }}
                         >
                           <Badge variant="outline" className="text-xs mr-2">RTV</Badge>
-                          RTV
+                          <span style={{ color: '#111827' }}>RTV</span>
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
