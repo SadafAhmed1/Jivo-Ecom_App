@@ -11,6 +11,7 @@ import { parseBigBasketPO } from "./bigbasket-parser";
 import { parseZomatoPO } from "./zomato-parser";
 import { parseDealsharePO } from "./dealshare-parser";
 import { parseAmazonSecondarySales } from "./amazon-secondary-sales-parser";
+import { parseSwiggySecondarySalesFile } from "./swiggy-secondary-sales-parser";
 import multer from 'multer';
 
 const createPoSchema = z.object({
@@ -1513,8 +1514,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Platform, business unit, and period type are required" });
       }
 
-      if (platform !== "amazon") {
-        return res.status(400).json({ error: "Only Amazon platform is supported currently" });
+      if (!["amazon", "swiggy"].includes(platform)) {
+        return res.status(400).json({ error: "Only Amazon and Swiggy platforms are supported" });
       }
 
       if (!["jivo-wellness", "jivo-mart"].includes(businessUnit)) {
@@ -1528,14 +1529,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let parsedData;
 
       try {
-        parsedData = parseAmazonSecondarySales(
-          req.file.buffer, 
-          platform, 
-          businessUnit, 
-          periodType,
-          startDate,
-          endDate
-        );
+        if (platform === "amazon") {
+          parsedData = parseAmazonSecondarySales(
+            req.file.buffer, 
+            platform, 
+            businessUnit, 
+            periodType,
+            startDate,
+            endDate
+          );
+        } else if (platform === "swiggy") {
+          // Note: Swiggy only supports Jivo Mart currently based on user requirements
+          if (businessUnit !== "jivo-mart") {
+            return res.status(400).json({ error: "Swiggy platform only supports jivo-mart business unit" });
+          }
+          
+          parsedData = parseSwiggySecondarySalesFile(
+            req.file.buffer, 
+            businessUnit, 
+            periodType,
+            periodType === "daily" ? startDate : undefined,
+            startDate,
+            endDate
+          );
+        }
 
         if (!parsedData.items || parsedData.items.length === 0) {
           return res.status(400).json({ error: "No valid sales data found in file" });
@@ -1581,8 +1598,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Platform, business unit, and period type are required" });
       }
 
-      if (platform !== "amazon") {
-        return res.status(400).json({ error: "Only Amazon platform is supported currently" });
+      if (!["amazon", "swiggy"].includes(platform)) {
+        return res.status(400).json({ error: "Only Amazon and Swiggy platforms are supported" });
       }
 
       if (!["jivo-wellness", "jivo-mart"].includes(businessUnit)) {
@@ -1600,14 +1617,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let parsedData;
 
       try {
-        parsedData = parseAmazonSecondarySales(
-          req.file.buffer, 
-          platform, 
-          businessUnit, 
-          periodType,
-          startDate,
-          endDate
-        );
+        if (platform === "amazon") {
+          parsedData = parseAmazonSecondarySales(
+            req.file.buffer, 
+            platform, 
+            businessUnit, 
+            periodType,
+            startDate,
+            endDate
+          );
+        } else if (platform === "swiggy") {
+          // Note: Swiggy only supports Jivo Mart currently based on user requirements
+          if (businessUnit !== "jivo-mart") {
+            return res.status(400).json({ error: "Swiggy platform only supports jivo-mart business unit" });
+          }
+          
+          parsedData = parseSwiggySecondarySalesFile(
+            req.file.buffer, 
+            businessUnit, 
+            periodType,
+            periodType === "daily" ? startDate : undefined,
+            startDate,
+            endDate
+          );
+        }
 
         if (!parsedData.items || parsedData.items.length === 0) {
           return res.status(400).json({ error: "No valid sales data found in file" });
@@ -1616,21 +1649,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
         let insertedItems;
         let tableName;
         
-        // Route to specific table based on business unit and period type
-        if (businessUnit === "jivo-wellness" && periodType === "daily") {
-          insertedItems = await storage.createScAmJwDaily(parsedData.items as any);
-          tableName = "SC_AM_JW_Daily";
-        } else if (businessUnit === "jivo-wellness" && periodType === "date-range") {
-          insertedItems = await storage.createScAmJwRange(parsedData.items as any);
-          tableName = "SC_AM_JW_Range";
-        } else if (businessUnit === "jivo-mart" && periodType === "daily") {
-          insertedItems = await storage.createScAmJmDaily(parsedData.items as any);
-          tableName = "SC_AM_JM_Daily";
-        } else if (businessUnit === "jivo-mart" && periodType === "date-range") {
-          insertedItems = await storage.createScAmJmRange(parsedData.items as any);
-          tableName = "SC_AM_JM_Range";
-        } else {
-          return res.status(400).json({ error: "Invalid business unit and period type combination" });
+        // Route to specific table based on platform, business unit and period type
+        if (platform === "amazon") {
+          if (businessUnit === "jivo-wellness" && periodType === "daily") {
+            insertedItems = await storage.createScAmJwDaily(parsedData.items as any);
+            tableName = "SC_AM_JW_Daily";
+          } else if (businessUnit === "jivo-wellness" && periodType === "date-range") {
+            insertedItems = await storage.createScAmJwRange(parsedData.items as any);
+            tableName = "SC_AM_JW_Range";
+          } else if (businessUnit === "jivo-mart" && periodType === "daily") {
+            insertedItems = await storage.createScAmJmDaily(parsedData.items as any);
+            tableName = "SC_AM_JM_Daily";
+          } else if (businessUnit === "jivo-mart" && periodType === "date-range") {
+            insertedItems = await storage.createScAmJmRange(parsedData.items as any);
+            tableName = "SC_AM_JM_Range";
+          }
+        } else if (platform === "swiggy") {
+          // Swiggy only supports Jivo Mart
+          if (periodType === "daily") {
+            insertedItems = await storage.createScSwiggyJmDaily(parsedData.items as any);
+            tableName = "SC_Swiggy_JM_Daily";
+          } else if (periodType === "date-range") {
+            insertedItems = await storage.createScSwiggyJmRange(parsedData.items as any);
+            tableName = "SC_Swiggy_JM_Range";
+          }
+        }
+
+        if (!insertedItems) {
+          return res.status(400).json({ error: "Invalid platform, business unit and period type combination" });
         }
 
         res.status(201).json({

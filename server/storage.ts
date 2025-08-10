@@ -57,6 +57,10 @@ import {
   type InsertScAmJmDaily,
   type ScAmJmRange,
   type InsertScAmJmRange,
+  type ScSwiggyJmDaily,
+  type InsertScSwiggyJmDaily,
+  type ScSwiggyJmRange,
+  type InsertScSwiggyJmRange,
   type DistributorMst,
   type InsertDistributorMst,
   type DistributorPo,
@@ -92,6 +96,8 @@ import {
   scAmJwRange,
   scAmJmDaily,
   scAmJmRange,
+  scSwiggyJmDaily,
+  scSwiggyJmRange,
   distributorMst,
   distributorPo,
   distributorOrderItems
@@ -222,6 +228,12 @@ export interface IStorage {
   getScAmJwRange(dateStart?: string, dateEnd?: string): Promise<ScAmJwRange[]>;
   getScAmJmDaily(dateStart?: string, dateEnd?: string): Promise<ScAmJmDaily[]>;
   getScAmJmRange(dateStart?: string, dateEnd?: string): Promise<ScAmJmRange[]>;
+
+  // Swiggy Secondary Sales methods
+  createScSwiggyJmDaily(items: InsertScSwiggyJmDaily[]): Promise<ScSwiggyJmDaily[]>;
+  createScSwiggyJmRange(items: InsertScSwiggyJmRange[]): Promise<ScSwiggyJmRange[]>;
+  getScSwiggyJmDaily(dateStart?: string, dateEnd?: string): Promise<ScSwiggyJmDaily[]>;
+  getScSwiggyJmRange(dateStart?: string, dateEnd?: string): Promise<ScSwiggyJmRange[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1414,6 +1426,49 @@ export class DatabaseStorage implements IStorage {
     }
     
     return await db.select().from(scAmJmRange).orderBy(desc(scAmJmRange.period_start));
+  }
+
+  // Swiggy Secondary Sales methods
+  async createScSwiggyJmDaily(items: InsertScSwiggyJmDaily[]): Promise<ScSwiggyJmDaily[]> {
+    return await db.insert(scSwiggyJmDaily).values(items).returning();
+  }
+
+  async createScSwiggyJmRange(items: InsertScSwiggyJmRange[]): Promise<ScSwiggyJmRange[]> {
+    return await db.insert(scSwiggyJmRange).values(items).returning();
+  }
+
+  async getScSwiggyJmDaily(dateStart?: string, dateEnd?: string): Promise<ScSwiggyJmDaily[]> {
+    if (dateStart && dateEnd) {
+      return await db.select().from(scSwiggyJmDaily)
+        .where(
+          and(
+            gte(scSwiggyJmDaily.report_date, new Date(dateStart)),
+            lte(scSwiggyJmDaily.report_date, new Date(dateEnd))
+          )
+        )
+        .orderBy(desc(scSwiggyJmDaily.report_date));
+    } else if (dateStart) {
+      return await db.select().from(scSwiggyJmDaily)
+        .where(eq(scSwiggyJmDaily.report_date, new Date(dateStart)))
+        .orderBy(desc(scSwiggyJmDaily.report_date));
+    }
+    
+    return await db.select().from(scSwiggyJmDaily).orderBy(desc(scSwiggyJmDaily.report_date));
+  }
+
+  async getScSwiggyJmRange(dateStart?: string, dateEnd?: string): Promise<ScSwiggyJmRange[]> {
+    if (dateStart && dateEnd) {
+      return await db.select().from(scSwiggyJmRange)
+        .where(
+          and(
+            gte(scSwiggyJmRange.period_start, new Date(dateStart)),
+            lte(scSwiggyJmRange.period_end, new Date(dateEnd))
+          )
+        )
+        .orderBy(desc(scSwiggyJmRange.period_start));
+    }
+    
+    return await db.select().from(scSwiggyJmRange).orderBy(desc(scSwiggyJmRange.period_start));
   }
 }
 
