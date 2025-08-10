@@ -410,29 +410,66 @@ export function UnifiedUploadComponent({ onComplete }: UnifiedUploadComponentPro
                             </div>
                           </CardHeader>
                           <CardContent>
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                              {po.header?.store_name && (
-                                <div>
-                                  <span className="font-medium text-gray-600">Store:</span>
-                                  <p className="mt-1">{po.header.store_name}</p>
+                            <div className="space-y-4">
+                              {/* Summary Grid */}
+                              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                                <div className="bg-blue-50 p-3 rounded-lg">
+                                  <span className="font-medium text-blue-800">Total Items</span>
+                                  <p className="text-lg font-bold text-blue-900">{po.lines?.length || 0}</p>
                                 </div>
-                              )}
-                              {po.header?.order_date && (
-                                <div>
-                                  <span className="font-medium text-gray-600">Order Date:</span>
-                                  <p className="mt-1">{po.header.order_date}</p>
+                                <div className="bg-green-50 p-3 rounded-lg">
+                                  <span className="font-medium text-green-800">Total Quantity</span>
+                                  <p className="text-lg font-bold text-green-900">{po.totalQuantity || 0}</p>
                                 </div>
-                              )}
-                              {po.header?.total_amount && (
-                                <div>
-                                  <span className="font-medium text-gray-600">Total Amount:</span>
-                                  <p className="mt-1">₹{po.header.total_amount}</p>
+                                <div className="bg-purple-50 p-3 rounded-lg">
+                                  <span className="font-medium text-purple-800">Total Amount</span>
+                                  <p className="text-lg font-bold text-purple-900">₹{po.totalAmount || '0'}</p>
                                 </div>
-                              )}
-                              <div>
-                                <span className="font-medium text-gray-600">Items:</span>
-                                <p className="mt-1">{po.lines?.length || 0} items</p>
+                                {po.header?.order_date && (
+                                  <div className="bg-orange-50 p-3 rounded-lg">
+                                    <span className="font-medium text-orange-800">Order Date</span>
+                                    <p className="text-sm font-medium text-orange-900">{po.header.order_date}</p>
+                                  </div>
+                                )}
                               </div>
+
+                              {/* Line Items Table */}
+                              {po.lines && po.lines.length > 0 && (
+                                <div className="mt-4">
+                                  <h5 className="font-medium text-gray-700 mb-2">Line Items Preview</h5>
+                                  <div className="overflow-x-auto border rounded-lg">
+                                    <table className="w-full text-sm">
+                                      <thead className="bg-gray-50">
+                                        <tr>
+                                          <th className="text-left p-3 font-medium">Item Code</th>
+                                          <th className="text-left p-3 font-medium">Description</th>
+                                          <th className="text-left p-3 font-medium">UOM</th>
+                                          <th className="text-left p-3 font-medium">Quantity</th>
+                                          <th className="text-left p-3 font-medium">Landing Rate</th>
+                                          <th className="text-left p-3 font-medium">Total</th>
+                                        </tr>
+                                      </thead>
+                                      <tbody>
+                                        {po.lines.slice(0, 5).map((line: any, lineIndex: number) => (
+                                          <tr key={lineIndex} className="border-t">
+                                            <td className="p-3 font-medium">{line.item_code || 'N/A'}</td>
+                                            <td className="p-3">{line.product_description || 'N/A'}</td>
+                                            <td className="p-3">{line.grammage || 'N/A'}</td>
+                                            <td className="p-3">{line.quantity || 0}</td>
+                                            <td className="p-3">₹{line.landing_rate || '0'}</td>
+                                            <td className="p-3">₹{line.total_amount || '0'}</td>
+                                          </tr>
+                                        ))}
+                                      </tbody>
+                                    </table>
+                                    {po.lines.length > 5 && (
+                                      <div className="text-center py-2 text-gray-500 bg-gray-50 border-t">
+                                        ... and {po.lines.length - 5} more items
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              )}
                             </div>
                           </CardContent>
                         </Card>
