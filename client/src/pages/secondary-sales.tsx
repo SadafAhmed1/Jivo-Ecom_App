@@ -56,6 +56,11 @@ interface ParsedSecondarySalesData {
     totalShippedRevenue?: number;
     totalShippedUnits?: number;
     totalCustomerReturns?: number;
+    // Common fields for new platforms
+    totalRecords?: number;
+    totalSalesValue?: number;
+    uniqueProducts?: number;
+    dateRange?: string;
   };
   items?: any[];
 }
@@ -65,6 +70,24 @@ const PLATFORMS = [
     id: "amazon",
     name: "Amazon",
     description: "Upload Amazon secondary sales data",
+    icon: ShoppingCart,
+  },
+  {
+    id: "zepto",
+    name: "Zepto",
+    description: "Upload Zepto secondary sales data",
+    icon: ShoppingCart,
+  },
+  {
+    id: "blinkit",
+    name: "Blinkit",
+    description: "Upload Blinkit secondary sales data",
+    icon: ShoppingCart,
+  },
+  {
+    id: "swiggy",
+    name: "Swiggy",
+    description: "Upload Swiggy secondary sales data",
     icon: ShoppingCart,
   },
 ];
@@ -121,6 +144,18 @@ export default function SecondarySales() {
 
   const selectedPlatformData = PLATFORMS.find((p) => p.id === selectedPlatform);
   const selectedBusinessUnitData = BUSINESS_UNITS.find((bu) => bu.id === selectedBusinessUnit);
+
+  // Filter business units based on platform requirements
+  const getAvailableBusinessUnits = () => {
+    if (selectedPlatform === "amazon") {
+      return BUSINESS_UNITS.filter(bu => bu.id === "jivo-wellness" || bu.id === "jivo-mart");
+    }
+    // New platforms only support Jivo Mart
+    if (["zepto", "blinkit", "swiggy"].includes(selectedPlatform)) {
+      return BUSINESS_UNITS.filter(bu => bu.id === "jivo-mart");
+    }
+    return BUSINESS_UNITS;
+  };
 
   const previewMutation = useMutation({
     mutationFn: async (file: File) => {
@@ -422,18 +457,7 @@ export default function SecondarySales() {
             </CardHeader>
             <CardContent>
               <div className="grid gap-4">
-                {BUSINESS_UNITS
-                  .filter((businessUnit) => {
-                    // For Swiggy, only show Jivo Mart
-                    if (selectedPlatform === "swiggy") {
-                      return businessUnit.id === "jivo-mart";
-                    }
-                    // For Amazon, show Jivo Wellness and Jivo Mart (exclude marketplace for now)
-                    if (selectedPlatform === "amazon") {
-                      return ["jivo-wellness", "jivo-mart"].includes(businessUnit.id);
-                    }
-                    return true;
-                  })
+                {getAvailableBusinessUnits()
                   .map((businessUnit) => (
                   <div
                     key={businessUnit.id}
@@ -726,6 +750,29 @@ export default function SecondarySales() {
                   </>
                 )}
                 
+                {/* New platforms summary cards */}
+                {["zepto", "blinkit", "swiggy"].includes(parsedData.platform || "") && (
+                  <>
+                    <div className="p-4 bg-green-50 rounded-lg">
+                      <div className="text-2xl font-bold text-green-600">
+                        {parsedData.summary?.totalRecords || 0}
+                      </div>
+                      <div className="text-sm text-green-600">Total Records</div>
+                    </div>
+                    <div className="p-4 bg-purple-50 rounded-lg">
+                      <div className="text-2xl font-bold text-purple-600">
+                        ₹{parsedData.summary?.totalSalesValue?.toFixed(2) || "0.00"}
+                      </div>
+                      <div className="text-sm text-purple-600">Total Sales Value</div>
+                    </div>
+                    <div className="p-4 bg-orange-50 rounded-lg">
+                      <div className="text-2xl font-bold text-orange-600">
+                        {parsedData.summary?.uniqueProducts || 0}
+                      </div>
+                      <div className="text-sm text-orange-600">Unique Products</div>
+                    </div>
+                  </>
+                )}
 
               </div>
               
@@ -788,6 +835,32 @@ export default function SecondarySales() {
                               </>
                             )}
                             
+                            {/* Zepto table headers */}
+                            {parsedData.platform === "zepto" && (
+                              <>
+                                <TableHead className="min-w-[150px] px-4 py-3 font-semibold">SKU Name</TableHead>
+                                <TableHead className="min-w-[120px] px-4 py-3 font-semibold">Category</TableHead>
+                                <TableHead className="min-w-[100px] px-4 py-3 font-semibold">Brand</TableHead>
+                                <TableHead className="min-w-[100px] px-4 py-3 font-semibold">City</TableHead>
+                                <TableHead className="text-right min-w-[80px] px-4 py-3 font-semibold">Units Sold</TableHead>
+                                <TableHead className="text-right min-w-[100px] px-4 py-3 font-semibold">GMV</TableHead>
+                                <TableHead className="text-right min-w-[100px] px-4 py-3 font-semibold">ASP</TableHead>
+                              </>
+                            )}
+                            
+                            {/* Blinkit table headers */}
+                            {parsedData.platform === "blinkit" && (
+                              <>
+                                <TableHead className="min-w-[150px] px-4 py-3 font-semibold">Item Name</TableHead>
+                                <TableHead className="min-w-[120px] px-4 py-3 font-semibold">Category</TableHead>
+                                <TableHead className="min-w-[100px] px-4 py-3 font-semibold">Brand</TableHead>
+                                <TableHead className="min-w-[100px] px-4 py-3 font-semibold">City</TableHead>
+                                <TableHead className="text-right min-w-[80px] px-4 py-3 font-semibold">Qty Sold</TableHead>
+                                <TableHead className="text-right min-w-[100px] px-4 py-3 font-semibold">MRP</TableHead>
+                                <TableHead className="text-right min-w-[100px] px-4 py-3 font-semibold">Selling Price</TableHead>
+                              </>
+                            )}
+                            
                             {/* Swiggy table headers */}
                             {parsedData.platform === "swiggy" && (
                               <>
@@ -835,6 +908,76 @@ export default function SecondarySales() {
                                   </TableCell>
                                   <TableCell className="text-right px-4 py-3">
                                     ₹{parseFloat(item.shipped_revenue || "0").toFixed(2)}
+                                  </TableCell>
+                                </>
+                              )}
+                              
+                              {/* Zepto table rows */}
+                              {parsedData.platform === "zepto" && (
+                                <>
+                                  <TableCell className="font-medium px-4 py-3">
+                                    <div className="truncate max-w-[150px]" title={item.sku_name || "N/A"}>
+                                      {item.sku_name || "N/A"}
+                                    </div>
+                                  </TableCell>
+                                  <TableCell className="px-4 py-3">
+                                    <div className="truncate max-w-[120px]" title={item.category || "N/A"}>
+                                      {item.category || "N/A"}
+                                    </div>
+                                  </TableCell>
+                                  <TableCell className="px-4 py-3">
+                                    <div className="truncate max-w-[100px]" title={item.brand || "N/A"}>
+                                      {item.brand || "N/A"}
+                                    </div>
+                                  </TableCell>
+                                  <TableCell className="px-4 py-3">
+                                    <div className="truncate max-w-[100px]" title={item.city || "N/A"}>
+                                      {item.city || "N/A"}
+                                    </div>
+                                  </TableCell>
+                                  <TableCell className="text-right px-4 py-3">
+                                    {item.units_sold || 0}
+                                  </TableCell>
+                                  <TableCell className="text-right px-4 py-3">
+                                    ₹{parseFloat(item.gmv || "0").toFixed(2)}
+                                  </TableCell>
+                                  <TableCell className="text-right px-4 py-3">
+                                    ₹{parseFloat(item.asp || "0").toFixed(2)}
+                                  </TableCell>
+                                </>
+                              )}
+                              
+                              {/* Blinkit table rows */}
+                              {parsedData.platform === "blinkit" && (
+                                <>
+                                  <TableCell className="font-medium px-4 py-3">
+                                    <div className="truncate max-w-[150px]" title={item.item_name || "N/A"}>
+                                      {item.item_name || "N/A"}
+                                    </div>
+                                  </TableCell>
+                                  <TableCell className="px-4 py-3">
+                                    <div className="truncate max-w-[120px]" title={item.category || "N/A"}>
+                                      {item.category || "N/A"}
+                                    </div>
+                                  </TableCell>
+                                  <TableCell className="px-4 py-3">
+                                    <div className="truncate max-w-[100px]" title={item.brand || "N/A"}>
+                                      {item.brand || "N/A"}
+                                    </div>
+                                  </TableCell>
+                                  <TableCell className="px-4 py-3">
+                                    <div className="truncate max-w-[100px]" title={item.city || "N/A"}>
+                                      {item.city || "N/A"}
+                                    </div>
+                                  </TableCell>
+                                  <TableCell className="text-right px-4 py-3">
+                                    {item.qty_sold || 0}
+                                  </TableCell>
+                                  <TableCell className="text-right px-4 py-3">
+                                    ₹{parseFloat(item.mrp || "0").toFixed(2)}
+                                  </TableCell>
+                                  <TableCell className="text-right px-4 py-3">
+                                    ₹{parseFloat(item.selling_price || "0").toFixed(2)}
                                   </TableCell>
                                 </>
                               )}

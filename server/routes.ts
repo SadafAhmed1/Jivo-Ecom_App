@@ -11,6 +11,9 @@ import { parseBigBasketPO } from "./bigbasket-parser";
 import { parseZomatoPO } from "./zomato-parser";
 import { parseDealsharePO } from "./dealshare-parser";
 import { parseAmazonSecondarySales } from "./amazon-secondary-sales-parser";
+import { parseZeptoSecondaryData } from "./zepto-secondary-sales-parser";
+import { parseBlinkitSecondaryData } from "./blinkit-secondary-sales-parser";
+import { parseSwiggySecondaryData } from "./swiggy-secondary-sales-parser";
 
 import multer from 'multer';
 
@@ -1514,8 +1517,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Platform, business unit, and period type are required" });
       }
 
-      if (!["amazon"].includes(platform)) {
-        return res.status(400).json({ error: "Only Amazon platform is supported" });
+      if (!["amazon", "zepto", "blinkit", "swiggy"].includes(platform)) {
+        return res.status(400).json({ error: "Supported platforms: amazon, zepto, blinkit, swiggy" });
       }
 
       if (!["jivo-wellness", "jivo-mart"].includes(businessUnit)) {
@@ -1538,6 +1541,102 @@ export async function registerRoutes(app: Express): Promise<Server> {
             startDate,
             endDate
           );
+        } else if (platform === "zepto") {
+          const reportDate = periodType === "daily" ? new Date(startDate) : new Date();
+          const periodStart = periodType === "date-range" ? new Date(startDate) : undefined;
+          const periodEnd = periodType === "date-range" ? new Date(endDate) : undefined;
+          
+          const parseResult = await parseZeptoSecondaryData(
+            req.file.buffer.toString('utf8'),
+            reportDate,
+            periodStart,
+            periodEnd
+          );
+          
+          if (!parseResult.success) {
+            return res.status(400).json({ error: parseResult.error });
+          }
+          
+          parsedData = {
+            platform,
+            businessUnit,
+            periodType,
+            reportDate,
+            periodStart,
+            periodEnd,
+            totalItems: parseResult.totalItems || 0,
+            items: parseResult.data || [],
+            summary: {
+              totalRecords: parseResult.totalItems || 0,
+              totalSalesValue: parseResult.data?.reduce((sum, item) => sum + (parseFloat(item.gmv || '0') || 0), 0) || 0,
+              uniqueProducts: new Set(parseResult.data?.map(item => item.sku_name).filter(Boolean)).size,
+              dateRange: periodType === "date-range" ? `${startDate} to ${endDate}` : startDate
+            }
+          };
+        } else if (platform === "blinkit") {
+          const reportDate = periodType === "daily" ? new Date(startDate) : new Date();
+          const periodStart = periodType === "date-range" ? new Date(startDate) : undefined;
+          const periodEnd = periodType === "date-range" ? new Date(endDate) : undefined;
+          
+          const parseResult = await parseBlinkitSecondaryData(
+            req.file.buffer.toString('utf8'),
+            reportDate,
+            periodStart,
+            periodEnd
+          );
+          
+          if (!parseResult.success) {
+            return res.status(400).json({ error: parseResult.error });
+          }
+          
+          parsedData = {
+            platform,
+            businessUnit,
+            periodType,
+            reportDate,
+            periodStart,
+            periodEnd,
+            totalItems: parseResult.totalItems || 0,
+            items: parseResult.data || [],
+            summary: {
+              totalRecords: parseResult.totalItems || 0,
+              totalSalesValue: parseResult.data?.reduce((sum, item) => sum + (parseFloat(item.mrp || '0') * parseFloat(item.qty_sold || '0') || 0), 0) || 0,
+              uniqueProducts: new Set(parseResult.data?.map(item => item.item_name).filter(Boolean)).size,
+              dateRange: periodType === "date-range" ? `${startDate} to ${endDate}` : startDate
+            }
+          };
+        } else if (platform === "swiggy") {
+          const reportDate = periodType === "daily" ? new Date(startDate) : new Date();
+          const periodStart = periodType === "date-range" ? new Date(startDate) : undefined;
+          const periodEnd = periodType === "date-range" ? new Date(endDate) : undefined;
+          
+          const parseResult = await parseSwiggySecondaryData(
+            req.file.buffer.toString('utf8'),
+            reportDate,
+            periodStart,
+            periodEnd
+          );
+          
+          if (!parseResult.success) {
+            return res.status(400).json({ error: parseResult.error });
+          }
+          
+          parsedData = {
+            platform,
+            businessUnit,
+            periodType,
+            reportDate,
+            periodStart,
+            periodEnd,
+            totalItems: parseResult.totalItems || 0,
+            items: parseResult.data || [],
+            summary: {
+              totalRecords: parseResult.totalItems || 0,
+              totalSalesValue: parseResult.data?.reduce((sum, item) => sum + (parseFloat(item.gmv || '0') || 0), 0) || 0,
+              uniqueProducts: new Set(parseResult.data?.map(item => item.product_name).filter(Boolean)).size,
+              dateRange: periodType === "date-range" ? `${startDate} to ${endDate}` : startDate
+            }
+          };
         }
 
         if (!parsedData) {
@@ -1588,8 +1687,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Platform, business unit, and period type are required" });
       }
 
-      if (!["amazon"].includes(platform)) {
-        return res.status(400).json({ error: "Only Amazon platform is supported" });
+      if (!["amazon", "zepto", "blinkit", "swiggy"].includes(platform)) {
+        return res.status(400).json({ error: "Supported platforms: amazon, zepto, blinkit, swiggy" });
       }
 
       if (!["jivo-wellness", "jivo-mart"].includes(businessUnit)) {
@@ -1641,6 +1740,120 @@ export async function registerRoutes(app: Express): Promise<Server> {
             endDate,
             attachmentPath || undefined
           );
+        } else if (platform === "zepto") {
+          const reportDate = periodType === "daily" ? new Date(startDate) : new Date();
+          const periodStart = periodType === "date-range" ? new Date(startDate) : undefined;
+          const periodEnd = periodType === "date-range" ? new Date(endDate) : undefined;
+          
+          const parseResult = await parseZeptoSecondaryData(
+            req.file.buffer.toString('utf8'),
+            reportDate,
+            periodStart,
+            periodEnd
+          );
+          
+          if (!parseResult.success) {
+            return res.status(400).json({ error: parseResult.error });
+          }
+          
+          // Add attachment path to all items
+          const itemsWithAttachment = parseResult.data?.map(item => ({
+            ...item,
+            attachment_path: attachmentPath
+          })) || [];
+          
+          parsedData = {
+            platform,
+            businessUnit,
+            periodType,
+            reportDate,
+            periodStart,
+            periodEnd,
+            totalItems: parseResult.totalItems || 0,
+            items: itemsWithAttachment,
+            summary: {
+              totalRecords: parseResult.totalItems || 0,
+              totalSalesValue: parseResult.data?.reduce((sum: number, item: any) => sum + (parseFloat(item.gmv || '0') || 0), 0) || 0,
+              uniqueProducts: new Set(parseResult.data?.map((item: any) => item.sku_name).filter(Boolean)).size,
+              dateRange: periodType === "date-range" ? `${startDate} to ${endDate}` : startDate
+            }
+          };
+        } else if (platform === "blinkit") {
+          const reportDate = periodType === "daily" ? new Date(startDate) : new Date();
+          const periodStart = periodType === "date-range" ? new Date(startDate) : undefined;
+          const periodEnd = periodType === "date-range" ? new Date(endDate) : undefined;
+          
+          const parseResult = await parseBlinkitSecondaryData(
+            req.file.buffer.toString('utf8'),
+            reportDate,
+            periodStart,
+            periodEnd
+          );
+          
+          if (!parseResult.success) {
+            return res.status(400).json({ error: parseResult.error });
+          }
+          
+          // Add attachment path to all items
+          const itemsWithAttachment = parseResult.data?.map(item => ({
+            ...item,
+            attachment_path: attachmentPath
+          })) || [];
+          
+          parsedData = {
+            platform,
+            businessUnit,
+            periodType,
+            reportDate,
+            periodStart,
+            periodEnd,
+            totalItems: parseResult.totalItems || 0,
+            items: itemsWithAttachment,
+            summary: {
+              totalRecords: parseResult.totalItems || 0,
+              totalSalesValue: parseResult.data?.reduce((sum: number, item: any) => sum + (parseFloat(item.mrp || '0') * parseFloat(item.qty_sold || '0') || 0), 0) || 0,
+              uniqueProducts: new Set(parseResult.data?.map((item: any) => item.item_name).filter(Boolean)).size,
+              dateRange: periodType === "date-range" ? `${startDate} to ${endDate}` : startDate
+            }
+          };
+        } else if (platform === "swiggy") {
+          const reportDate = periodType === "daily" ? new Date(startDate) : new Date();
+          const periodStart = periodType === "date-range" ? new Date(startDate) : undefined;
+          const periodEnd = periodType === "date-range" ? new Date(endDate) : undefined;
+          
+          const parseResult = await parseSwiggySecondaryData(
+            req.file.buffer.toString('utf8'),
+            reportDate,
+            periodStart,
+            periodEnd
+          );
+          
+          if (!parseResult.success) {
+            return res.status(400).json({ error: parseResult.error });
+          }
+          
+          // Add attachment path to all items
+          const itemsWithAttachment = parseResult.data?.map(item => ({
+            ...item,
+            attachment_path: attachmentPath
+          })) || [];
+          
+          parsedData = {
+            platform,
+            businessUnit,
+            periodType,
+            reportDate,
+            periodStart,
+            periodEnd,
+            totalItems: parseResult.totalItems || 0,
+            items: itemsWithAttachment,
+            summary: {
+              totalRecords: parseResult.totalItems || 0,
+              totalSalesValue: parseResult.data?.reduce((sum: number, item: any) => sum + (parseFloat(item.gmv || '0') || 0), 0) || 0,
+              uniqueProducts: new Set(parseResult.data?.map((item: any) => item.product_name).filter(Boolean)).size,
+              dateRange: periodType === "date-range" ? `${startDate} to ${endDate}` : startDate
+            }
+          };
         }
 
         if (!parsedData) {
@@ -1668,6 +1881,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
           } else if (businessUnit === "jivo-mart" && periodType === "date-range") {
             insertedItems = await storage.createScAmJmRange(parsedData.items as any);
             tableName = "SC_AM_JM_Range";
+          }
+        } else if (platform === "zepto") {
+          if (businessUnit === "jivo-mart" && periodType === "daily") {
+            insertedItems = await storage.createScZeptoJmDaily(parsedData.items as any);
+            tableName = "SC_Zepto_JM_Daily";
+          } else if (businessUnit === "jivo-mart" && periodType === "date-range") {
+            insertedItems = await storage.createScZeptoJmRange(parsedData.items as any);
+            tableName = "SC_Zepto_JM_Range";
+          }
+        } else if (platform === "blinkit") {
+          if (businessUnit === "jivo-mart" && periodType === "daily") {
+            insertedItems = await storage.createScBlinkitJmDaily(parsedData.items as any);
+            tableName = "SC_Blinkit_JM_Daily";
+          } else if (businessUnit === "jivo-mart" && periodType === "date-range") {
+            insertedItems = await storage.createScBlinkitJmRange(parsedData.items as any);
+            tableName = "SC_Blinkit_JM_Range";
+          }
+        } else if (platform === "swiggy") {
+          if (businessUnit === "jivo-mart" && periodType === "daily") {
+            insertedItems = await storage.createScSwiggyJmDaily(parsedData.items as any);
+            tableName = "SC_Swiggy_JM_Daily";
+          } else if (businessUnit === "jivo-mart" && periodType === "date-range") {
+            insertedItems = await storage.createScSwiggyJmRange(parsedData.items as any);
+            tableName = "SC_Swiggy_JM_Range";
           }
         }
 

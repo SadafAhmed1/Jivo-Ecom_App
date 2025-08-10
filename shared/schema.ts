@@ -1075,4 +1075,167 @@ export type InsertScAmJmDaily = z.infer<typeof insertScAmJmDailySchema>;
 export type ScAmJmRange = typeof scAmJmRange.$inferSelect;
 export type InsertScAmJmRange = z.infer<typeof insertScAmJmRangeSchema>;
 
+// Zepto Secondary Sales Tables - Jivo Mart
+export const scZeptoJmDaily = pgTable("SC_Zepto_JM_Daily", {
+  id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
+  report_date: timestamp("report_date").notNull(),
+  date: timestamp("date").notNull(),
+  sku_number: text("sku_number"),
+  sku_name: text("sku_name"),
+  ean: text("ean"),
+  sku_category: text("sku_category"),
+  sku_sub_category: text("sku_sub_category"),
+  brand_name: text("brand_name"),
+  manufacturer_name: text("manufacturer_name"),
+  manufacturer_id: text("manufacturer_id"),
+  city: text("city"),
+  sales_qty_units: integer("sales_qty_units"),
+  mrp: decimal("mrp", { precision: 10, scale: 2 }),
+  gmv: decimal("gmv", { precision: 10, scale: 2 }),
+  attachment_path: text("attachment_path"),
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow()
+});
+
+export const scZeptoJmRange = pgTable("SC_Zepto_JM_Range", {
+  id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
+  period_start: timestamp("period_start").notNull(),
+  period_end: timestamp("period_end").notNull(),
+  date: timestamp("date").notNull(),
+  sku_number: text("sku_number"),
+  sku_name: text("sku_name"),
+  ean: text("ean"),
+  sku_category: text("sku_category"),
+  sku_sub_category: text("sku_sub_category"),
+  brand_name: text("brand_name"),
+  manufacturer_name: text("manufacturer_name"),
+  manufacturer_id: text("manufacturer_id"),
+  city: text("city"),
+  sales_qty_units: integer("sales_qty_units"),
+  mrp: decimal("mrp", { precision: 10, scale: 2 }),
+  gmv: decimal("gmv", { precision: 10, scale: 2 }),
+  attachment_path: text("attachment_path"),
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow()
+});
+
+// Blinkit Secondary Sales Tables - Jivo Mart
+export const scBlinkitJmDaily = pgTable("SC_Blinkit_JM_Daily", {
+  id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
+  report_date: timestamp("report_date").notNull(),
+  item_id: text("item_id"),
+  item_name: text("item_name"),
+  manufacturer_id: text("manufacturer_id"),
+  manufacturer_name: text("manufacturer_name"),
+  city_id: text("city_id"),
+  city_name: text("city_name"),
+  category: text("category"),
+  date: timestamp("date").notNull(),
+  qty_sold: decimal("qty_sold", { precision: 10, scale: 2 }),
+  mrp: decimal("mrp", { precision: 10, scale: 2 }),
+  attachment_path: text("attachment_path"),
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow()
+});
+
+export const scBlinkitJmRange = pgTable("SC_Blinkit_JM_Range", {
+  id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
+  period_start: timestamp("period_start").notNull(),
+  period_end: timestamp("period_end").notNull(),
+  item_id: text("item_id"),
+  item_name: text("item_name"),
+  manufacturer_id: text("manufacturer_id"),
+  manufacturer_name: text("manufacturer_name"),
+  city_id: text("city_id"),
+  city_name: text("city_name"),
+  category: text("category"),
+  date: timestamp("date").notNull(),
+  qty_sold: decimal("qty_sold", { precision: 10, scale: 2 }),
+  mrp: decimal("mrp", { precision: 10, scale: 2 }),
+  attachment_path: text("attachment_path"),
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow()
+});
+
+// Swiggy Secondary Sales Tables - Jivo Mart
+export const scSwiggyJmDaily = pgTable("SC_Swiggy_JM_Daily", {
+  id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
+  report_date: timestamp("report_date").notNull(),
+  brand: text("brand"),
+  ordered_date: timestamp("ordered_date").notNull(),
+  city: text("city"),
+  area_name: text("area_name"),
+  store_id: text("store_id"),
+  l1_category: text("l1_category"),
+  l2_category: text("l2_category"),
+  l3_category: text("l3_category"),
+  product_name: text("product_name"),
+  variant: text("variant"),
+  item_code: text("item_code"),
+  combo: text("combo"),
+  combo_item_code: text("combo_item_code"),
+  combo_units_sold: decimal("combo_units_sold", { precision: 10, scale: 2 }),
+  base_mrp: decimal("base_mrp", { precision: 10, scale: 2 }),
+  units_sold: decimal("units_sold", { precision: 10, scale: 2 }),
+  gmv: decimal("gmv", { precision: 10, scale: 2 }),
+  attachment_path: text("attachment_path"),
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow()
+});
+
+export const scSwiggyJmRange = pgTable("SC_Swiggy_JM_Range", {
+  id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
+  period_start: timestamp("period_start").notNull(),
+  period_end: timestamp("period_end").notNull(),
+  brand: text("brand"),
+  ordered_date: timestamp("ordered_date").notNull(),
+  city: text("city"),
+  area_name: text("area_name"),
+  store_id: text("store_id"),
+  l1_category: text("l1_category"),
+  l2_category: text("l2_category"),
+  l3_category: text("l3_category"),
+  product_name: text("product_name"),
+  variant: text("variant"),
+  item_code: text("item_code"),
+  combo: text("combo"),
+  combo_item_code: text("combo_item_code"),
+  combo_units_sold: decimal("combo_units_sold", { precision: 10, scale: 2 }),
+  base_mrp: decimal("base_mrp", { precision: 10, scale: 2 }),
+  units_sold: decimal("units_sold", { precision: 10, scale: 2 }),
+  gmv: decimal("gmv", { precision: 10, scale: 2 }),
+  attachment_path: text("attachment_path"),
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow()
+});
+
+// Insert schemas for new secondary sales tables
+export const insertZeptoSecondarySalesItemSchema = createInsertSchema(scZeptoJmDaily).omit({
+  id: true,
+  created_at: true,
+  updated_at: true
+});
+
+export const insertBlinkitSecondarySalesItemSchema = createInsertSchema(scBlinkitJmDaily).omit({
+  id: true,
+  created_at: true,
+  updated_at: true
+});
+
+export const insertSwiggySecondarySalesItemSchema = createInsertSchema(scSwiggyJmDaily).omit({
+  id: true,
+  created_at: true,
+  updated_at: true
+});
+
+// Types for new secondary sales tables
+export type ZeptoSecondarySalesItem = typeof scZeptoJmDaily.$inferSelect;
+export type InsertZeptoSecondarySalesItem = z.infer<typeof insertZeptoSecondarySalesItemSchema>;
+
+export type BlinkitSecondarySalesItem = typeof scBlinkitJmDaily.$inferSelect;
+export type InsertBlinkitSecondarySalesItem = z.infer<typeof insertBlinkitSecondarySalesItemSchema>;
+
+export type SwiggySecondarySalesItem = typeof scSwiggyJmDaily.$inferSelect;
+export type InsertSwiggySecondarySalesItem = z.infer<typeof insertSwiggySecondarySalesItemSchema>;
+
 

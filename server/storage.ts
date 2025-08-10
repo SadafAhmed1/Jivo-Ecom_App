@@ -57,6 +57,12 @@ import {
   type InsertScAmJmDaily,
   type ScAmJmRange,
   type InsertScAmJmRange,
+  type ZeptoSecondarySalesItem,
+  type InsertZeptoSecondarySalesItem,
+  type BlinkitSecondarySalesItem,
+  type InsertBlinkitSecondarySalesItem,
+  type SwiggySecondarySalesItem,
+  type InsertSwiggySecondarySalesItem,
 
   type DistributorMst,
   type InsertDistributorMst,
@@ -93,6 +99,12 @@ import {
   scAmJwRange,
   scAmJmDaily,
   scAmJmRange,
+  scZeptoJmDaily,
+  scZeptoJmRange,
+  scBlinkitJmDaily,
+  scBlinkitJmRange,
+  scSwiggyJmDaily,
+  scSwiggyJmRange,
 
   distributorMst,
   distributorPo,
@@ -220,6 +232,14 @@ export interface IStorage {
   createScAmJwRange(items: InsertScAmJwRange[]): Promise<ScAmJwRange[]>;
   createScAmJmDaily(items: InsertScAmJmDaily[]): Promise<ScAmJmDaily[]>;
   createScAmJmRange(items: InsertScAmJmRange[]): Promise<ScAmJmRange[]>;
+  
+  // New secondary sales platforms
+  createScZeptoJmDaily(items: InsertZeptoSecondarySalesItem[]): Promise<ZeptoSecondarySalesItem[]>;
+  createScZeptoJmRange(items: InsertZeptoSecondarySalesItem[]): Promise<ZeptoSecondarySalesItem[]>;
+  createScBlinkitJmDaily(items: InsertBlinkitSecondarySalesItem[]): Promise<BlinkitSecondarySalesItem[]>;
+  createScBlinkitJmRange(items: InsertBlinkitSecondarySalesItem[]): Promise<BlinkitSecondarySalesItem[]>;
+  createScSwiggyJmDaily(items: InsertSwiggySecondarySalesItem[]): Promise<SwiggySecondarySalesItem[]>;
+  createScSwiggyJmRange(items: InsertSwiggySecondarySalesItem[]): Promise<SwiggySecondarySalesItem[]>;
   getScAmJwDaily(dateStart?: string, dateEnd?: string): Promise<ScAmJwDaily[]>;
   getScAmJwRange(dateStart?: string, dateEnd?: string): Promise<ScAmJwRange[]>;
   getScAmJmDaily(dateStart?: string, dateEnd?: string): Promise<ScAmJmDaily[]>;
@@ -1418,6 +1438,31 @@ export class DatabaseStorage implements IStorage {
     }
     
     return await db.select().from(scAmJmRange).orderBy(desc(scAmJmRange.period_start));
+  }
+
+  // New secondary sales platform methods
+  async createScZeptoJmDaily(items: InsertZeptoSecondarySalesItem[]): Promise<ZeptoSecondarySalesItem[]> {
+    return await db.insert(scZeptoJmDaily).values(items).returning();
+  }
+
+  async createScZeptoJmRange(items: InsertZeptoSecondarySalesItem[]): Promise<ZeptoSecondarySalesItem[]> {
+    return await db.insert(scZeptoJmRange).values(items).returning();
+  }
+
+  async createScBlinkitJmDaily(items: InsertBlinkitSecondarySalesItem[]): Promise<BlinkitSecondarySalesItem[]> {
+    return await db.insert(scBlinkitJmDaily).values(items).returning();
+  }
+
+  async createScBlinkitJmRange(items: InsertBlinkitSecondarySalesItem[]): Promise<BlinkitSecondarySalesItem[]> {
+    return await db.insert(scBlinkitJmRange).values(items).returning();
+  }
+
+  async createScSwiggyJmDaily(items: InsertSwiggySecondarySalesItem[]): Promise<SwiggySecondarySalesItem[]> {
+    return await db.insert(scSwiggyJmDaily).values(items).returning();
+  }
+
+  async createScSwiggyJmRange(items: InsertSwiggySecondarySalesItem[]): Promise<SwiggySecondarySalesItem[]> {
+    return await db.insert(scSwiggyJmRange).values(items).returning();
   }
 
 
