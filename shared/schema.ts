@@ -888,3 +888,79 @@ export type DealsharePoHeader = typeof dealsharePoHeader.$inferSelect;
 export type InsertDealsharePoHeader = z.infer<typeof insertDealsharePoHeaderSchema>;
 export type DealsharePoItems = typeof dealsharePoItems.$inferSelect;
 export type InsertDealsharePoItems = z.infer<typeof insertDealsharePoItemsSchema>;
+
+// Secondary Sales Header Table
+export const secondarySalesHeader = pgTable("secondary_sales_header", {
+  id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
+  platform: varchar("platform", { length: 50 }).notNull(), // amazon, flipkart, etc.
+  business_unit: varchar("business_unit", { length: 50 }).notNull(), // jivo-wellness, jivo-mart, marketplace
+  period_start: timestamp("period_start"),
+  period_end: timestamp("period_end"),
+  report_generated_date: timestamp("report_generated_date"),
+  total_items: integer("total_items").default(0),
+  total_quantity: decimal("total_quantity", { precision: 15, scale: 2 }).default("0"),
+  total_sales_amount: decimal("total_sales_amount", { precision: 15, scale: 2 }).default("0"),
+  total_commission: decimal("total_commission", { precision: 15, scale: 2 }).default("0"),
+  currency: varchar("currency", { length: 10 }).default("INR"),
+  status: varchar("status", { length: 20 }).default("Active"),
+  uploaded_by: varchar("uploaded_by", { length: 100 }).default("admin"),
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow()
+});
+
+// Secondary Sales Items Table
+export const secondarySalesItems = pgTable("secondary_sales_items", {
+  id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
+  header_id: integer("header_id").notNull().references(() => secondarySalesHeader.id, { onDelete: "cascade" }),
+  line_number: integer("line_number").notNull(),
+  product_sku: varchar("product_sku", { length: 100 }),
+  product_name: text("product_name"),
+  product_asin: varchar("product_asin", { length: 50 }), // Amazon specific
+  category: varchar("category", { length: 100 }),
+  brand: varchar("brand", { length: 100 }),
+  quantity_sold: integer("quantity_sold"),
+  unit_price: decimal("unit_price", { precision: 10, scale: 2 }),
+  total_sales: decimal("total_sales", { precision: 12, scale: 2 }),
+  commission_rate: decimal("commission_rate", { precision: 5, scale: 2 }),
+  commission_amount: decimal("commission_amount", { precision: 10, scale: 2 }),
+  shipping_fee: decimal("shipping_fee", { precision: 10, scale: 2 }),
+  promotion_discount: decimal("promotion_discount", { precision: 10, scale: 2 }),
+  net_amount: decimal("net_amount", { precision: 12, scale: 2 }),
+  transaction_date: timestamp("transaction_date"),
+  order_id: varchar("order_id", { length: 100 }),
+  customer_location: varchar("customer_location", { length: 100 }),
+  fulfillment_method: varchar("fulfillment_method", { length: 50 }), // FBA, FBM, etc.
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow()
+});
+
+// Secondary Sales Relations
+export const secondarySalesHeaderRelations = relations(secondarySalesHeader, ({ many }) => ({
+  salesItems: many(secondarySalesItems),
+}));
+
+export const secondarySalesItemsRelations = relations(secondarySalesItems, ({ one }) => ({
+  header: one(secondarySalesHeader, {
+    fields: [secondarySalesItems.header_id],
+    references: [secondarySalesHeader.id],
+  }),
+}));
+
+// Insert schemas for Secondary Sales tables
+export const insertSecondarySalesHeaderSchema = createInsertSchema(secondarySalesHeader).omit({
+  id: true,
+  created_at: true,
+  updated_at: true
+});
+
+export const insertSecondarySalesItemsSchema = createInsertSchema(secondarySalesItems).omit({
+  id: true,
+  header_id: true,
+  created_at: true,
+  updated_at: true
+});
+
+export type SecondarySalesHeader = typeof secondarySalesHeader.$inferSelect;
+export type InsertSecondarySalesHeader = z.infer<typeof insertSecondarySalesHeaderSchema>;
+export type SecondarySalesItems = typeof secondarySalesItems.$inferSelect;
+export type InsertSecondarySalesItems = z.infer<typeof insertSecondarySalesItemsSchema>;

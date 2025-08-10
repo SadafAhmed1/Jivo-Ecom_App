@@ -36,8 +36,8 @@ const navigation = [
     name: "Secondary Sales",
     href: "/secondary-sales",
     icon: Upload,
-    active: false,
-    comingSoon: true
+    active: true,
+    description: "Upload & manage secondary sales data from platforms"
   },
   {
     name: "Inventory",

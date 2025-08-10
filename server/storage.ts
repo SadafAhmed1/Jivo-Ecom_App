@@ -45,6 +45,10 @@ import {
   type DealsharePoItems,
   type InsertDealsharePoHeader,
   type InsertDealsharePoItems,
+  type SecondarySalesHeader,
+  type SecondarySalesItems,
+  type InsertSecondarySalesHeader,
+  type InsertSecondarySalesItems,
   type DistributorMst,
   type InsertDistributorMst,
   type DistributorPo,
@@ -74,6 +78,8 @@ import {
   zomatoPoItems,
   dealsharePoHeader,
   dealsharePoItems,
+  secondarySalesHeader,
+  secondarySalesItems,
   distributorMst,
   distributorPo,
   distributorOrderItems
@@ -187,6 +193,13 @@ export interface IStorage {
   createZomatoPo(header: InsertZomatoPoHeader, items: InsertZomatoPoItems[]): Promise<ZomatoPoHeader>;
   updateZomatoPo(id: number, header: Partial<InsertZomatoPoHeader>, items?: InsertZomatoPoItems[]): Promise<ZomatoPoHeader>;
   deleteZomatoPo(id: number): Promise<void>;
+
+  // Secondary Sales methods
+  getAllSecondarySales(platform?: string, businessUnit?: string): Promise<(SecondarySalesHeader & { salesItems: SecondarySalesItems[] })[]>;
+  getSecondarySalesById(id: number): Promise<(SecondarySalesHeader & { salesItems: SecondarySalesItems[] }) | undefined>;
+  createSecondarySales(header: InsertSecondarySalesHeader, items: InsertSecondarySalesItems[]): Promise<SecondarySalesHeader>;
+  updateSecondarySales(id: number, header: Partial<InsertSecondarySalesHeader>, items?: InsertSecondarySalesItems[]): Promise<SecondarySalesHeader>;
+  deleteSecondarySales(id: number): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1208,6 +1221,91 @@ export class DatabaseStorage implements IStorage {
     await db.transaction(async (tx) => {
       await tx.delete(dealsharePoItems).where(eq(dealsharePoItems.po_header_id, id));
       await tx.delete(dealsharePoHeader).where(eq(dealsharePoHeader.id, id));
+    });
+  }
+
+  // Secondary Sales methods
+  async getAllSecondarySales(platform?: string, businessUnit?: string): Promise<(SecondarySalesHeader & { salesItems: SecondarySalesItems[] })[]> {
+    let query = db.select().from(secondarySalesHeader);
+    
+    if (platform || businessUnit) {
+      const conditions = [];
+      if (platform) conditions.push(eq(secondarySalesHeader.platform, platform));
+      if (businessUnit) conditions.push(eq(secondarySalesHeader.business_unit, businessUnit));
+      query = query.where(and(...conditions));
+    }
+    
+    const sales = await query.orderBy(desc(secondarySalesHeader.created_at));
+    
+    const result = [];
+    for (const sale of sales) {
+      const salesItems = await db.select().from(secondarySalesItems).where(eq(secondarySalesItems.header_id, sale.id));
+      result.push({
+        ...sale,
+        salesItems
+      });
+    }
+    
+    return result;
+  }
+
+  async getSecondarySalesById(id: number): Promise<(SecondarySalesHeader & { salesItems: SecondarySalesItems[] }) | undefined> {
+    const [sale] = await db.select().from(secondarySalesHeader).where(eq(secondarySalesHeader.id, id));
+    
+    if (!sale) {
+      return undefined;
+    }
+
+    const salesItems = await db.select().from(secondarySalesItems).where(eq(secondarySalesItems.header_id, sale.id));
+    
+    return {
+      ...sale,
+      salesItems
+    };
+  }
+
+  async createSecondarySales(header: InsertSecondarySalesHeader, items: InsertSecondarySalesItems[]): Promise<SecondarySalesHeader> {
+    return await db.transaction(async (tx) => {
+      const [createdSale] = await tx.insert(secondarySalesHeader).values(header).returning();
+      
+      if (items.length > 0) {
+        const itemsWithHeaderId = items.map(item => ({
+          ...item,
+          header_id: createdSale.id
+        }));
+        await tx.insert(secondarySalesItems).values(itemsWithHeaderId);
+      }
+      
+      return createdSale;
+    });
+  }
+
+  async updateSecondarySales(id: number, header: Partial<InsertSecondarySalesHeader>, items?: InsertSecondarySalesItems[]): Promise<SecondarySalesHeader> {
+    return await db.transaction(async (tx) => {
+      const [updatedSale] = await tx
+        .update(secondarySalesHeader)
+        .set({ ...header, updated_at: new Date() })
+        .where(eq(secondarySalesHeader.id, id))
+        .returning();
+
+      if (items && items.length > 0) {
+        await tx.delete(secondarySalesItems).where(eq(secondarySalesItems.header_id, id));
+        
+        const itemsWithHeaderId = items.map(item => ({
+          ...item,
+          header_id: id
+        }));
+        await tx.insert(secondarySalesItems).values(itemsWithHeaderId);
+      }
+
+      return updatedSale;
+    });
+  }
+
+  async deleteSecondarySales(id: number): Promise<void> {
+    await db.transaction(async (tx) => {
+      await tx.delete(secondarySalesItems).where(eq(secondarySalesItems.header_id, id));
+      await tx.delete(secondarySalesHeader).where(eq(secondarySalesHeader.id, id));
     });
   }
 }

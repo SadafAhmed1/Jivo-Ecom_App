@@ -10,6 +10,7 @@ import { parseSwiggyPO } from "./swiggy-parser";
 import { parseBigBasketPO } from "./bigbasket-parser";
 import { parseZomatoPO } from "./zomato-parser";
 import { parseDealsharePO } from "./dealshare-parser";
+import { parseAmazonSecondarySales } from "./amazon-secondary-sales-parser";
 import multer from 'multer';
 
 const createPoSchema = z.object({
@@ -1465,6 +1466,174 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error deleting Dealshare PO:", error);
       res.status(500).json({ error: "Failed to delete PO" });
+    }
+  });
+
+  // Secondary Sales Routes
+  app.get("/api/secondary-sales", async (req, res) => {
+    try {
+      const { platform, businessUnit } = req.query;
+      const sales = await storage.getAllSecondarySales(
+        platform as string, 
+        businessUnit as string
+      );
+      res.json(sales);
+    } catch (error) {
+      console.error("Error fetching secondary sales:", error);
+      res.status(500).json({ error: "Failed to fetch secondary sales" });
+    }
+  });
+
+  app.get("/api/secondary-sales/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const sale = await storage.getSecondarySalesById(id);
+      
+      if (!sale) {
+        return res.status(404).json({ error: "Secondary sales record not found" });
+      }
+      
+      res.json(sale);
+    } catch (error) {
+      console.error("Error fetching secondary sales:", error);
+      res.status(500).json({ error: "Failed to fetch secondary sales" });
+    }
+  });
+
+  // Secondary Sales Preview Route
+  app.post("/api/secondary-sales/preview", upload.single('file'), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: "No file uploaded" });
+      }
+
+      const { platform, businessUnit } = req.body;
+      
+      if (!platform || !businessUnit) {
+        return res.status(400).json({ error: "Platform and business unit are required" });
+      }
+
+      const uploadedBy = "system";
+      let parsedData;
+
+      try {
+        if (platform === "amazon") {
+          parsedData = await parseAmazonSecondarySales(req.file.buffer, businessUnit, uploadedBy);
+        } else {
+          return res.status(400).json({ error: "Unsupported platform" });
+        }
+
+        if (!parsedData || !parsedData.lines || parsedData.lines.length === 0) {
+          return res.status(400).json({ error: "No valid sales data found in file" });
+        }
+
+        // Calculate totals
+        const totalItems = parsedData.lines.length;
+        const totalQuantity = parsedData.lines.reduce((sum, line) => sum + (parseInt(line.quantity_sold) || 0), 0);
+        const totalAmount = parsedData.lines.reduce((sum, line) => sum + (parseFloat(line.total_sales) || 0), 0).toFixed(2);
+
+        res.json({
+          header: parsedData.header,
+          lines: parsedData.lines,
+          totalItems,
+          totalQuantity,
+          totalAmount,
+          detectedBusinessUnit: businessUnit
+        });
+
+      } catch (parseError) {
+        console.error("Parse error:", parseError);
+        return res.status(400).json({ 
+          error: "Failed to parse file", 
+          details: parseError.message 
+        });
+      }
+
+    } catch (error) {
+      console.error("Error in secondary sales preview:", error);
+      res.status(500).json({ error: "Failed to preview secondary sales file" });
+    }
+  });
+
+  // Secondary Sales Import Route
+  app.post("/api/secondary-sales/import/:platform", upload.single('file'), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: "No file uploaded" });
+      }
+
+      const { platform } = req.params;
+      const { businessUnit } = req.body;
+      
+      if (!platform || !businessUnit) {
+        return res.status(400).json({ error: "Platform and business unit are required" });
+      }
+
+      const uploadedBy = "system";
+      let parsedData;
+
+      try {
+        if (platform === "amazon") {
+          parsedData = await parseAmazonSecondarySales(req.file.buffer, businessUnit, uploadedBy);
+        } else {
+          return res.status(400).json({ error: "Unsupported platform" });
+        }
+
+        if (!parsedData || !parsedData.lines || parsedData.lines.length === 0) {
+          return res.status(400).json({ error: "No valid sales data found in file" });
+        }
+
+        // Create the secondary sales record
+        const createdSale = await storage.createSecondarySales(parsedData.header, parsedData.lines);
+        
+        res.status(201).json({
+          id: createdSale.id,
+          platform: createdSale.platform,
+          businessUnit: createdSale.business_unit,
+          totalItems: parsedData.lines.length,
+          totalQuantity: parsedData.lines.reduce((sum, line) => sum + (parseInt(line.quantity_sold) || 0), 0),
+          totalAmount: parsedData.lines.reduce((sum, line) => sum + (parseFloat(line.total_sales) || 0), 0).toFixed(2)
+        });
+
+      } catch (parseError) {
+        console.error("Parse error:", parseError);
+        return res.status(400).json({ 
+          error: "Failed to parse file", 
+          details: parseError.message 
+        });
+      }
+
+    } catch (error) {
+      console.error("Error importing secondary sales:", error);
+      if (error.message && error.message.includes("unique")) {
+        res.status(409).json({ error: "Secondary sales data already exists" });
+      } else {
+        res.status(500).json({ error: "Failed to import secondary sales data" });
+      }
+    }
+  });
+
+  app.put("/api/secondary-sales/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const { header, items } = req.body;
+      
+      const updatedSale = await storage.updateSecondarySales(id, header, items);
+      res.json(updatedSale);
+    } catch (error) {
+      console.error("Error updating secondary sales:", error);
+      res.status(500).json({ error: "Failed to update secondary sales" });
+    }
+  });
+
+  app.delete("/api/secondary-sales/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      await storage.deleteSecondarySales(id);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting secondary sales:", error);
+      res.status(500).json({ error: "Failed to delete secondary sales" });
     }
   });
 
