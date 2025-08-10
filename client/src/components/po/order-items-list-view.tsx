@@ -168,9 +168,17 @@ export function OrderItemsListView() {
   const getStatusBadgeVariant = (status: string) => {
     switch (status.toLowerCase()) {
       case 'pending': return 'default';
-      case 'active': return 'secondary';
-      case 'completed': return 'secondary';
+      case 'invoiced': return 'secondary';
+      case 'dispatched': return 'secondary';
+      case 'delivered': return 'secondary';
       case 'cancelled': return 'destructive';
+      case 'expired': return 'destructive';
+      case 'price difference': return 'outline';
+      case 'mov issue': return 'outline';
+      case 'stock issue': return 'outline';
+      case 'hold': return 'outline';
+      case 'cn': return 'outline';
+      case 'rtv': return 'outline';
       default: return 'default';
     }
   };
@@ -272,9 +280,17 @@ export function OrderItemsListView() {
                       <SelectContent>
                         <SelectItem value="all">All Status</SelectItem>
                         <SelectItem value="pending">Pending</SelectItem>
-                        <SelectItem value="active">Active</SelectItem>
-                        <SelectItem value="completed">Completed</SelectItem>
+                        <SelectItem value="invoiced">Invoiced</SelectItem>
+                        <SelectItem value="dispatched">Dispatched</SelectItem>
+                        <SelectItem value="delivered">Delivered</SelectItem>
+                        <SelectItem value="price difference">Price Difference</SelectItem>
+                        <SelectItem value="mov issue">MOV Issue</SelectItem>
+                        <SelectItem value="stock issue">Stock Issue</SelectItem>
                         <SelectItem value="cancelled">Cancelled</SelectItem>
+                        <SelectItem value="expired">Expired</SelectItem>
+                        <SelectItem value="hold">Hold</SelectItem>
+                        <SelectItem value="cn">CN</SelectItem>
+                        <SelectItem value="rtv">RTV</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -459,7 +475,7 @@ export function OrderItemsListView() {
                           <ChevronDown className="h-3 w-3" />
                         </Button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
+                      <DropdownMenuContent align="end" className="w-52">
                         <DropdownMenuItem 
                           onClick={() => handleStatusUpdate(item.id, 'Pending')}
                           className="cursor-pointer"
@@ -468,18 +484,18 @@ export function OrderItemsListView() {
                           Pending
                         </DropdownMenuItem>
                         <DropdownMenuItem 
-                          onClick={() => handleStatusUpdate(item.id, 'Confirmed')}
+                          onClick={() => handleStatusUpdate(item.id, 'Invoiced')}
                           className="cursor-pointer"
                         >
-                          <Badge variant="secondary" className="text-xs mr-2">Confirmed</Badge>
-                          Confirmed
+                          <Badge variant="secondary" className="text-xs mr-2">Invoiced</Badge>
+                          Invoiced
                         </DropdownMenuItem>
                         <DropdownMenuItem 
-                          onClick={() => handleStatusUpdate(item.id, 'Shipped')}
+                          onClick={() => handleStatusUpdate(item.id, 'Dispatched')}
                           className="cursor-pointer"
                         >
-                          <Badge variant="secondary" className="text-xs mr-2">Shipped</Badge>
-                          Shipped
+                          <Badge variant="secondary" className="text-xs mr-2">Dispatched</Badge>
+                          Dispatched
                         </DropdownMenuItem>
                         <DropdownMenuItem 
                           onClick={() => handleStatusUpdate(item.id, 'Delivered')}
@@ -489,11 +505,60 @@ export function OrderItemsListView() {
                           Delivered
                         </DropdownMenuItem>
                         <DropdownMenuItem 
+                          onClick={() => handleStatusUpdate(item.id, 'Price Difference')}
+                          className="cursor-pointer"
+                        >
+                          <Badge variant="outline" className="text-xs mr-2">Price Difference</Badge>
+                          Price Difference
+                        </DropdownMenuItem>
+                        <DropdownMenuItem 
+                          onClick={() => handleStatusUpdate(item.id, 'MOV Issue')}
+                          className="cursor-pointer"
+                        >
+                          <Badge variant="outline" className="text-xs mr-2">MOV Issue</Badge>
+                          MOV Issue
+                        </DropdownMenuItem>
+                        <DropdownMenuItem 
+                          onClick={() => handleStatusUpdate(item.id, 'Stock Issue')}
+                          className="cursor-pointer"
+                        >
+                          <Badge variant="outline" className="text-xs mr-2">Stock Issue</Badge>
+                          Stock Issue
+                        </DropdownMenuItem>
+                        <DropdownMenuItem 
                           onClick={() => handleStatusUpdate(item.id, 'Cancelled')}
                           className="cursor-pointer"
                         >
                           <Badge variant="destructive" className="text-xs mr-2">Cancelled</Badge>
                           Cancelled
+                        </DropdownMenuItem>
+                        <DropdownMenuItem 
+                          onClick={() => handleStatusUpdate(item.id, 'Expired')}
+                          className="cursor-pointer"
+                        >
+                          <Badge variant="destructive" className="text-xs mr-2">Expired</Badge>
+                          Expired
+                        </DropdownMenuItem>
+                        <DropdownMenuItem 
+                          onClick={() => handleStatusUpdate(item.id, 'Hold')}
+                          className="cursor-pointer"
+                        >
+                          <Badge variant="outline" className="text-xs mr-2">Hold</Badge>
+                          Hold
+                        </DropdownMenuItem>
+                        <DropdownMenuItem 
+                          onClick={() => handleStatusUpdate(item.id, 'CN')}
+                          className="cursor-pointer"
+                        >
+                          <Badge variant="outline" className="text-xs mr-2">CN</Badge>
+                          CN
+                        </DropdownMenuItem>
+                        <DropdownMenuItem 
+                          onClick={() => handleStatusUpdate(item.id, 'RTV')}
+                          className="cursor-pointer"
+                        >
+                          <Badge variant="outline" className="text-xs mr-2">RTV</Badge>
+                          RTV
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
