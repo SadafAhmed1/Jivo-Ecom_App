@@ -750,6 +750,14 @@ export default function SecondarySales() {
                 </div>
               </div>
 
+              {/* Debug Information */}
+              <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg text-sm">
+                <strong>Debug Info:</strong> 
+                Platform: {parsedData.platform} | 
+                Items Array: {parsedData.items ? `${parsedData.items.length} items` : 'null/undefined'} | 
+                First Item: {parsedData.items && parsedData.items[0] ? JSON.stringify(Object.keys(parsedData.items[0])) : 'N/A'}
+              </div>
+
               {/* Preview Table */}
               {parsedData.items && parsedData.items.length > 0 && (
                 <div className="border rounded-lg overflow-hidden mb-6">
