@@ -91,6 +91,58 @@ export const pfOrderItems = pgTable("pf_order_items", {
   status: varchar("status", { length: 50 }).default('Pending')
 });
 
+// Distributor Master Table (for managing distributor information)
+export const distributorMst = pgTable("distributor_mst", {
+  id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
+  distributor_name: varchar("distributor_name", { length: 200 }).notNull().unique(),
+  distributor_code: varchar("distributor_code", { length: 50 }).unique(),
+  contact_person: varchar("contact_person", { length: 100 }),
+  phone: varchar("phone", { length: 20 }),
+  email: varchar("email", { length: 100 }),
+  address: text("address"),
+  city: varchar("city", { length: 100 }),
+  state: varchar("state", { length: 50 }),
+  region: varchar("region", { length: 50 }),
+  status: varchar("status", { length: 20 }).notNull().default('Active'),
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow()
+});
+
+// Distributor PO Table
+export const distributorPo = pgTable("distributor_po", {
+  id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
+  po_number: varchar("po_number", { length: 100 }).notNull().unique(),
+  distributor_id: integer("distributor_id").notNull().references(() => distributorMst.id),
+  order_date: timestamp("order_date").notNull(),
+  expiry_date: timestamp("expiry_date"),
+  appointment_date: timestamp("appointment_date"),
+  region: varchar("region", { length: 50 }),
+  state: varchar("state", { length: 50 }),
+  city: varchar("city", { length: 100 }),
+  area: varchar("area", { length: 100 }),
+  status: varchar("status", { length: 20 }).notNull().default('Open'),
+  attachment: text("attachment"),
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow()
+});
+
+// Distributor Order Items Table
+export const distributorOrderItems = pgTable("distributor_order_items", {
+  id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
+  po_id: integer("po_id").notNull().references(() => distributorPo.id, { onDelete: "cascade" }),
+  item_name: text("item_name").notNull(),
+  quantity: integer("quantity").notNull(),
+  sap_code: varchar("sap_code", { length: 50 }),
+  category: varchar("category", { length: 100 }),
+  subcategory: varchar("subcategory", { length: 100 }),
+  basic_rate: decimal("basic_rate", { precision: 10, scale: 2 }).notNull(),
+  gst_rate: decimal("gst_rate", { precision: 5, scale: 2 }).notNull(),
+  landing_rate: decimal("landing_rate", { precision: 10, scale: 2 }).notNull(),
+  total_litres: decimal("total_litres", { precision: 10, scale: 3 }),
+  status: varchar("status", { length: 50 }).default('Pending'),
+  hsn_code: varchar("hsn_code", { length: 20 })
+});
+
 // Insert and Select schemas for new table
 export const insertSapItemMstApiSchema = createInsertSchema(sapItemMstApi).omit({
   id: true,
@@ -137,6 +189,26 @@ export const pfOrderItemsRelations = relations(pfOrderItems, ({ one }) => ({
   })
 }));
 
+// Distributor relations
+export const distributorMstRelations = relations(distributorMst, ({ many }) => ({
+  distributorPos: many(distributorPo)
+}));
+
+export const distributorPoRelations = relations(distributorPo, ({ one, many }) => ({
+  distributor: one(distributorMst, {
+    fields: [distributorPo.distributor_id],
+    references: [distributorMst.id]
+  }),
+  orderItems: many(distributorOrderItems)
+}));
+
+export const distributorOrderItemsRelations = relations(distributorOrderItems, ({ one }) => ({
+  po: one(distributorPo, {
+    fields: [distributorOrderItems.po_id],
+    references: [distributorPo.id]
+  })
+}));
+
 // Insert schemas
 export const insertSapItemMstSchema = createInsertSchema(sapItemMst).omit({ id: true });
 export const insertPfMstSchema = createInsertSchema(pfMst).omit({ id: true });
@@ -155,6 +227,18 @@ export type PfPo = typeof pfPo.$inferSelect;
 export type InsertPfPo = z.infer<typeof insertPfPoSchema>;
 export type PfOrderItems = typeof pfOrderItems.$inferSelect;
 export type InsertPfOrderItems = z.infer<typeof insertPfOrderItemsSchema>;
+
+// Distributor insert schemas and types
+export const insertDistributorMstSchema = createInsertSchema(distributorMst).omit({ id: true, created_at: true, updated_at: true });
+export const insertDistributorPoSchema = createInsertSchema(distributorPo).omit({ id: true, created_at: true, updated_at: true });
+export const insertDistributorOrderItemsSchema = createInsertSchema(distributorOrderItems).omit({ id: true, po_id: true });
+
+export type DistributorMst = typeof distributorMst.$inferSelect;
+export type InsertDistributorMst = z.infer<typeof insertDistributorMstSchema>;
+export type DistributorPo = typeof distributorPo.$inferSelect;
+export type InsertDistributorPo = z.infer<typeof insertDistributorPoSchema>;
+export type DistributorOrderItems = typeof distributorOrderItems.$inferSelect;
+export type InsertDistributorOrderItems = z.infer<typeof insertDistributorOrderItemsSchema>;
 
 // Legacy user table (keeping for compatibility)
 export const users = pgTable("users", {

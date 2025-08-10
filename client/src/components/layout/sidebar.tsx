@@ -29,8 +29,8 @@ const navigation = [
     name: "Distributor PO",
     href: "/distributor-po",
     icon: Truck,
-    active: false,
-    comingSoon: true
+    active: true,
+    description: "Create & manage distributor purchase orders"
   },
   {
     name: "Secondary Sales",

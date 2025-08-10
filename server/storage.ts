@@ -33,6 +33,12 @@ import {
   type SwiggyPoLine,
   type InsertSwiggyPo,
   type InsertSwiggyPoLine,
+  type DistributorMst,
+  type InsertDistributorMst,
+  type DistributorPo,
+  type InsertDistributorPo,
+  type DistributorOrderItems,
+  type InsertDistributorOrderItems,
   users,
   pfMst,
   sapItemMst,
@@ -49,7 +55,10 @@ import {
   blinkitPoHeader,
   blinkitPoLines,
   swiggyPos,
-  swiggyPoLines
+  swiggyPoLines,
+  distributorMst,
+  distributorPo,
+  distributorOrderItems
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, ilike } from "drizzle-orm";
@@ -126,6 +135,23 @@ export interface IStorage {
   createSwiggyPo(po: InsertSwiggyPo, lines: InsertSwiggyPoLine[]): Promise<SwiggyPo>;
   updateSwiggyPo(id: number, po: Partial<InsertSwiggyPo>): Promise<SwiggyPo | undefined>;
   deleteSwiggyPo(id: number): Promise<void>;
+
+  // Distributor methods
+  getAllDistributors(): Promise<DistributorMst[]>;
+  getDistributorById(id: number): Promise<DistributorMst | undefined>;
+  createDistributor(distributor: InsertDistributorMst): Promise<DistributorMst>;
+  updateDistributor(id: number, distributor: Partial<InsertDistributorMst>): Promise<DistributorMst>;
+  deleteDistributor(id: number): Promise<void>;
+
+  // Distributor PO methods
+  getAllDistributorPos(): Promise<(Omit<DistributorPo, 'distributor_id'> & { distributor: DistributorMst; orderItems: DistributorOrderItems[] })[]>;
+  getDistributorPoById(id: number): Promise<(Omit<DistributorPo, 'distributor_id'> & { distributor: DistributorMst; orderItems: DistributorOrderItems[] }) | undefined>;
+  createDistributorPo(po: InsertDistributorPo, items: InsertDistributorOrderItems[]): Promise<DistributorPo>;
+  updateDistributorPo(id: number, po: Partial<InsertDistributorPo>, items?: InsertDistributorOrderItems[]): Promise<DistributorPo>;
+  deleteDistributorPo(id: number): Promise<void>;
+
+  // Distributor Order Items methods
+  getAllDistributorOrderItems(): Promise<(DistributorOrderItems & { po_number: string; distributor_name: string; order_date: Date; expiry_date: Date | null; distributor: DistributorMst })[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -326,7 +352,7 @@ export class DatabaseStorage implements IStorage {
     }
 
     // Sort all results by created_at descending
-    result.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    result.sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime());
 
     return result;
   }
@@ -627,11 +653,6 @@ export class DatabaseStorage implements IStorage {
     await db.delete(zeptoPoHeader).where(eq(zeptoPoHeader.id, id));
   }
 
-  async getZeptoPoByNumber(poNumber: string): Promise<ZeptoPoHeader | undefined> {
-    const [header] = await db.select().from(zeptoPoHeader).where(eq(zeptoPoHeader.po_number, poNumber));
-    return header || undefined;
-  }
-
   // City Mall PO methods
   async getAllCityMallPos(): Promise<(CityMallPoHeader & { poLines: CityMallPoLines[] })[]> {
     const pos = await db.select().from(cityMallPoHeader).orderBy(desc(cityMallPoHeader.created_at));
@@ -843,86 +864,158 @@ export class DatabaseStorage implements IStorage {
     await db.delete(swiggyPos).where(eq(swiggyPos.id, id));
   }
 
-  // Zepto PO management methods
-  async getAllZeptoPos(): Promise<(ZeptoPoHeader & { poLines: ZeptoPoLines[] })[]> {
-    const headers = await db.select().from(zeptoPoHeader).orderBy(desc(zeptoPoHeader.created_at));
+  // Distributor methods
+  async getAllDistributors(): Promise<DistributorMst[]> {
+    return await db.select().from(distributorMst);
+  }
+
+  async getDistributorById(id: number): Promise<DistributorMst | undefined> {
+    const [distributor] = await db.select().from(distributorMst).where(eq(distributorMst.id, id));
+    return distributor || undefined;
+  }
+
+  async createDistributor(distributor: InsertDistributorMst): Promise<DistributorMst> {
+    const [result] = await db.insert(distributorMst).values(distributor).returning();
+    return result;
+  }
+
+  async updateDistributor(id: number, distributor: Partial<InsertDistributorMst>): Promise<DistributorMst> {
+    const [result] = await db
+      .update(distributorMst)
+      .set({ ...distributor, updated_at: new Date() })
+      .where(eq(distributorMst.id, id))
+      .returning();
+    return result;
+  }
+
+  async deleteDistributor(id: number): Promise<void> {
+    await db.delete(distributorMst).where(eq(distributorMst.id, id));
+  }
+
+  // Distributor PO methods
+  async getAllDistributorPos(): Promise<(Omit<DistributorPo, 'distributor_id'> & { distributor: DistributorMst; orderItems: DistributorOrderItems[] })[]> {
+    const pos = await db.select().from(distributorPo).orderBy(desc(distributorPo.created_at));
     
     const result = [];
-    for (const header of headers) {
-      const lines = await db.select().from(zeptoPoLines)
-        .where(eq(zeptoPoLines.po_number, header.po_number))
-        .orderBy(zeptoPoLines.line_number);
+    for (const po of pos) {
+      // Get distributor details
+      const [distributor] = await db.select().from(distributorMst).where(eq(distributorMst.id, po.distributor_id));
+      
+      // Get order items
+      const orderItems = await db.select().from(distributorOrderItems).where(eq(distributorOrderItems.po_id, po.id));
       
       result.push({
-        ...header,
-        poLines: lines
+        ...po,
+        distributor: distributor!,
+        orderItems
       });
     }
     
     return result;
   }
 
-  async getZeptoPoById(id: number): Promise<(ZeptoPoHeader & { poLines: ZeptoPoLines[] }) | undefined> {
-    const [header] = await db.select().from(zeptoPoHeader).where(eq(zeptoPoHeader.id, id));
+  async getDistributorPoById(id: number): Promise<(Omit<DistributorPo, 'distributor_id'> & { distributor: DistributorMst; orderItems: DistributorOrderItems[] }) | undefined> {
+    const [po] = await db.select().from(distributorPo).where(eq(distributorPo.id, id));
     
-    if (!header) {
+    if (!po) {
       return undefined;
     }
+
+    // Get distributor details
+    const [distributor] = await db.select().from(distributorMst).where(eq(distributorMst.id, po.distributor_id));
     
-    const lines = await db.select().from(zeptoPoLines)
-      .where(eq(zeptoPoLines.po_number, header.po_number))
-      .orderBy(zeptoPoLines.line_number);
+    // Get order items
+    const orderItems = await db.select().from(distributorOrderItems).where(eq(distributorOrderItems.po_id, po.id));
     
     return {
-      ...header,
-      poLines: lines
+      ...po,
+      distributor: distributor!,
+      orderItems
     };
   }
 
-  async getZeptoPoByNumber(poNumber: string): Promise<ZeptoPoHeader | undefined> {
-    const [header] = await db.select().from(zeptoPoHeader).where(eq(zeptoPoHeader.po_number, poNumber));
-    return header || undefined;
+  async createDistributorPo(po: InsertDistributorPo, items: InsertDistributorOrderItems[]): Promise<DistributorPo> {
+    return await db.transaction(async (tx) => {
+      // Create PO header
+      const [createdPo] = await tx.insert(distributorPo).values(po).returning();
+      
+      // Create PO items
+      if (items.length > 0) {
+        const itemsWithPoId = items.map(item => ({
+          ...item,
+          po_id: createdPo.id
+        }));
+        await tx.insert(distributorOrderItems).values(itemsWithPoId);
+      }
+      
+      return createdPo;
+    });
   }
 
-  async updateZeptoPo(id: number, header: Partial<InsertZeptoPoHeader>, lines?: InsertZeptoPoLines[]): Promise<ZeptoPoHeader | undefined> {
+  async updateDistributorPo(id: number, po: Partial<InsertDistributorPo>, items?: InsertDistributorOrderItems[]): Promise<DistributorPo> {
     return await db.transaction(async (tx) => {
-      // Update header
-      const [updatedHeader] = await tx
-        .update(zeptoPoHeader)
-        .set({ ...header, updated_at: new Date() })
-        .where(eq(zeptoPoHeader.id, id))
+      // Update PO header
+      const [updatedPo] = await tx
+        .update(distributorPo)
+        .set({ ...po, updated_at: new Date() })
+        .where(eq(distributorPo.id, id))
         .returning();
 
-      // If lines are provided, update them
-      if (lines && lines.length > 0) {
-        // Delete existing lines for this PO
-        await tx.delete(zeptoPoLines).where(eq(zeptoPoLines.po_number, updatedHeader.po_number));
+      // If items are provided, update them
+      if (items && items.length > 0) {
+        // Delete existing items
+        await tx.delete(distributorOrderItems).where(eq(distributorOrderItems.po_id, id));
         
-        // Insert new lines
-        const linesWithHeaderId = lines.map(line => ({
-          ...line,
-          po_header_id: updatedHeader.id,
-          po_number: updatedHeader.po_number
+        // Insert new items
+        const itemsWithPoId = items.map(item => ({
+          ...item,
+          po_id: id
         }));
-        await tx.insert(zeptoPoLines).values(linesWithHeaderId);
+        await tx.insert(distributorOrderItems).values(itemsWithPoId);
       }
 
-      return updatedHeader;
+      return updatedPo;
     });
   }
 
-  async deleteZeptoPo(id: number): Promise<void> {
+  async deleteDistributorPo(id: number): Promise<void> {
     await db.transaction(async (tx) => {
-      // Get the PO header to find the po_number
-      const [header] = await tx.select().from(zeptoPoHeader).where(eq(zeptoPoHeader.id, id));
-      
-      if (header) {
-        // Delete lines first
-        await tx.delete(zeptoPoLines).where(eq(zeptoPoLines.po_number, header.po_number));
-        // Delete header
-        await tx.delete(zeptoPoHeader).where(eq(zeptoPoHeader.id, id));
-      }
+      // Delete order items first
+      await tx.delete(distributorOrderItems).where(eq(distributorOrderItems.po_id, id));
+      // Delete PO header
+      await tx.delete(distributorPo).where(eq(distributorPo.id, id));
     });
+  }
+
+  // Distributor Order Items methods
+  async getAllDistributorOrderItems(): Promise<(DistributorOrderItems & { po_number: string; distributor_name: string; order_date: Date; expiry_date: Date | null; distributor: DistributorMst })[]> {
+    const items = await db.select({
+      id: distributorOrderItems.id,
+      po_id: distributorOrderItems.po_id,
+      item_name: distributorOrderItems.item_name,
+      quantity: distributorOrderItems.quantity,
+      sap_code: distributorOrderItems.sap_code,
+      category: distributorOrderItems.category,
+      subcategory: distributorOrderItems.subcategory,
+      basic_rate: distributorOrderItems.basic_rate,
+      gst_rate: distributorOrderItems.gst_rate,
+      landing_rate: distributorOrderItems.landing_rate,
+      total_litres: distributorOrderItems.total_litres,
+      status: distributorOrderItems.status,
+      hsn_code: distributorOrderItems.hsn_code,
+      po_number: distributorPo.po_number,
+      distributor_name: distributorMst.distributor_name,
+      order_date: distributorPo.order_date,
+      expiry_date: distributorPo.expiry_date,
+      distributor: distributorMst
+    })
+    .from(distributorOrderItems)
+    .leftJoin(distributorPo, eq(distributorOrderItems.po_id, distributorPo.id))
+    .leftJoin(distributorMst, eq(distributorPo.distributor_id, distributorMst.id))
+    .orderBy(desc(distributorPo.created_at));
+    
+    // Type assertion to fix the return type mismatch
+    return items as (DistributorOrderItems & { po_number: string; distributor_name: string; order_date: Date; expiry_date: Date | null; distributor: DistributorMst })[];
   }
 }
 

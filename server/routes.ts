@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { callSpGetItemDetails } from "./sqlserver";
-import { insertPfPoSchema, insertPfOrderItemsSchema, insertFlipkartGroceryPoHeaderSchema, insertFlipkartGroceryPoLinesSchema } from "@shared/schema";
+import { insertPfPoSchema, insertPfOrderItemsSchema, insertFlipkartGroceryPoHeaderSchema, insertFlipkartGroceryPoLinesSchema, insertDistributorMstSchema, insertDistributorPoSchema, insertDistributorOrderItemsSchema } from "@shared/schema";
 import { z } from "zod";
 import { seedTestData } from "./seed-data";
 import { parseFlipkartGroceryPO, parseZeptoPO, parseCityMallPO, parseBlinkitPO } from "./csv-parser";
@@ -45,6 +45,25 @@ const updateFlipkartGroceryPoSchema = z.object({
   lines: z.array(insertFlipkartGroceryPoLinesSchema.extend({
     required_by_date: z.string().optional().transform(str => str ? new Date(str) : undefined),
   })).optional()
+});
+
+// Distributor PO schemas
+const createDistributorPoSchema = z.object({
+  header: insertDistributorPoSchema.extend({
+    order_date: z.string().transform(str => new Date(str)),
+    expiry_date: z.string().optional().transform(str => str ? new Date(str) : undefined),
+    appointment_date: z.string().optional().transform(str => str ? new Date(str) : undefined),
+  }),
+  items: z.array(insertDistributorOrderItemsSchema)
+});
+
+const updateDistributorPoSchema = z.object({
+  header: insertDistributorPoSchema.partial().extend({
+    order_date: z.string().optional().transform(str => str ? new Date(str) : undefined),
+    expiry_date: z.string().optional().transform(str => str ? new Date(str) : undefined),
+    appointment_date: z.string().optional().transform(str => str ? new Date(str) : undefined),
+  }),
+  items: z.array(insertDistributorOrderItemsSchema).optional()
 });
 
 // Configure multer for file uploads
@@ -1088,6 +1107,135 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error importing PO:", error);
       res.status(500).json({ error: "Failed to import PO data" });
+    }
+  });
+
+  // Distributor routes
+  app.get("/api/distributors", async (_req, res) => {
+    try {
+      const distributors = await storage.getAllDistributors();
+      res.json(distributors);
+    } catch (error) {
+      console.error("Error fetching distributors:", error);
+      res.status(500).json({ message: "Failed to fetch distributors" });
+    }
+  });
+
+  app.post("/api/distributors", async (req, res) => {
+    try {
+      const validatedData = insertDistributorMstSchema.parse(req.body);
+      const distributor = await storage.createDistributor(validatedData);
+      res.status(201).json(distributor);
+    } catch (error) {
+      console.error("Error creating distributor:", error);
+      res.status(500).json({ message: "Failed to create distributor" });
+    }
+  });
+
+  app.get("/api/distributors/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const distributor = await storage.getDistributorById(id);
+      if (!distributor) {
+        return res.status(404).json({ message: "Distributor not found" });
+      }
+      res.json(distributor);
+    } catch (error) {
+      console.error("Error fetching distributor:", error);
+      res.status(500).json({ message: "Failed to fetch distributor" });
+    }
+  });
+
+  app.put("/api/distributors/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const validatedData = insertDistributorMstSchema.partial().parse(req.body);
+      const distributor = await storage.updateDistributor(id, validatedData);
+      res.json(distributor);
+    } catch (error) {
+      console.error("Error updating distributor:", error);
+      res.status(500).json({ message: "Failed to update distributor" });
+    }
+  });
+
+  app.delete("/api/distributors/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      await storage.deleteDistributor(id);
+      res.status(204).end();
+    } catch (error) {
+      console.error("Error deleting distributor:", error);
+      res.status(500).json({ message: "Failed to delete distributor" });
+    }
+  });
+
+  // Distributor PO routes
+  app.get("/api/distributor-pos", async (_req, res) => {
+    try {
+      const pos = await storage.getAllDistributorPos();
+      res.json(pos);
+    } catch (error) {
+      console.error("Error fetching distributor POs:", error);
+      res.status(500).json({ message: "Failed to fetch distributor POs" });
+    }
+  });
+
+  app.post("/api/distributor-pos", async (req, res) => {
+    try {
+      const validatedData = createDistributorPoSchema.parse(req.body);
+      const po = await storage.createDistributorPo(validatedData.header, validatedData.items);
+      res.status(201).json(po);
+    } catch (error) {
+      console.error("Error creating distributor PO:", error);
+      res.status(500).json({ message: "Failed to create distributor PO" });
+    }
+  });
+
+  app.get("/api/distributor-pos/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const po = await storage.getDistributorPoById(id);
+      if (!po) {
+        return res.status(404).json({ message: "Distributor PO not found" });
+      }
+      res.json(po);
+    } catch (error) {
+      console.error("Error fetching distributor PO:", error);
+      res.status(500).json({ message: "Failed to fetch distributor PO" });
+    }
+  });
+
+  app.put("/api/distributor-pos/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const validatedData = updateDistributorPoSchema.parse(req.body);
+      const po = await storage.updateDistributorPo(id, validatedData.header, validatedData.items);
+      res.json(po);
+    } catch (error) {
+      console.error("Error updating distributor PO:", error);
+      res.status(500).json({ message: "Failed to update distributor PO" });
+    }
+  });
+
+  app.delete("/api/distributor-pos/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      await storage.deleteDistributorPo(id);
+      res.status(204).end();
+    } catch (error) {
+      console.error("Error deleting distributor PO:", error);
+      res.status(500).json({ message: "Failed to delete distributor PO" });
+    }
+  });
+
+  // Distributor Order Items routes
+  app.get("/api/distributor-order-items", async (_req, res) => {
+    try {
+      const items = await storage.getAllDistributorOrderItems();
+      res.json(items);
+    } catch (error) {
+      console.error("Error fetching distributor order items:", error);
+      res.status(500).json({ message: "Failed to fetch distributor order items" });
     }
   });
 

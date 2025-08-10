@@ -24,6 +24,7 @@ import ViewBlinkitPos from "./pages/ViewBlinkitPos";
 import SwiggyUpload from "./pages/SwiggyUpload";
 import UnifiedPoUpload from "@/pages/unified-po-upload";
 import SapSync from "@/pages/sap-sync";
+import DistributorPO from "@/pages/distributor-po";
 
 import NotFound from "@/pages/not-found";
 
@@ -60,6 +61,7 @@ function Router() {
           <Route path="/swiggy-upload" component={SwiggyUpload} />
           <Route path="/unified-po-upload" component={UnifiedPoUpload} />
           <Route path="/sap-sync" component={SapSync} />
+          <Route path="/distributor-po" component={DistributorPO} />
 
           <Route component={NotFound} />
         </Switch>
