@@ -812,3 +812,79 @@ export type ZomatoPoHeader = typeof zomatoPoHeader.$inferSelect;
 export type InsertZomatoPoHeader = z.infer<typeof insertZomatoPoHeaderSchema>;
 export type ZomatoPoItems = typeof zomatoPoItems.$inferSelect;
 export type InsertZomatoPoItems = z.infer<typeof insertZomatoPoItemsSchema>;
+
+// Dealshare PO Header Table
+export const dealsharePoHeader = pgTable("dealshare_po_header", {
+  id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
+  po_number: varchar("po_number", { length: 100 }).notNull().unique(),
+  po_created_date: timestamp("po_created_date"),
+  po_delivery_date: timestamp("po_delivery_date"),
+  po_expiry_date: timestamp("po_expiry_date"),
+  shipped_by: text("shipped_by"),
+  shipped_by_address: text("shipped_by_address"),
+  shipped_by_gstin: varchar("shipped_by_gstin", { length: 20 }),
+  shipped_by_phone: varchar("shipped_by_phone", { length: 20 }),
+  vendor_code: varchar("vendor_code", { length: 50 }),
+  shipped_to: text("shipped_to"),
+  shipped_to_address: text("shipped_to_address"),
+  shipped_to_gstin: varchar("shipped_to_gstin", { length: 20 }),
+  bill_to: text("bill_to"),
+  bill_to_address: text("bill_to_address"),
+  bill_to_gstin: varchar("bill_to_gstin", { length: 20 }),
+  comments: text("comments"),
+  total_items: integer("total_items").default(0),
+  total_quantity: decimal("total_quantity", { precision: 15, scale: 2 }).default("0"),
+  total_gross_amount: decimal("total_gross_amount", { precision: 15, scale: 2 }).default("0"),
+  uploaded_by: varchar("uploaded_by", { length: 100 }).default("admin"),
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow()
+});
+
+// Dealshare PO Items Table
+export const dealsharePoItems = pgTable("dealshare_po_items", {
+  id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
+  po_header_id: integer("po_header_id").notNull().references(() => dealsharePoHeader.id, { onDelete: "cascade" }),
+  line_number: integer("line_number").notNull(),
+  sku: varchar("sku", { length: 100 }),
+  product_name: text("product_name"),
+  hsn_code: varchar("hsn_code", { length: 20 }),
+  quantity: integer("quantity"),
+  mrp_tax_inclusive: decimal("mrp_tax_inclusive", { precision: 10, scale: 2 }),
+  buying_price: decimal("buying_price", { precision: 10, scale: 2 }),
+  gst_percent: decimal("gst_percent", { precision: 5, scale: 2 }),
+  cess_percent: decimal("cess_percent", { precision: 5, scale: 2 }),
+  gross_amount: decimal("gross_amount", { precision: 12, scale: 2 }),
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow()
+});
+
+// Dealshare Relations
+export const dealsharePoHeaderRelations = relations(dealsharePoHeader, ({ many }) => ({
+  poItems: many(dealsharePoItems),
+}));
+
+export const dealsharePoItemsRelations = relations(dealsharePoItems, ({ one }) => ({
+  po: one(dealsharePoHeader, {
+    fields: [dealsharePoItems.po_header_id],
+    references: [dealsharePoHeader.id],
+  }),
+}));
+
+// Insert schemas for Dealshare PO tables
+export const insertDealsharePoHeaderSchema = createInsertSchema(dealsharePoHeader).omit({
+  id: true,
+  created_at: true,
+  updated_at: true
+});
+
+export const insertDealsharePoItemsSchema = createInsertSchema(dealsharePoItems).omit({
+  id: true,
+  po_header_id: true,
+  created_at: true,
+  updated_at: true
+});
+
+export type DealsharePoHeader = typeof dealsharePoHeader.$inferSelect;
+export type InsertDealsharePoHeader = z.infer<typeof insertDealsharePoHeaderSchema>;
+export type DealsharePoItems = typeof dealsharePoItems.$inferSelect;
+export type InsertDealsharePoItems = z.infer<typeof insertDealsharePoItemsSchema>;

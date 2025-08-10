@@ -67,6 +67,13 @@ const PLATFORMS: Platform[] = [
     description: "Upload Zomato PO files",
     endpoint: "/api/zomato-pos",
     queryKey: "/api/zomato-pos"
+  },
+  {
+    id: "dealshare",
+    name: "Dealshare",
+    description: "Upload Dealshare PO files",
+    endpoint: "/api/dealshare-pos",
+    queryKey: "/api/dealshare-pos"
   }
 ];
 
@@ -614,6 +621,17 @@ export function UnifiedUploadComponent({ onComplete }: UnifiedUploadComponentPro
                                         <th className="text-left p-2 font-medium">GST Rate</th>
                                         <th className="text-left p-2 font-medium">Line Total</th>
                                       </>
+                                    ) : selectedPlatformData?.id === 'dealshare' ? (
+                                      <>
+                                        <th className="text-left p-2 font-medium">SKU</th>
+                                        <th className="text-left p-2 font-medium">Product Name</th>
+                                        <th className="text-left p-2 font-medium">HSN Code</th>
+                                        <th className="text-left p-2 font-medium">Quantity</th>
+                                        <th className="text-left p-2 font-medium">MRP</th>
+                                        <th className="text-left p-2 font-medium">Buying Price</th>
+                                        <th className="text-left p-2 font-medium">GST %</th>
+                                        <th className="text-left p-2 font-medium">Gross Amount</th>
+                                      </>
                                     ) : (
                                       <>
                                         <th className="text-left p-2 font-medium">Item</th>
@@ -685,6 +703,17 @@ export function UnifiedUploadComponent({ onComplete }: UnifiedUploadComponentPro
                                           <td className="p-2">{line.uom || 'N/A'}</td>
                                           <td className="p-2">{line.gst_rate || '0.00'}%</td>
                                           <td className="p-2">₹{line.line_total || '0.00'}</td>
+                                        </>
+                                      ) : selectedPlatformData?.id === 'dealshare' ? (
+                                        <>
+                                          <td className="p-2">{line.sku || 'N/A'}</td>
+                                          <td className="p-2">{line.product_name || 'N/A'}</td>
+                                          <td className="p-2">{line.hsn_code || 'N/A'}</td>
+                                          <td className="p-2">{line.quantity || 0}</td>
+                                          <td className="p-2">₹{line.mrp_tax_inclusive || '0.00'}</td>
+                                          <td className="p-2">₹{line.buying_price || '0.00'}</td>
+                                          <td className="p-2">{line.gst_percent || '0.00'}%</td>
+                                          <td className="p-2">₹{line.gross_amount || '0.00'}</td>
                                         </>
                                       ) : (
                                         <>

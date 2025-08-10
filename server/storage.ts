@@ -41,6 +41,10 @@ import {
   type ZomatoPoItems,
   type InsertZomatoPoHeader,
   type InsertZomatoPoItems,
+  type DealsharePoHeader,
+  type DealsharePoItems,
+  type InsertDealsharePoHeader,
+  type InsertDealsharePoItems,
   type DistributorMst,
   type InsertDistributorMst,
   type DistributorPo,
@@ -68,6 +72,8 @@ import {
   bigbasketPoLines,
   zomatoPoHeader,
   zomatoPoItems,
+  dealsharePoHeader,
+  dealsharePoItems,
   distributorMst,
   distributorPo,
   distributorOrderItems
@@ -1121,6 +1127,87 @@ export class DatabaseStorage implements IStorage {
     await db.transaction(async (tx) => {
       await tx.delete(zomatoPoItems).where(eq(zomatoPoItems.po_header_id, id));
       await tx.delete(zomatoPoHeader).where(eq(zomatoPoHeader.id, id));
+    });
+  }
+
+  // Dealshare PO methods
+  async getAllDealsharePos(): Promise<(DealsharePoHeader & { poItems: DealsharePoItems[] })[]> {
+    const pos = await db.select().from(dealsharePoHeader).orderBy(desc(dealsharePoHeader.created_at));
+    
+    const result = [];
+    for (const po of pos) {
+      const poItems = await db.select().from(dealsharePoItems).where(eq(dealsharePoItems.po_header_id, po.id));
+      result.push({
+        ...po,
+        poItems
+      });
+    }
+    
+    return result;
+  }
+
+  async getDealsharePoById(id: number): Promise<(DealsharePoHeader & { poItems: DealsharePoItems[] }) | undefined> {
+    const [po] = await db.select().from(dealsharePoHeader).where(eq(dealsharePoHeader.id, id));
+    
+    if (!po) {
+      return undefined;
+    }
+
+    const poItems = await db.select().from(dealsharePoItems).where(eq(dealsharePoItems.po_header_id, po.id));
+    
+    return {
+      ...po,
+      poItems
+    };
+  }
+
+  async getDealsharePoByNumber(poNumber: string): Promise<DealsharePoHeader | undefined> {
+    const [po] = await db.select().from(dealsharePoHeader).where(eq(dealsharePoHeader.po_number, poNumber));
+    return po || undefined;
+  }
+
+  async createDealsharePo(header: InsertDealsharePoHeader, items: InsertDealsharePoItems[]): Promise<DealsharePoHeader> {
+    return await db.transaction(async (tx) => {
+      const [createdPo] = await tx.insert(dealsharePoHeader).values(header).returning();
+      
+      if (items.length > 0) {
+        const itemsWithPoId = items.map(item => ({
+          ...item,
+          po_header_id: createdPo.id
+        }));
+        await tx.insert(dealsharePoItems).values(itemsWithPoId);
+      }
+      
+      return createdPo;
+    });
+  }
+
+  async updateDealsharePo(id: number, header: Partial<InsertDealsharePoHeader>, items?: InsertDealsharePoItems[]): Promise<DealsharePoHeader> {
+    return await db.transaction(async (tx) => {
+      const [updatedPo] = await tx
+        .update(dealsharePoHeader)
+        .set({ ...header, updated_at: new Date() })
+        .where(eq(dealsharePoHeader.id, id))
+        .returning();
+
+      if (items && items.length > 0) {
+        await tx.delete(dealsharePoItems).where(eq(dealsharePoItems.po_header_id, id));
+        
+        const itemsWithPoId = items.map(item => ({
+          ...item,
+          po_header_id: id
+        }));
+        await tx.insert(dealsharePoItems).values(itemsWithPoId);
+      }
+
+      return updatedPo;
+    });
+  }
+
+  async deleteDealsharePo(id: number): Promise<void> {
+    await db.transaction(async (tx) => {
+      await tx.delete(dealsharePoItems).where(eq(dealsharePoItems.po_header_id, id));
+      await tx.delete(dealsharePoHeader).where(eq(dealsharePoHeader.id, id));
     });
   }
 }

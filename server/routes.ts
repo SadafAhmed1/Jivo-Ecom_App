@@ -9,6 +9,7 @@ import { parseFlipkartGroceryPO, parseZeptoPO, parseCityMallPO, parseBlinkitPO }
 import { parseSwiggyPO } from "./swiggy-parser";
 import { parseBigBasketPO } from "./bigbasket-parser";
 import { parseZomatoPO } from "./zomato-parser";
+import { parseDealsharePO } from "./dealshare-parser";
 import multer from 'multer';
 
 const createPoSchema = z.object({
@@ -855,6 +856,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         } else if (platformParam === "zomato") {
           detectedVendor = "zomato";
           parsedData = await parseZomatoPO(req.file.buffer, uploadedBy);
+        } else if (platformParam === "dealshare") {
+          detectedVendor = "dealshare";
+          parsedData = await parseDealsharePO(req.file.buffer, uploadedBy);
         }
         // Fallback to filename detection if platform param not provided or recognized
         else if (filename.includes('flipkart') || filename.includes('grocery')) {
@@ -1211,6 +1215,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
             throw error;
           }
           break;
+        case "dealshare":
+          try {
+            createdPo = await storage.createDealsharePo(cleanHeader, cleanLines);
+          } catch (error: any) {
+            if (error.code === '23505' && error.constraint?.includes('po_number_unique')) {
+              return res.status(409).json({ 
+                error: `PO ${cleanHeader.po_number} already exists in Dealshare records`,
+                type: 'duplicate_po'
+              });
+            }
+            throw error;
+          }
+          break;
         default:
           return res.status(400).json({ error: "Unsupported vendor" });
       }
@@ -1373,6 +1390,71 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching Zomato PO:", error);
       res.status(500).json({ message: "Failed to fetch Zomato PO" });
+    }
+  });
+
+  // Dealshare PO routes
+  app.get("/api/dealshare-pos", async (_req, res) => {
+    try {
+      const pos = await storage.getAllDealsharePos();
+      res.json(pos);
+    } catch (error) {
+      console.error("Error fetching Dealshare POs:", error);
+      res.status(500).json({ message: "Failed to fetch Dealshare POs" });
+    }
+  });
+
+  app.get("/api/dealshare-pos/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const po = await storage.getDealsharePoById(id);
+      if (!po) {
+        return res.status(404).json({ message: "Dealshare PO not found" });
+      }
+      res.json(po);
+    } catch (error) {
+      console.error("Error fetching Dealshare PO:", error);
+      res.status(500).json({ message: "Failed to fetch Dealshare PO" });
+    }
+  });
+
+  app.post("/api/dealshare-pos", async (req, res) => {
+    try {
+      const { header, items } = req.body;
+      
+      if (!header || !items) {
+        return res.status(400).json({ error: "Header and items are required" });
+      }
+      
+      const createdPo = await storage.createDealsharePo(header, items);
+      res.status(201).json(createdPo);
+    } catch (error) {
+      console.error("Error creating Dealshare PO:", error);
+      res.status(500).json({ error: "Failed to create PO" });
+    }
+  });
+
+  app.put("/api/dealshare-pos/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const { header, items } = req.body;
+      
+      const updatedPo = await storage.updateDealsharePo(id, header, items);
+      res.json(updatedPo);
+    } catch (error) {
+      console.error("Error updating Dealshare PO:", error);
+      res.status(500).json({ error: "Failed to update PO" });
+    }
+  });
+
+  app.delete("/api/dealshare-pos/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      await storage.deleteDealsharePo(id);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting Dealshare PO:", error);
+      res.status(500).json({ error: "Failed to delete PO" });
     }
   });
 
