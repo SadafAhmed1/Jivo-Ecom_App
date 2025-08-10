@@ -422,6 +422,40 @@ export function POListView() {
         )}
       </div>
 
+      {/* Statistics Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <Card>
+          <CardContent className="pt-6">
+            <div className="text-2xl font-bold">{pos.length}</div>
+            <p className="text-xs text-muted-foreground">Total POs</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-6">
+            <div className="text-2xl font-bold text-green-600">
+              {pos.filter(po => po.status === 'Open').length}
+            </div>
+            <p className="text-xs text-muted-foreground">Open POs</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-6">
+            <div className="text-2xl font-bold text-gray-600">
+              {pos.filter(po => po.status === 'Closed').length}
+            </div>
+            <p className="text-xs text-muted-foreground">Closed POs</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-6">
+            <div className="text-2xl font-bold text-red-600">
+              {pos.filter(po => po.status === 'Cancelled').length}
+            </div>
+            <p className="text-xs text-muted-foreground">Cancelled POs</p>
+          </CardContent>
+        </Card>
+      </div>
+
       {/* PO Cards */}
       {pos.length === 0 ? (
         <Card className="shadow-lg border-0">
