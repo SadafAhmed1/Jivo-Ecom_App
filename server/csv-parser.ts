@@ -429,7 +429,7 @@ interface ParsedCityMallPO {
   lines: InsertCityMallPoLines[];
 }
 
-export function parseCityMallPO(csvContent: string, uploadedBy: string): ParsedCityMallPO {
+export function parseCityMallPO(csvContent: string, uploadedBy: string, filename?: string): ParsedCityMallPO {
   const records = parse(csvContent, {
     columns: true,
     skip_empty_lines: true,
@@ -441,7 +441,15 @@ export function parseCityMallPO(csvContent: string, uploadedBy: string): ParsedC
   }
 
   // Extract PO number from filename or use a generated one
-  const poNumber = `CM${Date.now()}`;
+  let poNumber = `CM${Date.now()}`;
+  
+  if (filename) {
+    // Try to extract PO number from filename like "PO-1346338_timestamp.csv"
+    const poMatch = filename.match(/PO-(\d+)/i);
+    if (poMatch) {
+      poNumber = poMatch[1]; // Use just the number part
+    }
+  }
   
   const lines: InsertCityMallPoLines[] = [];
   const hsnCodes = new Set<string>();

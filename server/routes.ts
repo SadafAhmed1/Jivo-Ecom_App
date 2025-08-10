@@ -796,7 +796,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           parsedData = parseZeptoPO(req.file.buffer.toString('utf-8'), uploadedBy);
         } else if (platformParam === "citymall") {
           detectedVendor = "citymall";
-          parsedData = await parseCityMallPO(req.file.buffer.toString('utf-8'), uploadedBy);
+          parsedData = await parseCityMallPO(req.file.buffer.toString('utf-8'), uploadedBy, filename);
         } else if (platformParam === "swiggy") {
           detectedVendor = "swiggy";
           parsedData = await parseSwiggyPO(req.file.buffer, uploadedBy);
@@ -810,7 +810,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           parsedData = parseZeptoPO(req.file.buffer.toString('utf-8'), uploadedBy);
         } else if (filename.includes('city') || filename.includes('mall')) {
           detectedVendor = "citymall";
-          parsedData = await parseCityMallPO(req.file.buffer.toString('utf-8'), uploadedBy);
+          parsedData = await parseCityMallPO(req.file.buffer.toString('utf-8'), uploadedBy, filename);
         } else if (filename.includes('blinkit')) {
           detectedVendor = "blinkit";
           console.log("Processing Blinkit file with multiple POs (filename detection)...");
@@ -841,7 +841,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const parsers = [
             { name: "flipkart", parser: (buffer: Buffer, user: string) => parseFlipkartGroceryPO(buffer.toString('utf-8'), user) },
             { name: "zepto", parser: (buffer: Buffer, user: string) => parseZeptoPO(buffer.toString('utf-8'), user) },
-            { name: "citymall", parser: (buffer: Buffer, user: string) => parseCityMallPO(buffer.toString('utf-8'), user) },
+            { name: "citymall", parser: (buffer: Buffer, user: string) => parseCityMallPO(buffer.toString('utf-8'), user, filename) },
             { name: "blinkit", parser: (buffer: Buffer, user: string) => {
               const result = parseBlinkitPO(buffer, user);
               // Convert multiple PO structure to single PO for fallback detection
