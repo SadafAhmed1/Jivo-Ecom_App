@@ -14,7 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { LineItemRow } from "./line-item-row";
 import { SeedButton } from "@/components/seed-button";
-import type { PfMst, InsertPfOrderItems } from "@shared/schema";
+import type { PfMst, DistributorMst, InsertPfOrderItems } from "@shared/schema";
 
 const poFormSchema = z.object({
   po_number: z.string().min(1, "PO number is required"),
@@ -95,6 +95,11 @@ export function PlatformPOForm() {
   // Fetch platforms
   const { data: platforms = [] } = useQuery<PfMst[]>({
     queryKey: ["/api/platforms"]
+  });
+
+  // Fetch distributors
+  const { data: distributors = [] } = useQuery<DistributorMst[]>({
+    queryKey: ["/api/distributors"]
   });
 
   // Create PO mutation
@@ -438,9 +443,21 @@ export function PlatformPOForm() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Serving Distributor</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Enter distributor name" {...field} />
-                      </FormControl>
+                      <Select onValueChange={field.onChange} value={field.value || ""}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select Distributor" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="">-- No Distributor --</SelectItem>
+                          {distributors.map((distributor) => (
+                            <SelectItem key={distributor.id} value={distributor.distributor_name}>
+                              {distributor.distributor_name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                       <FormMessage />
                     </FormItem>
                   )}

@@ -262,6 +262,11 @@ export class DatabaseStorage implements IStorage {
     return result;
   }
 
+  // Distributor methods
+  async getAllDistributors(): Promise<DistributorMst[]> {
+    return await db.select().from(distributorMst).where(eq(distributorMst.status, 'Active')).orderBy(distributorMst.distributor_name);
+  }
+
   // PO methods
   async getAllPos(): Promise<(Omit<PfPo, 'platform'> & { platform: PfMst; orderItems: PfOrderItems[] })[]> {
     // Get regular POs from pf_po table
@@ -827,7 +832,7 @@ export class DatabaseStorage implements IStorage {
 
   // Distributor methods
   async getAllDistributors(): Promise<DistributorMst[]> {
-    return await db.select().from(distributorMst);
+    return await db.select().from(distributorMst).where(eq(distributorMst.status, 'Active')).orderBy(distributorMst.distributor_name);
   }
 
   async getDistributorById(id: number): Promise<DistributorMst | undefined> {

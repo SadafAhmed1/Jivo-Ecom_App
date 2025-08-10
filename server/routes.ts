@@ -189,6 +189,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Distributors API
+  app.get("/api/distributors", async (req, res) => {
+    try {
+      const distributors = await storage.getAllDistributors();
+      res.json(distributors);
+    } catch (error) {
+      console.error("Error fetching distributors:", error);
+      res.status(500).json({ error: "Failed to fetch distributors" });
+    }
+  });
+
   app.post("/api/platform-items", async (req, res) => {
     try {
       const item = await storage.createPlatformItem(req.body);
