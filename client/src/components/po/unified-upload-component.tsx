@@ -524,14 +524,12 @@ export function UnifiedUploadComponent({ onComplete }: UnifiedUploadComponentPro
                             <div className="text-sm text-green-600">Total Quantity</div>
                           </div>
                         )}
-                        {parsedData.totalAmount && (
-                          <div className="bg-purple-50 p-4 rounded-lg">
-                            <div className="text-2xl font-bold text-purple-600">
-                              ₹{parsedData.totalAmount}
-                            </div>
-                            <div className="text-sm text-purple-600">Total Amount</div>
+                        <div className="bg-purple-50 p-4 rounded-lg">
+                          <div className="text-2xl font-bold text-purple-600">
+                            ₹{parsedData.totalAmount || parsedData.header?.grand_total || '0.00'}
                           </div>
-                        )}
+                          <div className="text-sm text-purple-600">Total Amount</div>
+                        </div>
                       </div>
 
                       {/* Line Items Preview */}

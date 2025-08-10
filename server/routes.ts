@@ -918,7 +918,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         const totalQuantity = parsedData.lines.reduce((sum: number, line: any) => sum + (line.quantity || 0), 0);
         const totalAmount = parsedData.lines.reduce((sum: number, line: any) => {
-          const amount = parseFloat(line.total_amount || line.line_total || '0');
+          const amount = parseFloat(line.total_amount || line.line_total || line.total_value || '0');
           return sum + amount;
         }, 0);
 
