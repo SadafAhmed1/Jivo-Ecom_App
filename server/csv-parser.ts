@@ -10,10 +10,14 @@ interface ParsedFlipkartPO {
 }
 
 export function parseFlipkartGroceryPO(csvContent: string, uploadedBy: string): ParsedFlipkartPO {
+  console.log('Parsing Flipkart Grocery PO...');
   const records = parse(csvContent, {
     skip_empty_lines: true,
     relax_column_count: true
   });
+  
+  console.log('Flipkart CSV records count:', records.length);
+  console.log('First 5 rows:', records.slice(0, 5));
 
   let header: InsertFlipkartGroceryPoHeader;
   const lines: InsertFlipkartGroceryPoLines[] = [];
@@ -140,9 +144,14 @@ export function parseFlipkartGroceryPO(csvContent: string, uploadedBy: string): 
     const row = records[i];
     if (row && row[0] === 'S. no.' && row.includes('HSN/SA Code')) {
       orderDetailsStartIndex = i + 1;
+      console.log('Found order details header at row:', i, 'Start index:', orderDetailsStartIndex);
       break;
     }
   }
+  
+  console.log('Extracted PO Number:', poNumber);
+  console.log('Supplier Name:', supplierName);
+  console.log('Order details start index:', orderDetailsStartIndex);
 
   // Parse line items
   let totalQuantity = 0;
