@@ -256,6 +256,7 @@ export function parseSwiggyPO(fileBuffer: Buffer, uploadedBy: string): ParsedSwi
           };
 
           lines.push(line);
+          console.log('Parsed Swiggy line item:', JSON.stringify(line, null, 2));
 
           // Update totals
           totalQuantity += line.quantity || 0;
