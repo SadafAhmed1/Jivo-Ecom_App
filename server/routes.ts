@@ -17,6 +17,7 @@ import { parseSwiggySecondaryData } from "./swiggy-secondary-sales-parser";
 import { parseJioMartSaleSecondarySales } from "./jiomartsale-secondary-sales-parser";
 import { parseJioMartCancelSecondarySales } from "./jiomartcancel-secondary-sales-parser";
 import { parseBigBasketSecondarySales } from "./bigbasket-secondary-sales-parser";
+import { parseFlipkartSecondaryData } from "./flipkart-parser";
 import { parseJioMartInventoryCsv } from "./jiomart-inventory-parser";
 import { parseBlinkitInventoryCsv } from "./blinkit-inventory-parser";
 import { parseAmazonInventoryFile } from "./amazon-inventory-parser";
@@ -29,6 +30,7 @@ import {
   scJioMartSaleJmDaily, scJioMartSaleJmRange,
   scJioMartCancelJmDaily, scJioMartCancelJmRange,
   scBigBasketJmDaily, scBigBasketJmRange,
+  scFlipkartJm2Month, scFlipkartChirag2Month,
   invJioMartJmDaily, invJioMartJmRange,
   invBlinkitJmDaily, invBlinkitJmRange
 } from "@shared/schema";
@@ -1689,6 +1691,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             startDate,
             endDate
           );
+        } else if (platform === "flipkart-grocery") {
+          parsedData = parseFlipkartSecondaryData(req.file.buffer, periodType, businessUnit, startDate, endDate);
         }
 
         if (!parsedData) {
@@ -1918,19 +1922,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Platform, business unit, and period type are required" });
       }
 
-      if (!["amazon", "zepto", "blinkit", "swiggy", "jiomartsale", "jiomartcancel", "bigbasket"].includes(platform)) {
-        return res.status(400).json({ error: "Supported platforms: amazon, zepto, blinkit, swiggy, jiomartsale, jiomartcancel, bigbasket" });
+      if (!["amazon", "zepto", "blinkit", "swiggy", "jiomartsale", "jiomartcancel", "bigbasket", "flipkart-grocery"].includes(platform)) {
+        return res.status(400).json({ error: "Supported platforms: amazon, zepto, blinkit, swiggy, jiomartsale, jiomartcancel, bigbasket, flipkart-grocery" });
       }
 
-      if (!["jivo-wellness", "jivo-mart"].includes(businessUnit)) {
+      // Update business unit validation for Flipkart
+      if (platform === "flipkart-grocery") {
+        if (!["jivo-mart", "chirag"].includes(businessUnit)) {
+          return res.status(400).json({ error: "Business unit for Flipkart Grocery must be either jivo-mart or chirag" });
+        }
+      } else if (!["jivo-wellness", "jivo-mart"].includes(businessUnit)) {
         return res.status(400).json({ error: "Business unit must be either jivo-wellness or jivo-mart" });
       }
 
-      if (!["daily", "date-range"].includes(periodType)) {
+      // Update period type validation for Flipkart
+      if (platform === "flipkart-grocery") {
+        if (!["2-month"].includes(periodType)) {
+          return res.status(400).json({ error: "Period type for Flipkart Grocery must be 2-month" });
+        }
+      } else if (!["daily", "date-range"].includes(periodType)) {
         return res.status(400).json({ error: "Period type must be either daily or date-range" });
       }
 
-      if (periodType === "date-range" && (!startDate || !endDate)) {
+      if (periodType === "date-range" && (!startDate || !endDate) && platform !== "flipkart-grocery") {
         return res.status(400).json({ error: "Start date and end date are required for date-range period type" });
       }
 
@@ -2161,13 +2175,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
             ...parsedResult,
             items: itemsWithAttachment
           };
+        } else if (platform === "flipkart-grocery") {
+          parsedData = parseFlipkartSecondaryData(req.file.buffer, periodType, businessUnit, startDate, endDate);
+          
+          // Add attachment path to all items
+          const itemsWithAttachment = parsedData.data.map(item => ({
+            ...item,
+            attachment_path: attachmentPath
+          }));
+          
+          parsedData = {
+            ...parsedData,
+            data: itemsWithAttachment
+          };
         }
 
         if (!parsedData) {
           return res.status(400).json({ error: "Unsupported platform" });
         }
 
-        if (!parsedData.items || parsedData.items.length === 0) {
+        // Handle different data structures for different platforms
+        const dataItems = platform === "flipkart-grocery" ? parsedData.data : parsedData.items;
+        if (!dataItems || dataItems.length === 0) {
           return res.status(400).json({ error: "No valid sales data found in file" });
         }
 
@@ -2505,6 +2534,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
             });
             insertedItems = await storage.createScBigBasketJmRange(bigBasketItemsWithDates as any);
             tableName = "SC_BigBasket_JM_Range";
+          }
+        } else if (platform === "flipkart-grocery") {
+          // Ensure all data fields are properly formatted for Flipkart
+          const flipkartItemsWithDates = parsedData.data.map((item: any) => {
+            return {
+              tenant_id: item.tenantId,
+              retailer_name: item.retailerName,
+              retailer_code: item.retailerCode,
+              fsn: item.fsn,
+              product_name: item.productName,
+              category: item.category,
+              sub_category: item.subCategory,
+              brand: item.brand,
+              mrp: item.mrp ? parseFloat(item.mrp) : null,
+              selling_price: item.sellingPrice ? parseFloat(item.sellingPrice) : null,
+              total_sales_qty: item.totalSalesQty ? parseInt(item.totalSalesQty) : null,
+              total_sales_value: item.totalSalesValue ? parseFloat(item.totalSalesValue) : null,
+              sales_data: JSON.stringify(item.salesData || {}),
+              period_start: parsedData.periodStart ? new Date(parsedData.periodStart) : null,
+              period_end: parsedData.periodEnd ? new Date(parsedData.periodEnd) : null,
+              report_date: parsedData.reportDate ? new Date(parsedData.reportDate) : new Date(),
+              period_type: periodType,
+              business_unit: businessUnit,
+              file_hash: fileHash,
+              uploaded_at: new Date(),
+              attachment_path: attachmentPath
+            };
+          });
+          
+          // Insert data into Flipkart tables based on business unit
+          if (flipkartItemsWithDates && flipkartItemsWithDates.length > 0) {
+            const { scFlipkartJm2Month, scFlipkartChirag2Month } = await import("@shared/schema");
+            const flipkartTable = businessUnit === "chirag" ? scFlipkartChirag2Month : scFlipkartJm2Month;
+            insertedItems = await db.insert(flipkartTable).values(flipkartItemsWithDates).returning();
+            tableName = businessUnit === "chirag" ? "SC_FlipKart_CHIRAG_2Month" : "SC_FlipKart_JM_2Month";
           }
         }
 

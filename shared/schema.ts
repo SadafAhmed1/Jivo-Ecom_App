@@ -1252,6 +1252,72 @@ export type InsertBlinkitSecondarySalesItem = z.infer<typeof insertBlinkitSecond
 export type SwiggySecondarySalesItem = typeof scSwiggyJmDaily.$inferSelect;
 export type InsertSwiggySecondarySalesItem = z.infer<typeof insertSwiggySecondarySalesItemSchema>;
 
+// Flipkart Grocery secondary sales tables (2-month range only)
+export const scFlipkartJm2Month = pgTable("SC_FlipKart_JM_2Month", {
+  id: serial("id").primaryKey(),
+  period_start: timestamp("period_start").notNull(),
+  period_end: timestamp("period_end").notNull(),
+  business_unit: text("business_unit").notNull(),
+  tenant_id: text("tenant_id"),
+  retailer_id: text("retailer_id"),
+  retailer_name: text("retailer_name"),
+  fsn: text("fsn"),
+  category: text("category"),
+  vertical: text("vertical"),
+  brand: text("brand"),
+  product_title: text("product_title"),
+  ean: text("ean"),
+  style_code: text("style_code"),
+  isbn: text("isbn"),
+  publisher: text("publisher"),
+  hsn: text("hsn"),
+  model_id: text("model_id"),
+  last_calculated_at: text("last_calculated_at"),
+  sale_date: timestamp("sale_date"),
+  sale_quantity: integer("sale_quantity"),
+  attachment_path: text("attachment_path"),
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow()
+});
+
+export const scFlipkartChirag2Month = pgTable("SC_FlipKart_CHIRAG_2Month", {
+  id: serial("id").primaryKey(),
+  period_start: timestamp("period_start").notNull(),
+  period_end: timestamp("period_end").notNull(),
+  business_unit: text("business_unit").notNull(),
+  tenant_id: text("tenant_id"),
+  retailer_id: text("retailer_id"),
+  retailer_name: text("retailer_name"),
+  fsn: text("fsn"),
+  category: text("category"),
+  vertical: text("vertical"),
+  brand: text("brand"),
+  product_title: text("product_title"),
+  ean: text("ean"),
+  style_code: text("style_code"),
+  isbn: text("isbn"),
+  publisher: text("publisher"),
+  hsn: text("hsn"),
+  model_id: text("model_id"),
+  last_calculated_at: text("last_calculated_at"),
+  sale_date: timestamp("sale_date"),
+  sale_quantity: integer("sale_quantity"),
+  attachment_path: text("attachment_path"),
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow()
+});
+
+// Insert schemas for Flipkart Grocery
+export const insertFlipkartSecondarySalesItemSchema = createInsertSchema(scFlipkartJm2Month).omit({
+  id: true,
+  created_at: true,
+  updated_at: true
+});
+
+// Types for Flipkart Grocery
+export type FlipkartSecondarySalesItem = typeof scFlipkartJm2Month.$inferSelect;
+export type InsertFlipkartSecondarySalesItem = z.infer<typeof insertFlipkartSecondarySalesItemSchema>;
+
 // Jio Mart Sale Secondary Sales Tables - Jivo Mart
 export const scJioMartSaleJmDaily = pgTable("SC_JioMartSale_JM_Daily", {
   id: integer("id").primaryKey().generatedByDefaultAsIdentity(),

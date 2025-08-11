@@ -108,6 +108,12 @@ const PLATFORMS = [
     description: "Upload BigBasket secondary sales data",
     icon: ShoppingCart,
   },
+  {
+    id: "flipkart-grocery",
+    name: "Flipkart Grocery",
+    description: "Upload Flipkart Grocery secondary sales data (2-month auto range)",
+    icon: ShoppingCart,
+  },
 ];
 
 const BUSINESS_UNITS = [
@@ -126,6 +132,11 @@ const BUSINESS_UNITS = [
     name: "MarketPlace",
     description: "MarketPlace products sales data",
   },
+  {
+    id: "chirag",
+    name: "Chirag",
+    description: "Chirag business unit sales data",
+  },
 ];
 
 const PERIOD_TYPES = [
@@ -140,6 +151,12 @@ const PERIOD_TYPES = [
     name: "Date Range Report",
     description: "Upload sales report for a specific date range",
     icon: Calendar,
+  },
+  {
+    id: "2-month",
+    name: "2-Month Auto Range",
+    description: "Automatic 2-month rolling range (increments daily)",
+    icon: RotateCcw,
   },
 ];
 
@@ -163,12 +180,24 @@ export default function SecondarySales() {
   const selectedPlatformData = PLATFORMS.find((p) => p.id === selectedPlatform);
   const selectedBusinessUnitData = BUSINESS_UNITS.find((bu) => bu.id === selectedBusinessUnit);
 
+  // Filter period types based on platform requirements
+  const getAvailablePeriodTypes = () => {
+    if (selectedPlatform === "flipkart-grocery") {
+      return PERIOD_TYPES.filter(pt => pt.id === "2-month");
+    }
+    return PERIOD_TYPES.filter(pt => pt.id !== "2-month");
+  };
+
   // Filter business units based on platform requirements
   const getAvailableBusinessUnits = () => {
     if (selectedPlatform === "amazon") {
       return BUSINESS_UNITS.filter(bu => bu.id === "jivo-wellness" || bu.id === "jivo-mart");
     }
-    // New platforms only support Jivo Mart
+    // Flipkart Grocery supports Jivo Mart and Chirag
+    if (selectedPlatform === "flipkart-grocery") {
+      return BUSINESS_UNITS.filter(bu => bu.id === "jivo-mart" || bu.id === "chirag");
+    }
+    // Other new platforms only support Jivo Mart
     if (["zepto", "blinkit", "swiggy", "jiomartsale", "jiomartcancel", "bigbasket"].includes(selectedPlatform)) {
       return BUSINESS_UNITS.filter(bu => bu.id === "jivo-mart");
     }
@@ -185,6 +214,20 @@ export default function SecondarySales() {
       if (selectedPeriodType === "date-range") {
         formData.append("startDate", dateRange.startDate);
         formData.append("endDate", dateRange.endDate);
+      } else if (selectedPeriodType === "2-month") {
+        // Auto-calculate 2-month range for Flipkart
+        const today = new Date();
+        const dayOfYear = Math.floor((today.getTime() - new Date(today.getFullYear(), 0, 0).getTime()) / (1000 * 60 * 60 * 24));
+        
+        const startDate = new Date(today);
+        startDate.setMonth(startDate.getMonth() - 2);
+        startDate.setDate(startDate.getDate() + (dayOfYear % 30));
+        
+        const endDate = new Date(today);
+        endDate.setDate(endDate.getDate() + (dayOfYear % 30));
+        
+        formData.append("startDate", startDate.toISOString().split('T')[0]);
+        formData.append("endDate", endDate.toISOString().split('T')[0]);
       }
 
       const response = await fetch("/api/secondary-sales/preview", {
@@ -230,6 +273,20 @@ export default function SecondarySales() {
       if (selectedPeriodType === "date-range") {
         formData.append("startDate", dateRange.startDate);
         formData.append("endDate", dateRange.endDate);
+      } else if (selectedPeriodType === "2-month") {
+        // Auto-calculate 2-month range for Flipkart
+        const today = new Date();
+        const dayOfYear = Math.floor((today.getTime() - new Date(today.getFullYear(), 0, 0).getTime()) / (1000 * 60 * 60 * 24));
+        
+        const startDate = new Date(today);
+        startDate.setMonth(startDate.getMonth() - 2);
+        startDate.setDate(startDate.getDate() + (dayOfYear % 30));
+        
+        const endDate = new Date(today);
+        endDate.setDate(endDate.getDate() + (dayOfYear % 30));
+        
+        formData.append("startDate", startDate.toISOString().split('T')[0]);
+        formData.append("endDate", endDate.toISOString().split('T')[0]);
       }
 
       const response = await fetch(`/api/secondary-sales/import/${selectedPlatform}`, {
@@ -529,39 +586,28 @@ export default function SecondarySales() {
             </CardHeader>
             <CardContent>
               <div className="grid gap-4">
-                <div
-                  className={`p-4 border rounded-lg cursor-pointer transition-colors hover:bg-gray-50 ${
-                    selectedPeriodType === "daily"
-                      ? "border-blue-500 bg-blue-50"
-                      : "border-gray-200"
-                  }`}
-                  onClick={() => setSelectedPeriodType("daily")}
-                >
-                  <div className="flex items-center space-x-3">
-                    <Calendar className="w-8 h-8 text-gray-600" />
-                    <div>
-                      <h3 className="font-medium">Daily Upload</h3>
-                      <p className="text-sm text-gray-600">Upload data for today or a single day</p>
+                {getAvailablePeriodTypes().map((periodType) => {
+                  const Icon = periodType.icon;
+                  return (
+                    <div
+                      key={periodType.id}
+                      className={`p-4 border rounded-lg cursor-pointer transition-colors hover:bg-gray-50 ${
+                        selectedPeriodType === periodType.id
+                          ? "border-blue-500 bg-blue-50"
+                          : "border-gray-200"
+                      }`}
+                      onClick={() => setSelectedPeriodType(periodType.id)}
+                    >
+                      <div className="flex items-center space-x-3">
+                        <Icon className="w-8 h-8 text-gray-600" />
+                        <div>
+                          <h3 className="font-medium">{periodType.name}</h3>
+                          <p className="text-sm text-gray-600">{periodType.description}</p>
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                </div>
-                
-                <div
-                  className={`p-4 border rounded-lg cursor-pointer transition-colors hover:bg-gray-50 ${
-                    selectedPeriodType === "date-range"
-                      ? "border-blue-500 bg-blue-50"
-                      : "border-gray-200"
-                  }`}
-                  onClick={() => setSelectedPeriodType("date-range")}
-                >
-                  <div className="flex items-center space-x-3">
-                    <Calendar className="w-8 h-8 text-gray-600" />
-                    <div>
-                      <h3 className="font-medium">Date Range Upload</h3>
-                      <p className="text-sm text-gray-600">Upload data for a specific date range</p>
-                    </div>
-                  </div>
-                </div>
+                  );
+                })}
               </div>
               
               <div className="mt-6 flex justify-between">
@@ -577,7 +623,7 @@ export default function SecondarySales() {
                 {selectedPeriodType && (
                   <Button
                     onClick={() => {
-                      if (selectedPeriodType === "daily") {
+                      if (selectedPeriodType === "daily" || selectedPeriodType === "2-month") {
                         setCurrentStep("upload");
                       } else {
                         setCurrentStep("date-range");
@@ -667,6 +713,7 @@ export default function SecondarySales() {
               <CardDescription>
                 Upload {selectedPlatformData?.name} secondary sales data for {selectedBusinessUnitData?.name}
                 {selectedPeriodType === "daily" && " (Daily data)"}
+                {selectedPeriodType === "2-month" && " (2-Month Auto Range)"}
                 {selectedPeriodType === "date-range" && dateRange.startDate && dateRange.endDate && 
                   ` (${new Date(dateRange.startDate).toLocaleDateString()} to ${new Date(dateRange.endDate).toLocaleDateString()})`}
               </CardDescription>
@@ -774,7 +821,7 @@ export default function SecondarySales() {
                   )}
                   
                   {/* New platforms summary cards */}
-                  {["zepto", "blinkit", "swiggy", "jiomartsale", "jiomartcancel", "bigbasket"].includes(parsedData.platform || "") && (
+                  {["zepto", "blinkit", "swiggy", "jiomartsale", "jiomartcancel", "bigbasket", "flipkart-grocery"].includes(parsedData.platform || "") && (
                     <>
                       <div className="p-3 sm:p-4 bg-green-50 rounded-lg">
                         <div className="text-xl sm:text-2xl font-bold text-green-600">
@@ -937,6 +984,21 @@ export default function SecondarySales() {
                                 <TableHead className="text-right min-w-[80px] px-4 py-3 font-semibold">Quantity</TableHead>
                                 <TableHead className="text-right min-w-[100px] px-4 py-3 font-semibold">Total MRP</TableHead>
                                 <TableHead className="text-right min-w-[100px] px-4 py-3 font-semibold">Total Sales</TableHead>
+                              </>
+                            )}
+
+                            {/* Flipkart Grocery table headers */}
+                            {parsedData.platform === "flipkart-grocery" && (
+                              <>
+                                <TableHead className="min-w-[120px] px-4 py-3 font-semibold">Tenant ID</TableHead>
+                                <TableHead className="min-w-[150px] px-4 py-3 font-semibold">Retailer Name</TableHead>
+                                <TableHead className="min-w-[120px] px-4 py-3 font-semibold">FSN</TableHead>
+                                <TableHead className="min-w-[200px] px-4 py-3 font-semibold">Product Name</TableHead>
+                                <TableHead className="min-w-[120px] px-4 py-3 font-semibold">Category</TableHead>
+                                <TableHead className="min-w-[100px] px-4 py-3 font-semibold">Brand</TableHead>
+                                <TableHead className="text-right min-w-[100px] px-4 py-3 font-semibold">MRP</TableHead>
+                                <TableHead className="text-right min-w-[100px] px-4 py-3 font-semibold">Total Qty</TableHead>
+                                <TableHead className="text-right min-w-[120px] px-4 py-3 font-semibold">Total Sales Value</TableHead>
                               </>
                             )}
                           </TableRow>
@@ -1209,6 +1271,51 @@ export default function SecondarySales() {
                                   </TableCell>
                                   <TableCell className="text-right px-4 py-3">
                                     ₹{parseFloat(item.total_sales || "0").toFixed(2)}
+                                  </TableCell>
+                                </>
+                              )}
+
+                              {/* Flipkart Grocery table rows */}
+                              {parsedData.platform === "flipkart-grocery" && (
+                                <>
+                                  <TableCell className="font-medium px-4 py-3">
+                                    <div className="truncate max-w-[120px]" title={item.tenantId || "N/A"}>
+                                      {item.tenantId || "N/A"}
+                                    </div>
+                                  </TableCell>
+                                  <TableCell className="px-4 py-3">
+                                    <div className="truncate max-w-[150px]" title={item.retailerName || "N/A"}>
+                                      {item.retailerName || "N/A"}
+                                    </div>
+                                  </TableCell>
+                                  <TableCell className="px-4 py-3">
+                                    <div className="truncate max-w-[120px]" title={item.fsn || "N/A"}>
+                                      {item.fsn || "N/A"}
+                                    </div>
+                                  </TableCell>
+                                  <TableCell className="px-4 py-3">
+                                    <div className="truncate max-w-[200px]" title={item.productName || "N/A"}>
+                                      {item.productName || "N/A"}
+                                    </div>
+                                  </TableCell>
+                                  <TableCell className="px-4 py-3">
+                                    <div className="truncate max-w-[120px]" title={item.category || "N/A"}>
+                                      {item.category || "N/A"}
+                                    </div>
+                                  </TableCell>
+                                  <TableCell className="px-4 py-3">
+                                    <div className="truncate max-w-[100px]" title={item.brand || "N/A"}>
+                                      {item.brand || "N/A"}
+                                    </div>
+                                  </TableCell>
+                                  <TableCell className="text-right px-4 py-3">
+                                    ₹{parseFloat(item.mrp || "0").toFixed(2)}
+                                  </TableCell>
+                                  <TableCell className="text-right px-4 py-3">
+                                    {item.totalSalesQty || 0}
+                                  </TableCell>
+                                  <TableCell className="text-right px-4 py-3">
+                                    ₹{parseFloat(item.totalSalesValue || "0").toFixed(2)}
                                   </TableCell>
                                 </>
                               )}
