@@ -1,24 +1,26 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
+import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Separator } from '@/components/ui/separator';
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   Terminal as TerminalIcon, 
-  Send, 
   FileText, 
   Folder, 
+  FolderOpen,
   Database, 
   Code, 
-  Play,
+  X,
+  ChevronDown,
+  ChevronRight,
   Trash2,
-  Download,
-  RefreshCw
+  RefreshCw,
+  Plus
 } from 'lucide-react';
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { cn } from '@/lib/utils';
 
 interface TerminalCommand {
   id: string;
@@ -35,22 +37,42 @@ interface FileTreeItem {
   path: string;
   size?: number;
   children?: FileTreeItem[];
+  expanded?: boolean;
+}
+
+interface OpenTab {
+  id: string;
+  name: string;
+  path: string;
+  content: string;
+  isDirty: boolean;
 }
 
 export default function Terminal() {
   const [currentCommand, setCurrentCommand] = useState('');
   const [commandHistory, setCommandHistory] = useState<TerminalCommand[]>([]);
   const [currentDirectory, setCurrentDirectory] = useState('.');
-  const [selectedFile, setSelectedFile] = useState<string | null>(null);
-  const [fileContent, setFileContent] = useState('');
+  const [openTabs, setOpenTabs] = useState<OpenTab[]>([]);
+  const [activeTab, setActiveTab] = useState<string | null>(null);
+  const [fileTree, setFileTree] = useState<FileTreeItem[]>([]);
+  const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set(['.']));
   const terminalRef = useRef<HTMLDivElement>(null);
+  const terminalInputRef = useRef<HTMLInputElement>(null);
+  const queryClient = useQueryClient();
 
-  // Auto scroll to bottom of terminal
+  // Auto scroll to bottom of terminal and focus input
   useEffect(() => {
     if (terminalRef.current) {
       terminalRef.current.scrollTop = terminalRef.current.scrollHeight;
     }
   }, [commandHistory]);
+
+  // Focus terminal input on mount
+  useEffect(() => {
+    if (terminalInputRef.current) {
+      terminalInputRef.current.focus();
+    }
+  }, []);
 
   // Execute terminal command
   const executeCommand = useMutation({
@@ -96,19 +118,47 @@ export default function Terminal() {
     }
   });
 
+  // Build nested file tree recursively
+  const buildFileTree = useCallback(async (path: string): Promise<FileTreeItem[]> => {
+    const response = await fetch('/api/terminal/files', {
+      method: 'POST',
+      body: JSON.stringify({ path }),
+      headers: { 'Content-Type': 'application/json' }
+    });
+    if (!response.ok) throw new Error('Failed to fetch file tree');
+    const items = await response.json() as FileTreeItem[];
+    
+    // Add children for expanded directories
+    const itemsWithChildren = await Promise.all(
+      items.map(async (item) => {
+        if (item.type === 'directory' && expandedFolders.has(item.path)) {
+          try {
+            const children = await buildFileTree(item.path);
+            return { ...item, children, expanded: true };
+          } catch (e) {
+            return { ...item, children: [], expanded: false };
+          }
+        }
+        return item;
+      })
+    );
+    
+    return itemsWithChildren;
+  }, [expandedFolders]);
+
   // Get file tree
   const fileTreeQuery = useQuery({
-    queryKey: ['/api/terminal/files', currentDirectory],
-    queryFn: async () => {
-      const response = await fetch('/api/terminal/files', {
-        method: 'POST',
-        body: JSON.stringify({ path: currentDirectory }),
-        headers: { 'Content-Type': 'application/json' }
-      });
-      if (!response.ok) throw new Error('Failed to fetch file tree');
-      return response.json() as Promise<FileTreeItem[]>;
-    }
+    queryKey: ['/api/terminal/files', currentDirectory, Array.from(expandedFolders)],
+    queryFn: () => buildFileTree('.'),
+    refetchOnWindowFocus: false
   });
+
+  // Update local file tree when query succeeds
+  useEffect(() => {
+    if (fileTreeQuery.data) {
+      setFileTree(fileTreeQuery.data);
+    }
+  }, [fileTreeQuery.data]);
 
   // Get database tables
   const tablesQuery = useQuery({
@@ -120,8 +170,8 @@ export default function Terminal() {
     }
   });
 
-  // Read file content
-  const readFile = useMutation({
+  // Read file content and open in tab
+  const openFile = useMutation({
     mutationFn: async (filePath: string) => {
       const response = await fetch('/api/terminal/read-file', {
         method: 'POST',
@@ -135,13 +185,29 @@ export default function Terminal() {
       return response.json();
     },
     onSuccess: (data, filePath) => {
-      setSelectedFile(filePath);
-      setFileContent(data.content);
+      const fileName = filePath.split('/').pop() || 'Untitled';
+      const existingTab = openTabs.find(tab => tab.path === filePath);
+      
+      if (existingTab) {
+        setActiveTab(existingTab.id);
+        return;
+      }
+      
+      const newTab: OpenTab = {
+        id: Date.now().toString(),
+        name: fileName,
+        path: filePath,
+        content: data.content,
+        isDirty: false
+      };
+      
+      setOpenTabs(prev => [...prev, newTab]);
+      setActiveTab(newTab.id);
     }
   });
 
-  const handleTerminalSubmit = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
+  const handleTerminalSubmit = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
       e.preventDefault();
       if (currentCommand.trim()) {
         executeCommand.mutate(currentCommand.trim());
@@ -149,282 +215,295 @@ export default function Terminal() {
     }
   };
 
-  const clearTerminal = () => {
-    setCommandHistory([]);
+  const toggleFolder = (path: string) => {
+    setExpandedFolders(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(path)) {
+        newSet.delete(path);
+      } else {
+        newSet.add(path);
+      }
+      return newSet;
+    });
   };
 
-  const quickCommands = [
-    { label: 'List Files', command: 'ls -la' },
-    { label: 'Current Directory', command: 'pwd' },
-    { label: 'Package Info', command: 'cat package.json' },
-    { label: 'Find TypeScript Files', command: 'find . -name "*.ts"' },
-    { label: 'Find React Components', command: 'find . -name "*.tsx"' },
-    { label: 'Check Git Status', command: 'git status' },
-    { label: 'Database Tables', command: 'echo "Use SQL Query module for database operations"' },
-  ];
+  const closeTab = (tabId: string) => {
+    setOpenTabs(prev => prev.filter(tab => tab.id !== tabId));
+    if (activeTab === tabId) {
+      const remainingTabs = openTabs.filter(tab => tab.id !== tabId);
+      setActiveTab(remainingTabs.length > 0 ? remainingTabs[remainingTabs.length - 1].id : null);
+    }
+  };
+
+  const getFileIcon = (fileName: string, type: 'file' | 'directory') => {
+    if (type === 'directory') {
+      return expandedFolders.has(fileName) ? <FolderOpen size={16} /> : <Folder size={16} />;
+    }
+    
+    const ext = fileName.split('.').pop()?.toLowerCase();
+    switch (ext) {
+      case 'ts':
+      case 'tsx':
+      case 'js':
+      case 'jsx':
+        return <FileText size={16} className="text-blue-600" />;
+      case 'json':
+        return <FileText size={16} className="text-yellow-600" />;
+      case 'css':
+      case 'scss':
+        return <FileText size={16} className="text-purple-600" />;
+      case 'html':
+        return <FileText size={16} className="text-orange-600" />;
+      case 'md':
+        return <FileText size={16} className="text-gray-600" />;
+      default:
+        return <FileText size={16} className="text-gray-500" />;
+    }
+  };
+
+  const clearTerminal = () => {
+    setCommandHistory([]);
+    setTimeout(() => {
+      if (terminalInputRef.current) {
+        terminalInputRef.current.focus();
+      }
+    }, 100);
+  };
+
+
 
   const renderFileTree = (items: FileTreeItem[], level = 0) => {
     return items.map((item) => (
-      <div key={item.path} className="space-y-1">
+      <div key={item.path}>
         <div
-          className={`flex items-center gap-2 p-1 rounded cursor-pointer hover:bg-gray-100 ${
-            selectedFile === item.path ? 'bg-blue-100' : ''
-          }`}
-          style={{ paddingLeft: `${level * 16 + 8}px` }}
+          className={cn(
+            "flex items-center gap-1 px-2 py-1 text-sm cursor-pointer hover:bg-gray-100 select-none",
+            activeTab && openTabs.find(tab => tab.id === activeTab)?.path === item.path && "bg-blue-100"
+          )}
+          style={{ paddingLeft: `${level * 12 + 8}px` }}
           onClick={() => {
             if (item.type === 'file') {
-              readFile.mutate(item.path);
+              openFile.mutate(item.path);
             } else {
-              // Handle directory click - could expand/collapse
+              toggleFolder(item.path);
             }
           }}
         >
-          {item.type === 'directory' ? (
-            <Folder size={16} className="text-blue-600" />
-          ) : (
-            <FileText size={16} className="text-gray-600" />
+          {item.type === 'directory' && (
+            expandedFolders.has(item.path) ? 
+              <ChevronDown size={14} className="text-gray-500" /> : 
+              <ChevronRight size={14} className="text-gray-500" />
           )}
-          <span className="text-sm">{item.name}</span>
-          {item.size && (
-            <span className="text-xs text-gray-500 ml-auto">
-              {(item.size / 1024).toFixed(1)}KB
+          {getFileIcon(item.name, item.type)}
+          <span className="truncate flex-1">{item.name}</span>
+          {item.size && item.type === 'file' && (
+            <span className="text-xs text-gray-400 ml-auto">
+              {item.size > 1024 ? `${(item.size / 1024).toFixed(1)}KB` : `${item.size}B`}
             </span>
           )}
         </div>
-        {item.children && renderFileTree(item.children, level + 1)}
+        {item.children && expandedFolders.has(item.path) && (
+          <div>
+            {renderFileTree(item.children, level + 1)}
+          </div>
+        )}
       </div>
     ));
   };
 
   return (
-    <div className="h-screen flex flex-col p-6 bg-gray-50">
-      <div className="flex items-center gap-2 mb-6">
-        <TerminalIcon size={24} className="text-gray-700" />
-        <h1 className="text-2xl font-bold text-gray-900">Terminal & IDE</h1>
-      </div>
-
-      <div className="flex-1 grid grid-cols-12 gap-6 min-h-0">
-        {/* Left Panel - File Explorer & Database */}
-        <div className="col-span-3 space-y-4">
-          <Tabs defaultValue="files" className="h-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="files">Files</TabsTrigger>
-              <TabsTrigger value="database">Database</TabsTrigger>
+    <div className="h-screen flex bg-gray-50">
+      {/* Left Sidebar - File Explorer */}
+      <div className="w-64 bg-white border-r flex flex-col">
+        <div className="p-3 border-b">
+          <div className="flex items-center gap-2">
+            <TerminalIcon size={16} />
+            <span className="font-medium text-sm">Explorer</span>
+            <Button size="sm" variant="ghost" className="ml-auto p-1 h-6 w-6">
+              <Plus size={12} />
+            </Button>
+            <Button 
+              size="sm" 
+              variant="ghost" 
+              className="p-1 h-6 w-6"
+              onClick={() => {
+                setExpandedFolders(new Set(['.']));
+                queryClient.invalidateQueries({ queryKey: ['/api/terminal/files'] });
+              }}
+            >
+              <RefreshCw size={12} />
+            </Button>
+          </div>
+        </div>
+        
+        <div className="flex-1 overflow-hidden">
+          <Tabs defaultValue="files" className="h-full flex flex-col">
+            <TabsList className="grid w-full grid-cols-2 m-2 mb-0">
+              <TabsTrigger value="files" className="text-xs">Files</TabsTrigger>
+              <TabsTrigger value="database" className="text-xs">DB</TabsTrigger>
             </TabsList>
             
-            <TabsContent value="files" className="mt-4 h-[calc(100%-48px)]">
-              <Card className="h-full">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-sm flex items-center gap-2">
-                    <Folder size={16} />
-                    File Explorer
-                  </CardTitle>
-                  <div className="text-xs text-gray-500 font-mono">
-                    {currentDirectory}
+            <TabsContent value="files" className="flex-1 mt-2 overflow-hidden">
+              <ScrollArea className="h-full">
+                {fileTreeQuery.isLoading ? (
+                  <div className="p-3 text-xs text-gray-500">Loading...</div>
+                ) : fileTree.length > 0 ? (
+                  <div className="pb-4">
+                    {renderFileTree(fileTree)}
                   </div>
-                </CardHeader>
-                <CardContent className="p-0">
-                  <ScrollArea className="h-[calc(100vh-280px)]">
-                    <div className="p-3">
-                      {fileTreeQuery.isLoading ? (
-                        <div className="text-sm text-gray-500">Loading files...</div>
-                      ) : fileTreeQuery.data ? (
-                        renderFileTree(fileTreeQuery.data)
-                      ) : (
-                        <div className="text-sm text-gray-500">Failed to load files</div>
-                      )}
-                    </div>
-                  </ScrollArea>
-                </CardContent>
-              </Card>
+                ) : (
+                  <div className="p-3 text-xs text-gray-500">No files found</div>
+                )}
+              </ScrollArea>
             </TabsContent>
 
-            <TabsContent value="database" className="mt-4 h-[calc(100%-48px)]">
-              <Card className="h-full">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-sm flex items-center gap-2">
-                    <Database size={16} />
-                    Database Tables
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="p-0">
-                  <ScrollArea className="h-[calc(100vh-280px)]">
-                    <div className="p-3 space-y-2">
-                      {tablesQuery.isLoading ? (
-                        <div className="text-sm text-gray-500">Loading tables...</div>
-                      ) : tablesQuery.data ? (
-                        tablesQuery.data.map((table) => (
-                          <div
-                            key={table}
-                            className="p-2 rounded bg-gray-50 hover:bg-gray-100 cursor-pointer transition-colors text-sm font-mono"
-                            onClick={() => setCurrentCommand(`cat shared/schema.ts | grep -A 5 "${table}"`)}
-                          >
-                            {table}
-                          </div>
-                        ))
-                      ) : (
-                        <div className="text-sm text-gray-500">Failed to load tables</div>
-                      )}
-                    </div>
-                  </ScrollArea>
-                </CardContent>
-              </Card>
+            <TabsContent value="database" className="flex-1 mt-2 overflow-hidden">
+              <ScrollArea className="h-full">
+                <div className="p-2">
+                  {tablesQuery.isLoading ? (
+                    <div className="text-xs text-gray-500">Loading...</div>
+                  ) : tablesQuery.data ? (
+                    tablesQuery.data.map((table) => (
+                      <div
+                        key={table}
+                        className="flex items-center gap-2 px-2 py-1 text-xs hover:bg-gray-100 cursor-pointer rounded font-mono"
+                        onClick={() => setCurrentCommand(`echo "Table: ${table}"`)}
+                      >
+                        <Database size={14} className="text-blue-600" />
+                        <span className="truncate">{table}</span>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="text-xs text-gray-500">Failed to load</div>
+                  )}
+                </div>
+              </ScrollArea>
             </TabsContent>
           </Tabs>
         </div>
+      </div>
 
-        {/* Center Panel - Terminal */}
-        <div className="col-span-6">
-          <Card className="h-full flex flex-col">
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <TerminalIcon size={20} />
-                  Terminal
-                </CardTitle>
-                <div className="flex gap-2">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => fileTreeQuery.refetch()}
-                  >
-                    <RefreshCw size={14} />
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={clearTerminal}
-                  >
-                    <Trash2 size={14} />
-                  </Button>
-                </div>
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col">
+        {/* Tab Bar */}
+        {openTabs.length > 0 && (
+          <div className="bg-gray-100 border-b flex items-center overflow-x-auto">
+            {openTabs.map((tab) => (
+              <div
+                key={tab.id}
+                className={cn(
+                  "flex items-center gap-2 px-3 py-2 border-r text-sm cursor-pointer min-w-0",
+                  activeTab === tab.id ? "bg-white border-t-2 border-t-blue-500" : "hover:bg-gray-200"
+                )}
+                onClick={() => setActiveTab(tab.id)}
+              >
+                {getFileIcon(tab.name, 'file')}
+                <span className="truncate max-w-32">{tab.name}</span>
+                {tab.isDirty && <div className="w-2 h-2 rounded-full bg-orange-400" />}
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="p-0 h-4 w-4 ml-1 hover:bg-gray-300"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    closeTab(tab.id);
+                  }}
+                >
+                  <X size={12} />
+                </Button>
               </div>
-            </CardHeader>
-            
-            <CardContent className="flex-1 flex flex-col p-0 min-h-0">
-              {/* Command History */}
-              <ScrollArea className="flex-1 p-4" ref={terminalRef}>
-                <div className="space-y-3 font-mono text-sm">
-                  {commandHistory.length === 0 && (
-                    <div className="text-gray-500">
-                      <p>Welcome to the Terminal IDE!</p>
-                      <p className="mt-2">You can run any command here. Try:</p>
-                      <ul className="mt-2 space-y-1 text-xs">
-                        <li>• <code>ls -la</code> - List files</li>
-                        <li>• <code>cat package.json</code> - View package info</li>
-                        <li>• <code>find . -name "*.ts"</code> - Find TypeScript files</li>
-                        <li>• <code>npx claude-dev</code> - Run Claude Code (if installed)</li>
-                      </ul>
-                    </div>
-                  )}
-                  
-                  {commandHistory.map((cmd) => (
-                    <div key={cmd.id} className="space-y-2">
-                      <div className="flex items-center gap-2">
-                        <span className="text-blue-600">$</span>
-                        <span className="flex-1">{cmd.command}</span>
-                        <Badge
-                          variant={cmd.status === 'success' ? 'default' : 'destructive'}
-                          className="text-xs"
-                        >
-                          {cmd.status}
-                        </Badge>
-                        {cmd.executionTime && (
-                          <span className="text-xs text-gray-500">
-                            {cmd.executionTime}ms
-                          </span>
-                        )}
-                      </div>
-                      <pre className="bg-gray-50 p-3 rounded text-xs whitespace-pre-wrap overflow-x-auto">
-                        {cmd.output}
-                      </pre>
-                    </div>
-                  ))}
-                </div>
+            ))}
+          </div>
+        )}
+
+        {/* Content Area */}
+        <div className="flex-1 flex">
+          {/* Editor/Content Panel */}
+          <div className="flex-1 flex flex-col bg-white">
+            {activeTab ? (
+              <ScrollArea className="flex-1">
+                <pre className="p-4 text-sm font-mono whitespace-pre-wrap text-gray-800 leading-relaxed">
+                  {openTabs.find(tab => tab.id === activeTab)?.content || ''}
+                </pre>
               </ScrollArea>
-
-              {/* Command Input */}
-              <div className="border-t p-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="text-sm font-mono text-blue-600">
-                    {currentDirectory}$
-                  </span>
-                </div>
-                <div className="flex gap-2">
-                  <Textarea
-                    placeholder="Enter command... (Press Enter to execute, Shift+Enter for new line)"
-                    value={currentCommand}
-                    onChange={(e) => setCurrentCommand(e.target.value)}
-                    onKeyDown={handleTerminalSubmit}
-                    className="font-mono text-sm resize-none"
-                    rows={1}
-                  />
-                  <Button
-                    onClick={() => currentCommand.trim() && executeCommand.mutate(currentCommand.trim())}
-                    disabled={!currentCommand.trim() || executeCommand.isPending}
-                    size="sm"
-                    className="flex items-center gap-1"
-                  >
-                    <Send size={16} />
-                  </Button>
+            ) : (
+              <div className="flex-1 flex items-center justify-center text-gray-500">
+                <div className="text-center">
+                  <Code size={48} className="mx-auto mb-4 opacity-50" />
+                  <p className="text-lg font-medium">Welcome to Terminal IDE</p>
+                  <p className="text-sm mt-2">Open a file from the explorer to start editing</p>
+                  <p className="text-xs mt-4 text-gray-400">
+                    Use the terminal below to run commands like <code>npx claude-dev</code>
+                  </p>
                 </div>
               </div>
-            </CardContent>
-          </Card>
+            )}
+          </div>
         </div>
 
-        {/* Right Panel - File Content & Quick Actions */}
-        <div className="col-span-3 space-y-4">
-          {/* Quick Commands */}
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm flex items-center gap-2">
-                <Play size={16} />
-                Quick Commands
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              {quickCommands.map((cmd, index) => (
-                <Button
-                  key={index}
-                  variant="outline"
-                  size="sm"
-                  className="w-full text-left justify-start text-xs"
-                  onClick={() => setCurrentCommand(cmd.command)}
-                >
-                  {cmd.label}
-                </Button>
-              ))}
-            </CardContent>
-          </Card>
-
-          {/* File Content Viewer */}
-          <Card className="flex-1">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm flex items-center gap-2">
-                <Code size={16} />
-                File Content
-              </CardTitle>
-              {selectedFile && (
-                <div className="text-xs text-gray-500 break-all">
-                  {selectedFile}
+        {/* Terminal Panel */}
+        <div className="h-80 border-t bg-black text-white flex flex-col">
+          <div className="flex items-center justify-between p-2 bg-gray-800 text-xs">
+            <div className="flex items-center gap-2">
+              <TerminalIcon size={14} />
+              <span>Terminal</span>
+            </div>
+            <div className="flex gap-1">
+              <Button
+                size="sm"
+                variant="ghost"
+                className="h-6 w-6 p-0 text-white hover:bg-gray-600"
+                onClick={clearTerminal}
+              >
+                <Trash2 size={12} />
+              </Button>
+            </div>
+          </div>
+          
+          <ScrollArea className="flex-1" ref={terminalRef}>
+            <div className="p-3 font-mono text-sm space-y-2">
+              {commandHistory.length === 0 && (
+                <div className="text-green-400">
+                  <div>Welcome to Terminal IDE!</div>
+                  <div className="text-gray-400 mt-1 text-xs">
+                    Try: ls, pwd, cat package.json, find . -name "*.ts", npx claude-dev
+                  </div>
                 </div>
               )}
-            </CardHeader>
-            <CardContent className="p-0">
-              <ScrollArea className="h-[400px]">
-                {selectedFile ? (
-                  <pre className="p-4 text-xs whitespace-pre-wrap font-mono">
-                    {readFile.isPending ? 'Loading...' : fileContent}
-                  </pre>
-                ) : (
-                  <div className="p-4 text-sm text-gray-500 text-center">
-                    Click on a file to view its content
+              
+              {commandHistory.map((cmd) => (
+                <div key={cmd.id} className="space-y-1">
+                  <div className="flex items-center gap-2 text-green-400">
+                    <span>$</span>
+                    <span>{cmd.command}</span>
+                    <Badge
+                      variant={cmd.status === 'success' ? 'default' : 'destructive'}
+                      className="text-xs ml-auto"
+                    >
+                      {cmd.status}
+                    </Badge>
                   </div>
-                )}
-              </ScrollArea>
-            </CardContent>
-          </Card>
+                  <pre className="text-gray-200 text-xs whitespace-pre-wrap pl-3">
+                    {cmd.output}
+                  </pre>
+                </div>
+              ))}
+              
+              {/* Current input line */}
+              <div className="flex items-center gap-2">
+                <span className="text-green-400">$</span>
+                <Input
+                  ref={terminalInputRef}
+                  value={currentCommand}
+                  onChange={(e) => setCurrentCommand(e.target.value)}
+                  onKeyDown={handleTerminalSubmit}
+                  className="flex-1 bg-transparent border-none text-white text-sm font-mono p-0 h-auto focus-visible:ring-0 focus-visible:ring-offset-0"
+                  placeholder="Type a command..."
+                  disabled={executeCommand.isPending}
+                />
+              </div>
+            </div>
+          </ScrollArea>
         </div>
       </div>
     </div>
