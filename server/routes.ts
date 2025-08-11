@@ -12,7 +12,7 @@ import { parseZomatoPO } from "./zomato-parser";
 import { parseDealsharePO } from "./dealshare-parser";
 import { parseAmazonSecondarySales } from "./amazon-secondary-sales-parser";
 import { parseZeptoSecondaryData } from "./zepto-secondary-sales-parser";
-import { parseBlinkitSecondaryData } from "./blinkit-secondary-sales-parser";
+import { parseBlinkitSecondarySalesFile } from "./blinkit-secondary-sales-parser";
 import { parseSwiggySecondaryData } from "./swiggy-secondary-sales-parser";
 
 import multer from 'multer';
@@ -1578,16 +1578,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const periodStart = periodType === "date-range" ? new Date(startDate) : undefined;
           const periodEnd = periodType === "date-range" ? new Date(endDate) : undefined;
           
-          const parseResult = await parseBlinkitSecondaryData(
-            req.file.buffer.toString('utf8'),
-            reportDate,
-            periodStart,
-            periodEnd
+          const parsedResult = parseBlinkitSecondarySalesFile(
+            req.file.buffer,
+            req.file.originalname || 'blinkit-sales.csv',
+            businessUnit,
+            periodType,
+            periodType === "daily" ? startDate : undefined,
+            periodType === "date-range" ? startDate : undefined,
+            periodType === "date-range" ? endDate : undefined
           );
-          
-          if (!parseResult.success) {
-            return res.status(400).json({ error: parseResult.error });
-          }
           
           parsedData = {
             platform,
@@ -1596,12 +1595,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
             reportDate,
             periodStart,
             periodEnd,
-            totalItems: parseResult.totalItems || 0,
-            items: parseResult.data || [],
+            totalItems: parsedResult.totalItems,
+            items: parsedResult.items,
             summary: {
-              totalRecords: parseResult.totalItems || 0,
-              totalSalesValue: parseResult.data?.reduce((sum, item) => sum + (parseFloat(item.mrp || '0') * parseFloat(item.qty_sold || '0') || 0), 0) || 0,
-              uniqueProducts: new Set(parseResult.data?.map(item => item.item_name).filter(Boolean)).size,
+              totalRecords: parsedResult.totalItems,
+              totalSalesValue: parsedResult.summary?.totalSalesValue || 0,
+              uniqueProducts: parsedResult.summary?.uniqueProducts || 0,
               dateRange: periodType === "date-range" ? `${startDate} to ${endDate}` : startDate
             }
           };
@@ -1783,22 +1782,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const periodStart = periodType === "date-range" ? new Date(startDate) : undefined;
           const periodEnd = periodType === "date-range" ? new Date(endDate) : undefined;
           
-          const parseResult = await parseBlinkitSecondaryData(
-            req.file.buffer.toString('utf8'),
-            reportDate,
-            periodStart,
-            periodEnd
+          const parsedResult = parseBlinkitSecondarySalesFile(
+            req.file.buffer,
+            req.file.originalname || 'blinkit-sales.csv',
+            businessUnit,
+            periodType,
+            periodType === "daily" ? startDate : undefined,
+            periodType === "date-range" ? startDate : undefined,
+            periodType === "date-range" ? endDate : undefined
           );
           
-          if (!parseResult.success) {
-            return res.status(400).json({ error: parseResult.error });
-          }
-          
           // Add attachment path to all items
-          const itemsWithAttachment = parseResult.data?.map(item => ({
+          const itemsWithAttachment = parsedResult.items.map(item => ({
             ...item,
             attachment_path: attachmentPath
-          })) || [];
+          }));
           
           parsedData = {
             platform,
@@ -1807,12 +1805,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
             reportDate,
             periodStart,
             periodEnd,
-            totalItems: parseResult.totalItems || 0,
+            totalItems: parsedResult.totalItems,
             items: itemsWithAttachment,
             summary: {
-              totalRecords: parseResult.totalItems || 0,
-              totalSalesValue: parseResult.data?.reduce((sum: number, item: any) => sum + (parseFloat(item.mrp || '0') * parseFloat(item.qty_sold || '0') || 0), 0) || 0,
-              uniqueProducts: new Set(parseResult.data?.map((item: any) => item.item_name).filter(Boolean)).size,
+              totalRecords: parsedResult.totalItems,
+              totalSalesValue: parsedResult.summary?.totalSalesValue || 0,
+              uniqueProducts: parsedResult.summary?.uniqueProducts || 0,
               dateRange: periodType === "date-range" ? `${startDate} to ${endDate}` : startDate
             }
           };

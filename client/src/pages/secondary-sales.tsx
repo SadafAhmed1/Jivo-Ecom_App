@@ -951,8 +951,23 @@ export default function SecondarySales() {
                               {parsedData.platform === "blinkit" && (
                                 <>
                                   <TableCell className="font-medium px-4 py-3">
+                                    <div className="truncate max-w-[100px]" title={item.item_id || "N/A"}>
+                                      {item.item_id || "N/A"}
+                                    </div>
+                                  </TableCell>
+                                  <TableCell className="px-4 py-3">
                                     <div className="truncate max-w-[150px]" title={item.item_name || "N/A"}>
                                       {item.item_name || "N/A"}
+                                    </div>
+                                  </TableCell>
+                                  <TableCell className="px-4 py-3">
+                                    <div className="truncate max-w-[120px]" title={item.manufacturer_name || "N/A"}>
+                                      {item.manufacturer_name || "N/A"}
+                                    </div>
+                                  </TableCell>
+                                  <TableCell className="px-4 py-3">
+                                    <div className="truncate max-w-[100px]" title={item.city_name || "N/A"}>
+                                      {item.city_name || "N/A"}
                                     </div>
                                   </TableCell>
                                   <TableCell className="px-4 py-3">
@@ -960,24 +975,11 @@ export default function SecondarySales() {
                                       {item.category || "N/A"}
                                     </div>
                                   </TableCell>
-                                  <TableCell className="px-4 py-3">
-                                    <div className="truncate max-w-[100px]" title={item.brand || "N/A"}>
-                                      {item.brand || "N/A"}
-                                    </div>
-                                  </TableCell>
-                                  <TableCell className="px-4 py-3">
-                                    <div className="truncate max-w-[100px]" title={item.city || "N/A"}>
-                                      {item.city || "N/A"}
-                                    </div>
-                                  </TableCell>
                                   <TableCell className="text-right px-4 py-3">
                                     {item.qty_sold || 0}
                                   </TableCell>
                                   <TableCell className="text-right px-4 py-3">
                                     ₹{parseFloat(item.mrp || "0").toFixed(2)}
-                                  </TableCell>
-                                  <TableCell className="text-right px-4 py-3">
-                                    ₹{parseFloat(item.selling_price || "0").toFixed(2)}
                                   </TableCell>
                                 </>
                               )}
