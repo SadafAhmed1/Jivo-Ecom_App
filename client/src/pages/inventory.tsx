@@ -663,15 +663,15 @@ export default function InventoryPage() {
                   <>
                     <div className="p-4 bg-green-50 rounded-lg">
                       <div className="text-2xl font-bold text-green-600">{parsedData.summary?.totalUnitsAvailable || 0}</div>
-                      <div className="text-sm text-green-600">Units Available</div>
+                      <div className="text-sm text-green-600">Total Units Received</div>
                     </div>
                     <div className="p-4 bg-blue-50 rounded-lg">
                       <div className="text-2xl font-bold text-blue-600">{parsedData.summary?.totalInboundQuantity || 0}</div>
-                      <div className="text-sm text-blue-600">Inbound</div>
+                      <div className="text-sm text-blue-600">Open PO Quantity</div>
                     </div>
                     <div className="p-4 bg-purple-50 rounded-lg">
                       <div className="text-2xl font-bold text-purple-600">₹{(parsedData.summary?.totalValue || 0).toLocaleString()}</div>
-                      <div className="text-sm text-purple-600">Total Value</div>
+                      <div className="text-sm text-purple-600">Net Received Value</div>
                     </div>
                   </>
                 ) : (
@@ -710,19 +710,21 @@ export default function InventoryPage() {
                       <TableHeader className="sticky top-0 bg-white z-10 border-b">
                         <TableRow>
                           {selectedPlatform === 'jiomart' && <TableHead className="w-32 border-r">RFC ID</TableHead>}
-                          <TableHead className="w-40 border-r">SKU ID</TableHead>
+                          <TableHead className="w-40 border-r">
+                            {selectedPlatform === 'amazon' ? 'ASIN' : 'SKU ID'}
+                          </TableHead>
                           <TableHead className="min-w-[250px] border-r">
                             {selectedPlatform === 'jiomart' ? 'Title' : 
                              selectedPlatform === 'amazon' ? 'Product Title' : 'Product Name'}
                           </TableHead>
                           <TableHead className="w-32 border-r">
-                            {selectedPlatform === 'amazon' ? 'Product Group' : 'Category'}
+                            {selectedPlatform === 'amazon' ? 'Brand' : 'Category'}
                           </TableHead>
                           {selectedPlatform === 'blinkit' && <TableHead className="w-32 border-r">Brand</TableHead>}
                           {selectedPlatform === 'amazon' && <TableHead className="w-32 border-r">Condition</TableHead>}
                           <TableHead className="w-24 border-r">
                             {selectedPlatform === 'jiomart' ? 'Status' : 
-                             selectedPlatform === 'amazon' ? 'Available' : 'Size'}
+                             selectedPlatform === 'amazon' ? 'Units Available' : 'Size'}
                           </TableHead>
                           {selectedPlatform === 'jiomart' ? (
                             <>
@@ -733,10 +735,10 @@ export default function InventoryPage() {
                             </>
                           ) : selectedPlatform === 'amazon' ? (
                             <>
-                              <TableHead className="text-right w-24 border-r">Inbound</TableHead>
-                              <TableHead className="text-right w-24 border-r">Reserved</TableHead>
-                              <TableHead className="text-right w-24 border-r">Unfulfillable</TableHead>
-                              <TableHead className="text-right w-24">Total Value</TableHead>
+                              <TableHead className="text-right w-24 border-r">Open PO Qty</TableHead>
+                              <TableHead className="text-right w-24 border-r">Lead Time (days)</TableHead>
+                              <TableHead className="text-right w-24 border-r">Unsellable Units</TableHead>
+                              <TableHead className="text-right w-24">Net Received Value</TableHead>
                             </>
                           ) : (
                             <>
@@ -754,18 +756,20 @@ export default function InventoryPage() {
                             {selectedPlatform === 'jiomart' && (
                               <TableCell className="font-mono text-xs border-r">{item.rfc_id}</TableCell>
                             )}
-                            <TableCell className="font-mono text-xs border-r">{item.sku_id || item.fnsku}</TableCell>
+                            <TableCell className="font-mono text-xs border-r">
+                              {selectedPlatform === 'amazon' ? item.asin : (item.sku_id || item.fnsku)}
+                            </TableCell>
                             <TableCell className="border-r" title={
                               selectedPlatform === 'jiomart' ? item.title : 
-                              selectedPlatform === 'amazon' ? item.product_title : item.product_name
+                              selectedPlatform === 'amazon' ? item.product_name : item.product_name
                             }>
                               <div className="max-w-[250px] truncate text-sm">
                                 {selectedPlatform === 'jiomart' ? item.title : 
-                                 selectedPlatform === 'amazon' ? item.product_title : item.product_name}
+                                 selectedPlatform === 'amazon' ? item.product_name : item.product_name}
                               </div>
                             </TableCell>
                             <TableCell className="text-sm border-r">
-                              {selectedPlatform === 'amazon' ? item.product_group : item.category}
+                              {selectedPlatform === 'amazon' ? item.brand : item.category}
                             </TableCell>
                             {selectedPlatform === 'blinkit' && (
                               <TableCell className="text-sm border-r">{item.brand}</TableCell>
@@ -783,7 +787,7 @@ export default function InventoryPage() {
                                   {item.product_status}
                                 </span>
                               ) : selectedPlatform === 'amazon' ? (
-                                <span className="text-sm font-mono">{parseInt(item.available || '0').toLocaleString()}</span>
+                                <span className="text-sm font-mono">{parseInt(item.units_available || '0').toLocaleString()}</span>
                               ) : (
                                 <span className="text-sm">{item.size}</span>
                               )}
@@ -806,13 +810,13 @@ export default function InventoryPage() {
                             ) : selectedPlatform === 'amazon' ? (
                               <>
                                 <TableCell className="text-right text-sm border-r">
-                                  {parseInt(item.inbound || '0').toLocaleString()}
+                                  {parseInt(item.inbound_quantity || '0').toLocaleString()}
                                 </TableCell>
                                 <TableCell className="text-right text-sm border-r">
-                                  {parseInt(item.reserved || '0').toLocaleString()}
+                                  {parseFloat(item.last_updated_at || '0').toFixed(1)}
                                 </TableCell>
                                 <TableCell className="text-right text-sm border-r">
-                                  {parseInt(item.unfulfillable || '0').toLocaleString()}
+                                  {parseInt(item.unfulfillable_quantity || '0').toLocaleString()}
                                 </TableCell>
                                 <TableCell className="text-right text-sm">
                                   {item.total_value ? `₹${parseFloat(item.total_value).toLocaleString()}` : '₹0'}
