@@ -579,7 +579,7 @@ export default function InventoryPage() {
 
       {/* Step 6: Preview Data */}
       {currentStep === "preview" && parsedData && (
-        <div className="flex flex-col h-[calc(100vh-200px)]">
+        <div className="flex flex-col h-[calc(100vh-250px)]">
           {/* Summary Cards - Fixed at top */}
           <Card className="mb-4">
             <CardHeader>
@@ -684,30 +684,30 @@ export default function InventoryPage() {
           </Card>
 
           {/* Action Buttons - Fixed at bottom */}
-          <div className="flex justify-between items-center pt-4 mt-4 border-t bg-white flex-shrink-0">
-            <Button variant="outline" onClick={goBack} className="flex items-center space-x-2">
+          <div className="flex justify-between items-center pt-6 mt-6 border-t-2 bg-white flex-shrink-0 sticky bottom-0">
+            <Button variant="outline" onClick={goBack} className="flex items-center space-x-2" size="lg">
               <ArrowLeft className="w-4 h-4" />
               <span>Back</span>
             </Button>
-            <div className="flex space-x-3">
-              <Button variant="outline" onClick={resetToStart} className="flex items-center space-x-2">
+            <div className="flex space-x-4">
+              <Button variant="outline" onClick={resetToStart} className="flex items-center space-x-2" size="lg">
                 <RotateCcw className="w-4 h-4" />
                 <span>Start Over</span>
               </Button>
               <Button
                 onClick={() => importMutation.mutate()}
                 disabled={importMutation.isPending || !parsedData.items?.length}
-                className="bg-green-600 hover:bg-green-700 text-white flex items-center space-x-2 px-6 py-2"
+                className="bg-green-600 hover:bg-green-700 text-white flex items-center space-x-2 px-8 py-3 text-lg font-semibold shadow-lg"
                 size="lg"
               >
                 {importMutation.isPending ? (
                   <>
-                    <div className="w-4 h-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                    <div className="w-5 h-5 animate-spin rounded-full border-2 border-white border-t-transparent" />
                     <span>Importing to Database...</span>
                   </>
                 ) : (
                   <>
-                    <Database className="w-4 h-4" />
+                    <Database className="w-5 h-5" />
                     <span>Import to Database</span>
                   </>
                 )}

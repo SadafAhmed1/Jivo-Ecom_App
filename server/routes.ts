@@ -2610,7 +2610,119 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Inventory Import Route
+  // Inventory File Import Route
+  app.post("/api/inventory/import", upload.single('file'), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: "No file uploaded" });
+      }
+
+      const { platform, businessUnit, periodType, startDate, endDate } = req.body;
+
+      if (!platform || !businessUnit || !periodType) {
+        return res.status(400).json({ error: "Missing required fields" });
+      }
+
+      if (!["daily", "range"].includes(periodType)) {
+        return res.status(400).json({ error: "Period type must be either daily or range" });
+      }
+
+      // Store the file for attachment
+      const attachmentPath = `uploads/${Date.now()}_${req.file.originalname}`;
+
+      let parsedData;
+      const reportDate = new Date();
+      const periodStart = startDate ? new Date(startDate) : null;
+      const periodEnd = endDate ? new Date(endDate) : null;
+
+      try {
+        if (platform === "jiomart") {
+          parsedData = await parseJioMartInventoryCsv(
+            req.file.buffer.toString('utf8'),
+            businessUnit,
+            periodType,
+            reportDate,
+            periodStart,
+            periodEnd
+          );
+        }
+
+        if (!parsedData) {
+          return res.status(400).json({ error: "Unsupported platform" });
+        }
+
+        if (!parsedData.items || parsedData.items.length === 0) {
+          return res.status(400).json({ error: "No valid inventory data found in file" });
+        }
+
+        let insertedItems;
+        let tableName;
+
+        // Process inventory data with proper date handling
+        const inventoryItemsWithDates = parsedData.items.map((item: any) => {
+          // Parse last_updated_at date safely
+          let lastUpdatedAt = null;
+          if (item.last_updated_at) {
+            const parsedDate = new Date(item.last_updated_at);
+            if (!isNaN(parsedDate.getTime())) {
+              lastUpdatedAt = parsedDate;
+            }
+          }
+
+          return {
+            ...item,
+            last_updated_at: lastUpdatedAt,
+            report_date: periodType === "daily" ? reportDate : undefined,
+            period_start: periodStart,
+            period_end: periodEnd,
+            attachment_path: attachmentPath
+          };
+        });
+
+        if (businessUnit === "jm" && periodType === "daily") {
+          insertedItems = await storage.createInventoryJioMartJmDaily(inventoryItemsWithDates as any);
+          tableName = "INV_JioMart_JM_Daily";
+        } else if (businessUnit === "jm" && periodType === "range") {
+          insertedItems = await storage.createInventoryJioMartJmRange(inventoryItemsWithDates as any);
+          tableName = "INV_JioMart_JM_Range";
+        }
+
+        if (!insertedItems) {
+          return res.status(400).json({ error: "Invalid business unit and period type combination" });
+        }
+
+        res.status(201).json({
+          success: true,
+          platform,
+          businessUnit,
+          periodType,
+          tableName,
+          totalItems: insertedItems.length,
+          summary: parsedData.summary,
+          reportDate: reportDate.toISOString(),
+          periodStart: periodStart?.toISOString(),
+          periodEnd: periodEnd?.toISOString()
+        });
+
+      } catch (parseError: any) {
+        console.error("Parse error:", parseError);
+        return res.status(400).json({ 
+          error: "Failed to process inventory data", 
+          details: parseError.message 
+        });
+      }
+
+    } catch (error: any) {
+      console.error("Error importing inventory:", error);
+      if (error.message && error.message.includes("unique")) {
+        res.status(409).json({ error: "Duplicate inventory data detected" });
+      } else {
+        res.status(500).json({ error: "Failed to import inventory data" });
+      }
+    }
+  });
+
+  // Legacy Inventory Import Route (for data object)
   app.post("/api/inventory/import/:platform", async (req, res) => {
     try {
       const { platform } = req.params;
