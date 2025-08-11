@@ -23,7 +23,7 @@ import {
 import { format } from "date-fns";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 
-type Step = "platform" | "business-unit" | "period-type" | "date-range" | "upload" | "preview";
+type Step = "platform" | "business-unit" | "period-type" | "range" | "upload" | "preview";
 
 interface ParsedInventoryData {
   platform: string;
@@ -54,7 +54,7 @@ const PLATFORMS = [
 
 const BUSINESS_UNITS = [
   {
-    id: "jivo-mart",
+    id: "jm",
     name: "Jivo Mart", 
     description: "Jivo Mart products inventory data",
   },
@@ -68,7 +68,7 @@ const PERIOD_TYPES = [
     icon: Calendar,
   },
   {
-    id: "date-range",
+    id: "range",
     name: "Date Range Report",
     description: "Upload inventory report for a specific date range",
     icon: Calendar,
@@ -100,7 +100,7 @@ export default function InventoryPage() {
       formData.append("businessUnit", selectedBusinessUnit);
       formData.append("periodType", selectedPeriodType);
       
-      if (selectedPeriodType === "date-range") {
+      if (selectedPeriodType === "range") {
         formData.append("periodStart", dateRange.startDate);
         formData.append("periodEnd", dateRange.endDate);
       }
@@ -200,11 +200,11 @@ export default function InventoryPage() {
       case "period-type":
         setCurrentStep("business-unit");
         break;
-      case "date-range":
+      case "range":
         setCurrentStep("period-type");
         break;
       case "upload":
-        setCurrentStep("date-range");
+        setCurrentStep("range");
         break;
       case "preview":
         setCurrentStep("upload");
@@ -235,11 +235,11 @@ export default function InventoryPage() {
 
   const handlePeriodTypeSelect = (periodTypeId: string) => {
     setSelectedPeriodType(periodTypeId);
-    setCurrentStep("date-range");
+    setCurrentStep("range");
   };
 
   const handleDateRangeNext = () => {
-    if (selectedPeriodType === "daily" || (selectedPeriodType === "date-range" && dateRange.startDate && dateRange.endDate)) {
+    if (selectedPeriodType === "daily" || (selectedPeriodType === "range" && dateRange.startDate && dateRange.endDate)) {
       setCurrentStep("upload");
     }
   };
@@ -258,8 +258,8 @@ export default function InventoryPage() {
         <div className="flex flex-wrap items-center justify-between space-y-2 sm:space-y-0 bg-white p-4 rounded-lg border">
           {/* Step 1: Platform */}
           <div className="flex items-center space-x-2">
-            <div className={`flex items-center space-x-2 ${currentStep === "platform" ? "text-blue-600" : ["business-unit", "period-type", "date-range", "upload", "preview"].includes(currentStep) ? "text-green-600" : "text-gray-400"}`}>
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${currentStep === "platform" ? "bg-blue-100 text-blue-600" : ["business-unit", "period-type", "date-range", "upload", "preview"].includes(currentStep) ? "bg-green-100 text-green-600" : "bg-gray-100"}`}>
+            <div className={`flex items-center space-x-2 ${currentStep === "platform" ? "text-blue-600" : ["business-unit", "period-type", "range", "upload", "preview"].includes(currentStep) ? "text-green-600" : "text-gray-400"}`}>
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${currentStep === "platform" ? "bg-blue-100 text-blue-600" : ["business-unit", "period-type", "range", "upload", "preview"].includes(currentStep) ? "bg-green-100 text-green-600" : "bg-gray-100"}`}>
                 1
               </div>
               <span className="text-sm font-medium">Platform</span>
@@ -268,8 +268,8 @@ export default function InventoryPage() {
 
           {/* Step 2: Business Unit */}
           <div className="flex items-center space-x-2">
-            <div className={`flex items-center space-x-2 ${currentStep === "business-unit" ? "text-blue-600" : ["period-type", "date-range", "upload", "preview"].includes(currentStep) ? "text-green-600" : "text-gray-400"}`}>
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${currentStep === "business-unit" ? "bg-blue-100 text-blue-600" : ["period-type", "date-range", "upload", "preview"].includes(currentStep) ? "bg-green-100 text-green-600" : "bg-gray-100"}`}>
+            <div className={`flex items-center space-x-2 ${currentStep === "business-unit" ? "text-blue-600" : ["period-type", "range", "upload", "preview"].includes(currentStep) ? "text-green-600" : "text-gray-400"}`}>
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${currentStep === "business-unit" ? "bg-blue-100 text-blue-600" : ["period-type", "range", "upload", "preview"].includes(currentStep) ? "bg-green-100 text-green-600" : "bg-gray-100"}`}>
                 2
               </div>
               <span className="text-sm font-medium">Business Unit</span>
@@ -278,8 +278,8 @@ export default function InventoryPage() {
 
           {/* Step 3: Period Type */}
           <div className="flex items-center space-x-2">
-            <div className={`flex items-center space-x-2 ${currentStep === "period-type" ? "text-blue-600" : ["date-range", "upload", "preview"].includes(currentStep) ? "text-green-600" : "text-gray-400"}`}>
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${currentStep === "period-type" ? "bg-blue-100 text-blue-600" : ["date-range", "upload", "preview"].includes(currentStep) ? "bg-green-100 text-green-600" : "bg-gray-100"}`}>
+            <div className={`flex items-center space-x-2 ${currentStep === "period-type" ? "text-blue-600" : ["range", "upload", "preview"].includes(currentStep) ? "text-green-600" : "text-gray-400"}`}>
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${currentStep === "period-type" ? "bg-blue-100 text-blue-600" : ["range", "upload", "preview"].includes(currentStep) ? "bg-green-100 text-green-600" : "bg-gray-100"}`}>
                 3
               </div>
               <span className="text-sm font-medium">Period Type</span>
@@ -288,8 +288,8 @@ export default function InventoryPage() {
 
           {/* Step 4: Date Range */}
           <div className="flex items-center space-x-2">
-            <div className={`flex items-center space-x-2 ${currentStep === "date-range" ? "text-blue-600" : ["upload", "preview"].includes(currentStep) ? "text-green-600" : "text-gray-400"}`}>
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${currentStep === "date-range" ? "bg-blue-100 text-blue-600" : ["upload", "preview"].includes(currentStep) ? "bg-green-100 text-green-600" : "bg-gray-100"}`}>
+            <div className={`flex items-center space-x-2 ${currentStep === "range" ? "text-blue-600" : ["upload", "preview"].includes(currentStep) ? "text-green-600" : "text-gray-400"}`}>
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${currentStep === "range" ? "bg-blue-100 text-blue-600" : ["upload", "preview"].includes(currentStep) ? "bg-green-100 text-green-600" : "bg-gray-100"}`}>
                 4
               </div>
               <span className="text-sm font-medium">Date Range</span>
@@ -457,7 +457,7 @@ export default function InventoryPage() {
       )}
 
       {/* Step 4: Date Range Selection */}
-      {currentStep === "date-range" && (
+      {currentStep === "range" && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center space-x-2">
