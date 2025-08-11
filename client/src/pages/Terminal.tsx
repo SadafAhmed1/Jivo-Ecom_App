@@ -17,7 +17,11 @@ import {
   ChevronRight,
   Trash2,
   RefreshCw,
-  Plus
+  Plus,
+  Menu,
+  Minimize2,
+  Maximize2,
+  ChevronUp
 } from 'lucide-react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { cn } from '@/lib/utils';
@@ -56,6 +60,9 @@ export default function Terminal() {
   const [activeTab, setActiveTab] = useState<string | null>(null);
   const [fileTree, setFileTree] = useState<FileTreeItem[]>([]);
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set(['.']));
+  const [sidebarVisible, setSidebarVisible] = useState(true);
+  const [terminalMinimized, setTerminalMinimized] = useState(false);
+  const [terminalHeight, setTerminalHeight] = useState(320);
   const terminalRef = useRef<HTMLDivElement>(null);
   const terminalInputRef = useRef<HTMLInputElement>(null);
   const queryClient = useQueryClient();
@@ -67,12 +74,19 @@ export default function Terminal() {
     }
   }, [commandHistory]);
 
-  // Focus terminal input on mount
+  // Focus terminal input on mount and when terminal is restored
   useEffect(() => {
-    if (terminalInputRef.current) {
+    if (terminalInputRef.current && !terminalMinimized) {
       terminalInputRef.current.focus();
     }
-  }, []);
+  }, [terminalMinimized]);
+
+  // Auto-expand terminal when command is executed
+  useEffect(() => {
+    if (commandHistory.length > 0 && terminalMinimized) {
+      setTerminalMinimized(false);
+    }
+  }, [commandHistory.length]);
 
   // Execute terminal command
   const executeCommand = useMutation({
@@ -263,6 +277,9 @@ export default function Terminal() {
 
   const clearTerminal = () => {
     setCommandHistory([]);
+    if (terminalMinimized) {
+      setTerminalMinimized(false);
+    }
     setTimeout(() => {
       if (terminalInputRef.current) {
         terminalInputRef.current.focus();
@@ -313,25 +330,45 @@ export default function Terminal() {
 
   return (
     <div className="h-screen flex bg-gray-50">
+      {/* Toggle Sidebar Button */}
+      {!sidebarVisible && (
+        <div className="absolute top-4 left-4 z-10">
+          <Button
+            size="sm"
+            variant="outline"
+            className="bg-white shadow-md"
+            onClick={() => setSidebarVisible(true)}
+          >
+            <Menu size={16} />
+          </Button>
+        </div>
+      )}
+
       {/* Left Sidebar - File Explorer */}
-      <div className="w-64 bg-white border-r flex flex-col">
+      {sidebarVisible && (
+        <div className="w-64 bg-white border-r flex flex-col">
         <div className="p-3 border-b">
           <div className="flex items-center gap-2">
             <TerminalIcon size={16} />
             <span className="font-medium text-sm">Explorer</span>
-            <Button size="sm" variant="ghost" className="ml-auto p-1 h-6 w-6">
-              <Plus size={12} />
-            </Button>
             <Button 
               size="sm" 
               variant="ghost" 
-              className="p-1 h-6 w-6"
+              className="ml-auto p-1 h-6 w-6"
               onClick={() => {
                 setExpandedFolders(new Set(['.']));
                 queryClient.invalidateQueries({ queryKey: ['/api/terminal/files'] });
               }}
             >
               <RefreshCw size={12} />
+            </Button>
+            <Button 
+              size="sm" 
+              variant="ghost" 
+              className="p-1 h-6 w-6"
+              onClick={() => setSidebarVisible(false)}
+            >
+              <X size={12} />
             </Button>
           </div>
         </div>
@@ -381,7 +418,8 @@ export default function Terminal() {
             </TabsContent>
           </Tabs>
         </div>
-      </div>
+        </div>
+      )}
 
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col">
@@ -431,10 +469,25 @@ export default function Terminal() {
                 <div className="text-center">
                   <Code size={48} className="mx-auto mb-4 opacity-50" />
                   <p className="text-lg font-medium">Welcome to Terminal IDE</p>
-                  <p className="text-sm mt-2">Open a file from the explorer to start editing</p>
+                  <p className="text-sm mt-2">
+                    {sidebarVisible ? 
+                      "Open a file from the explorer to start editing" : 
+                      "Click the menu button to show file explorer"
+                    }
+                  </p>
                   <p className="text-xs mt-4 text-gray-400">
                     Use the terminal below to run commands like <code>npx claude-dev</code>
                   </p>
+                  {!sidebarVisible && (
+                    <Button
+                      variant="outline"
+                      className="mt-4"
+                      onClick={() => setSidebarVisible(true)}
+                    >
+                      <Menu size={16} className="mr-2" />
+                      Show Explorer
+                    </Button>
+                  )}
                 </div>
               </div>
             )}
@@ -442,8 +495,11 @@ export default function Terminal() {
         </div>
 
         {/* Terminal Panel */}
-        <div className="h-80 border-t bg-black text-white flex flex-col">
-          <div className="flex items-center justify-between p-2 bg-gray-800 text-xs">
+        <div 
+          className="border-t bg-black text-white flex flex-col"
+          style={{ height: terminalMinimized ? '32px' : `${terminalHeight}px` }}
+        >
+          <div className="flex items-center justify-between p-2 bg-gray-800 text-xs cursor-pointer" onClick={() => setTerminalMinimized(!terminalMinimized)}>
             <div className="flex items-center gap-2">
               <TerminalIcon size={14} />
               <span>Terminal</span>
@@ -453,57 +509,73 @@ export default function Terminal() {
                 size="sm"
                 variant="ghost"
                 className="h-6 w-6 p-0 text-white hover:bg-gray-600"
-                onClick={clearTerminal}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  clearTerminal();
+                }}
               >
                 <Trash2 size={12} />
+              </Button>
+              <Button
+                size="sm"
+                variant="ghost"
+                className="h-6 w-6 p-0 text-white hover:bg-gray-600"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setTerminalMinimized(!terminalMinimized);
+                }}
+              >
+                {terminalMinimized ? <Maximize2 size={12} /> : <Minimize2 size={12} />}
               </Button>
             </div>
           </div>
           
-          <ScrollArea className="flex-1" ref={terminalRef}>
-            <div className="p-3 font-mono text-sm space-y-2">
-              {commandHistory.length === 0 && (
-                <div className="text-green-400">
-                  <div>Welcome to Terminal IDE!</div>
-                  <div className="text-gray-400 mt-1 text-xs">
-                    Try: ls, pwd, cat package.json, find . -name "*.ts", npx claude-dev
+          {!terminalMinimized && (
+            <ScrollArea className="flex-1" ref={terminalRef}>
+              <div className="p-3 font-mono text-sm space-y-2">
+                {commandHistory.length === 0 && (
+                  <div className="text-green-400">
+                    <div>Welcome to Terminal IDE!</div>
+                    <div className="text-gray-400 mt-1 text-xs">
+                      Try: ls, pwd, cat package.json, find . -name "*.ts", npx claude-dev
+                    </div>
                   </div>
-                </div>
-              )}
-              
-              {commandHistory.map((cmd) => (
-                <div key={cmd.id} className="space-y-1">
-                  <div className="flex items-center gap-2 text-green-400">
-                    <span>$</span>
-                    <span>{cmd.command}</span>
-                    <Badge
-                      variant={cmd.status === 'success' ? 'default' : 'destructive'}
-                      className="text-xs ml-auto"
-                    >
-                      {cmd.status}
-                    </Badge>
+                )}
+                
+                {commandHistory.map((cmd) => (
+                  <div key={cmd.id} className="space-y-1">
+                    <div className="flex items-center gap-2 text-green-400">
+                      <span>$</span>
+                      <span>{cmd.command}</span>
+                      <Badge
+                        variant={cmd.status === 'success' ? 'default' : 'destructive'}
+                        className="text-xs ml-auto"
+                      >
+                        {cmd.status}
+                      </Badge>
+                    </div>
+                    <pre className="text-gray-200 text-xs whitespace-pre-wrap pl-3">
+                      {cmd.output}
+                    </pre>
                   </div>
-                  <pre className="text-gray-200 text-xs whitespace-pre-wrap pl-3">
-                    {cmd.output}
-                  </pre>
+                ))}
+                
+                {/* Current input line */}
+                <div className="flex items-center gap-2">
+                  <span className="text-green-400">$</span>
+                  <Input
+                    ref={terminalInputRef}
+                    value={currentCommand}
+                    onChange={(e) => setCurrentCommand(e.target.value)}
+                    onKeyDown={handleTerminalSubmit}
+                    className="flex-1 bg-transparent border-none text-white text-sm font-mono p-0 h-auto focus-visible:ring-0 focus-visible:ring-offset-0"
+                    placeholder="Type a command..."
+                    disabled={executeCommand.isPending}
+                  />
                 </div>
-              ))}
-              
-              {/* Current input line */}
-              <div className="flex items-center gap-2">
-                <span className="text-green-400">$</span>
-                <Input
-                  ref={terminalInputRef}
-                  value={currentCommand}
-                  onChange={(e) => setCurrentCommand(e.target.value)}
-                  onKeyDown={handleTerminalSubmit}
-                  className="flex-1 bg-transparent border-none text-white text-sm font-mono p-0 h-auto focus-visible:ring-0 focus-visible:ring-offset-0"
-                  placeholder="Type a command..."
-                  disabled={executeCommand.isPending}
-                />
               </div>
-            </div>
-          </ScrollArea>
+            </ScrollArea>
+          )}
         </div>
       </div>
     </div>
