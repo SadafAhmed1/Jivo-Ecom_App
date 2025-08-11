@@ -11,7 +11,16 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-const navigation = [
+type NavigationItem = {
+  name: string;
+  href: string;
+  icon: any;
+  active: boolean;
+  description?: string;
+  comingSoon?: boolean;
+};
+
+const navigation: NavigationItem[] = [
   {
     name: "Dashboard",
     href: "/",
@@ -43,8 +52,8 @@ const navigation = [
     name: "Inventory",
     href: "/inventory",
     icon: Package,
-    active: false,
-    comingSoon: true
+    active: true,
+    description: "Upload & manage inventory data from platforms"
   },
   {
     name: "SAP Sync",

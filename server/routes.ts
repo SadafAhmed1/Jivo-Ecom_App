@@ -17,6 +17,7 @@ import { parseSwiggySecondaryData } from "./swiggy-secondary-sales-parser";
 import { parseJioMartSaleSecondarySales } from "./jiomartsale-secondary-sales-parser";
 import { parseJioMartCancelSecondarySales } from "./jiomartcancel-secondary-sales-parser";
 import { parseBigBasketSecondarySales } from "./bigbasket-secondary-sales-parser";
+import { parseJioMartInventoryCsv } from "./jiomart-inventory-parser";
 import { db } from "./db";
 import { 
   scAmJwDaily, scAmJwRange, scAmJmDaily, scAmJmRange,
@@ -25,7 +26,8 @@ import {
   scSwiggyJmDaily, scSwiggyJmRange,
   scJioMartSaleJmDaily, scJioMartSaleJmRange,
   scJioMartCancelJmDaily, scJioMartCancelJmRange,
-  scBigBasketJmDaily, scBigBasketJmRange
+  scBigBasketJmDaily, scBigBasketJmRange,
+  invJioMartJmDaily, invJioMartJmRange
 } from "@shared/schema";
 
 import multer from 'multer';
@@ -2497,6 +2499,245 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error deleting secondary sales:", error);
       res.status(500).json({ error: "Failed to delete secondary sales" });
+    }
+  });
+
+  // Inventory Management Routes
+  app.get("/api/inventory", async (req, res) => {
+    try {
+      const { platform, businessUnit } = req.query;
+      const inventory = await storage.getAllInventory(
+        platform as string, 
+        businessUnit as string
+      );
+      res.json(inventory);
+    } catch (error) {
+      console.error("Error fetching inventory:", error);
+      res.status(500).json({ error: "Failed to fetch inventory" });
+    }
+  });
+
+  app.get("/api/inventory/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const inventoryItem = await storage.getInventoryById(id);
+      
+      if (!inventoryItem) {
+        return res.status(404).json({ error: "Inventory record not found" });
+      }
+      
+      res.json(inventoryItem);
+    } catch (error) {
+      console.error("Error fetching inventory:", error);
+      res.status(500).json({ error: "Failed to fetch inventory" });
+    }
+  });
+
+  // Inventory Preview Route
+  app.post("/api/inventory/preview", upload.single('file'), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: "No file uploaded" });
+      }
+
+      const { platform, businessUnit, periodType, reportDate, periodStart, periodEnd } = req.body;
+      
+      if (!platform || !businessUnit || !periodType) {
+        return res.status(400).json({ error: "Platform, business unit, and period type are required" });
+      }
+
+      if (platform !== "jiomart") {
+        return res.status(400).json({ error: "Currently only Jio Mart inventory is supported" });
+      }
+
+      if (businessUnit !== "jm") {
+        return res.status(400).json({ error: "Business unit must be jm (Jivo Mart)" });
+      }
+
+      if (!["daily", "range"].includes(periodType)) {
+        return res.status(400).json({ error: "Period type must be either daily or range" });
+      }
+
+      // Store the file for attachment
+      const attachmentPath = `uploads/${Date.now()}_${req.file.originalname}`;
+
+      let parsedData;
+
+      try {
+        if (platform === "jiomart") {
+          parsedData = await parseJioMartInventoryCsv(
+            req.file.buffer.toString('utf8'),
+            businessUnit,
+            periodType,
+            reportDate,
+            periodStart,
+            periodEnd
+          );
+          
+          // Add attachment path to all items
+          const itemsWithAttachment = parsedData.items.map(item => ({
+            ...item,
+            attachment_path: attachmentPath
+          }));
+          
+          parsedData = {
+            ...parsedData,
+            items: itemsWithAttachment
+          };
+        }
+
+        if (!parsedData) {
+          return res.status(400).json({ error: "Unsupported platform" });
+        }
+
+        if (!parsedData.items || parsedData.items.length === 0) {
+          return res.status(400).json({ error: "No valid inventory data found in file" });
+        }
+
+        res.json(parsedData);
+
+      } catch (parseError: any) {
+        console.error("Parse error:", parseError);
+        return res.status(400).json({ 
+          error: "Failed to parse inventory file", 
+          details: parseError.message 
+        });
+      }
+
+    } catch (error: any) {
+      console.error("Error previewing inventory:", error);
+      res.status(500).json({ error: "Failed to preview inventory data" });
+    }
+  });
+
+  // Inventory Import Route
+  app.post("/api/inventory/import/:platform", async (req, res) => {
+    try {
+      const { platform } = req.params;
+      const { data, attachment_path } = req.body;
+
+      if (!data || !data.items || data.items.length === 0) {
+        return res.status(400).json({ error: "No data to import" });
+      }
+
+      if (platform !== "jiomart") {
+        return res.status(400).json({ error: "Currently only Jio Mart inventory is supported" });
+      }
+
+      let insertedItems;
+      let tableName;
+
+      try {
+        // Process inventory data with proper date handling
+        const inventoryItemsWithDates = data.items.map((item: any) => {
+          // Parse last_updated_at date safely
+          let lastUpdatedAt = null;
+          if (item.last_updated_at) {
+            const parsedDate = new Date(item.last_updated_at);
+            if (!isNaN(parsedDate.getTime())) {
+              lastUpdatedAt = parsedDate;
+            }
+          }
+
+          // Parse report date for daily, period dates for range
+          let reportDate = new Date();
+          let periodStart = null;
+          let periodEnd = null;
+
+          if (data.periodType === "daily" && data.reportDate) {
+            const parsedReportDate = new Date(data.reportDate);
+            if (!isNaN(parsedReportDate.getTime())) {
+              reportDate = parsedReportDate;
+            }
+          } else if (data.periodType === "range") {
+            if (data.periodStart) {
+              const parsedPeriodStart = new Date(data.periodStart);
+              if (!isNaN(parsedPeriodStart.getTime())) {
+                periodStart = parsedPeriodStart;
+              }
+            }
+            if (data.periodEnd) {
+              const parsedPeriodEnd = new Date(data.periodEnd);
+              if (!isNaN(parsedPeriodEnd.getTime())) {
+                periodEnd = parsedPeriodEnd;
+              }
+            }
+          }
+
+          return {
+            ...item,
+            last_updated_at: lastUpdatedAt,
+            report_date: data.periodType === "daily" ? reportDate : undefined,
+            period_start: periodStart,
+            period_end: periodEnd,
+            attachment_path: attachment_path || item.attachment_path
+          };
+        });
+
+        if (data.businessUnit === "jm" && data.periodType === "daily") {
+          insertedItems = await storage.createInventoryJioMartJmDaily(inventoryItemsWithDates as any);
+          tableName = "INV_JioMart_JM_Daily";
+        } else if (data.businessUnit === "jm" && data.periodType === "range") {
+          insertedItems = await storage.createInventoryJioMartJmRange(inventoryItemsWithDates as any);
+          tableName = "INV_JioMart_JM_Range";
+        }
+
+        if (!insertedItems) {
+          return res.status(400).json({ error: "Invalid business unit and period type combination" });
+        }
+
+        res.status(201).json({
+          success: true,
+          platform: data.platform,
+          businessUnit: data.businessUnit,
+          periodType: data.periodType,
+          tableName,
+          totalItems: insertedItems.length,
+          summary: data.summary,
+          reportDate: data.reportDate,
+          periodStart: data.periodStart,
+          periodEnd: data.periodEnd
+        });
+
+      } catch (parseError: any) {
+        console.error("Parse error:", parseError);
+        return res.status(400).json({ 
+          error: "Failed to process inventory data", 
+          details: parseError.message 
+        });
+      }
+
+    } catch (error: any) {
+      console.error("Error importing inventory:", error);
+      if (error.message && error.message.includes("unique")) {
+        res.status(409).json({ error: "Duplicate inventory data detected" });
+      } else {
+        res.status(500).json({ error: "Failed to import inventory data" });
+      }
+    }
+  });
+
+  app.put("/api/inventory/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const { header, items } = req.body;
+      
+      const updatedInventory = await storage.updateInventory(id, header, items);
+      res.json(updatedInventory);
+    } catch (error) {
+      console.error("Error updating inventory:", error);
+      res.status(500).json({ error: "Failed to update inventory" });
+    }
+  });
+
+  app.delete("/api/inventory/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      await storage.deleteInventory(id);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting inventory:", error);
+      res.status(500).json({ error: "Failed to delete inventory" });
     }
   });
 

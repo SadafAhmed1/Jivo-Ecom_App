@@ -70,6 +70,11 @@ import {
   type BigBasketSecondarySalesItem,
   type InsertBigBasketSecondarySalesItem,
 
+  type InvJioMartJmDaily,
+  type InsertInvJioMartJmDaily,
+  type InvJioMartJmRange,
+  type InsertInvJioMartJmRange,
+
   type DistributorMst,
   type InsertDistributorMst,
   type DistributorPo,
@@ -117,6 +122,9 @@ import {
   scJioMartCancelJmRange,
   scBigBasketJmDaily,
   scBigBasketJmRange,
+
+  invJioMartJmDaily,
+  invJioMartJmRange,
 
   distributorMst,
   distributorPo,
@@ -263,6 +271,13 @@ export interface IStorage {
   getScAmJmDaily(dateStart?: string, dateEnd?: string): Promise<ScAmJmDaily[]>;
   getScAmJmRange(dateStart?: string, dateEnd?: string): Promise<ScAmJmRange[]>;
 
+  // Inventory Management methods
+  getAllInventory(platform?: string, businessUnit?: string): Promise<any[]>;
+  getInventoryById(id: number): Promise<any>;
+  createInventoryJioMartJmDaily(items: InsertInvJioMartJmDaily[]): Promise<InvJioMartJmDaily[]>;
+  createInventoryJioMartJmRange(items: InsertInvJioMartJmRange[]): Promise<InvJioMartJmRange[]>;
+  updateInventory(id: number, header: any, items: any): Promise<any>;
+  deleteInventory(id: number): Promise<void>;
 
 }
 
@@ -1507,6 +1522,47 @@ export class DatabaseStorage implements IStorage {
     return await db.insert(scBigBasketJmRange).values(items).returning();
   }
 
+  // Inventory Management methods
+  async getAllInventory(platform?: string, businessUnit?: string): Promise<any[]> {
+    // For now, return an empty array since we only support Jio Mart
+    // This can be expanded when more platforms are added
+    return [];
+  }
+
+  async getInventoryById(id: number): Promise<any> {
+    // Check both daily and range tables for Jio Mart inventory
+    const dailyResult = await db.select().from(invJioMartJmDaily).where(eq(invJioMartJmDaily.id, id));
+    if (dailyResult.length > 0) {
+      return { ...dailyResult[0], type: 'daily' };
+    }
+
+    const rangeResult = await db.select().from(invJioMartJmRange).where(eq(invJioMartJmRange.id, id));
+    if (rangeResult.length > 0) {
+      return { ...rangeResult[0], type: 'range' };
+    }
+
+    return undefined;
+  }
+
+  async createInventoryJioMartJmDaily(items: InsertInvJioMartJmDaily[]): Promise<InvJioMartJmDaily[]> {
+    return await db.insert(invJioMartJmDaily).values(items).returning();
+  }
+
+  async createInventoryJioMartJmRange(items: InsertInvJioMartJmRange[]): Promise<InvJioMartJmRange[]> {
+    return await db.insert(invJioMartJmRange).values(items).returning();
+  }
+
+  async updateInventory(id: number, header: any, items: any): Promise<any> {
+    // This would need to be implemented based on specific requirements
+    // For now, return a placeholder
+    throw new Error("Inventory update not yet implemented");
+  }
+
+  async deleteInventory(id: number): Promise<void> {
+    // Try to delete from both tables
+    await db.delete(invJioMartJmDaily).where(eq(invJioMartJmDaily.id, id));
+    await db.delete(invJioMartJmRange).where(eq(invJioMartJmRange.id, id));
+  }
 
 }
 

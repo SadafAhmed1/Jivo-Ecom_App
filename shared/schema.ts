@@ -1411,4 +1411,71 @@ export const insertBigBasketSecondarySalesItemSchema = createInsertSchema(scBigB
 export type BigBasketSecondarySalesItem = typeof scBigBasketJmDaily.$inferSelect;
 export type InsertBigBasketSecondarySalesItem = z.infer<typeof insertBigBasketSecondarySalesItemSchema>;
 
+// Jio Mart Inventory Tables
+export const invJioMartJmDaily = pgTable("INV_JioMart_JM_Daily", {
+  id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
+  report_date: timestamp("report_date").notNull(),
+  rfc_id: text("rfc_id"),
+  rfc_name: text("rfc_name"),
+  sku_id: text("sku_id").notNull(),
+  title: text("title"),
+  category: text("category"),
+  product_status: text("product_status"),
+  last_updated_at: timestamp("last_updated_at"),
+  total_sellable_inv: integer("total_sellable_inv"),
+  total_unsellable_inv: integer("total_unsellable_inv"),
+  fc_dmg_inv: integer("fc_dmg_inv"),
+  lsp_dmg_inv: integer("lsp_dmg_inv"),
+  cust_dmg_inv: integer("cust_dmg_inv"),
+  recvd_dmg: integer("recvd_dmg"),
+  expired_inv: integer("expired_inv"),
+  other_unsellable_inv: integer("other_unsellable_inv"),
+  mtd_fwd_intransit: integer("mtd_fwd_intransit"),
+  mtd_delvd_cust: integer("mtd_delvd_cust"),
+  mtd_ret_intransit: integer("mtd_ret_intransit"),
+  mtd_order_count: integer("mtd_order_count"),
+  attachment_path: text("attachment_path"),
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow()
+});
+
+export const invJioMartJmRange = pgTable("INV_JioMart_JM_Range", {
+  id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
+  period_start: timestamp("period_start").notNull(),
+  period_end: timestamp("period_end").notNull(),
+  rfc_id: text("rfc_id"),
+  rfc_name: text("rfc_name"),
+  sku_id: text("sku_id").notNull(),
+  title: text("title"),
+  category: text("category"),
+  product_status: text("product_status"),
+  last_updated_at: timestamp("last_updated_at"),
+  total_sellable_inv: integer("total_sellable_inv"),
+  total_unsellable_inv: integer("total_unsellable_inv"),
+  fc_dmg_inv: integer("fc_dmg_inv"),
+  lsp_dmg_inv: integer("lsp_dmg_inv"),
+  cust_dmg_inv: integer("cust_dmg_inv"),
+  recvd_dmg: integer("recvd_dmg"),
+  expired_inv: integer("expired_inv"),
+  other_unsellable_inv: integer("other_unsellable_inv"),
+  mtd_fwd_intransit: integer("mtd_fwd_intransit"),
+  mtd_delvd_cust: integer("mtd_delvd_cust"),
+  mtd_ret_intransit: integer("mtd_ret_intransit"),
+  mtd_order_count: integer("mtd_order_count"),
+  attachment_path: text("attachment_path"),
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow()
+});
+
+// Insert schemas for Jio Mart Inventory
+export const insertJioMartInventoryItemSchema = createInsertSchema(invJioMartJmDaily).omit({
+  id: true,
+  created_at: true,
+  updated_at: true
+});
+
+// Types for Jio Mart Inventory
+export type JioMartInventoryItem = typeof invJioMartJmDaily.$inferSelect;
+export type InsertJioMartInventoryItem = z.infer<typeof insertJioMartInventoryItemSchema>;
+
 
