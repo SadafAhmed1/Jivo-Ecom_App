@@ -1881,11 +1881,72 @@ export async function registerRoutes(app: Express): Promise<Server> {
             tableName = "SC_AM_JM_Range";
           }
         } else if (platform === "zepto") {
+          // Ensure all date fields are properly formatted for Zepto
+          const zeptoItemsWithDates = parsedData.items.map((item: any) => {
+            // Parse dates safely with multiple fallbacks
+            let itemDate = new Date();
+            if (item.date) {
+              let parsedDate = new Date(item.date);
+              if (isNaN(parsedDate.getTime())) {
+                parsedDate = new Date(item.date + 'T00:00:00.000Z');
+              }
+              if (isNaN(parsedDate.getTime()) && typeof item.date === 'string' && item.date.includes('-')) {
+                const [day, month, year] = item.date.split('-');
+                if (day && month && year) {
+                  parsedDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+                }
+              }
+              if (!isNaN(parsedDate.getTime())) {
+                itemDate = parsedDate;
+              }
+            }
+            
+            // Parse report date safely
+            let reportDate = new Date();
+            if ((parsedData as any).reportDate) {
+              const parsedReportDate = new Date((parsedData as any).reportDate);
+              if (!isNaN(parsedReportDate.getTime())) {
+                reportDate = parsedReportDate;
+              }
+            }
+            
+            return {
+              ...item,
+              date: itemDate,
+              report_date: reportDate
+            };
+          });
+
           if (businessUnit === "jivo-mart" && periodType === "daily") {
-            insertedItems = await storage.createScZeptoJmDaily(parsedData.items as any);
+            insertedItems = await storage.createScZeptoJmDaily(zeptoItemsWithDates as any);
             tableName = "SC_Zepto_JM_Daily";
           } else if (businessUnit === "jivo-mart" && periodType === "date-range") {
-            insertedItems = await storage.createScZeptoJmRange(parsedData.items as any);
+            // For date-range, also add period fields
+            const zeptoItemsWithPeriod = zeptoItemsWithDates.map(item => {
+              let periodStart = new Date();
+              let periodEnd = new Date();
+              
+              if ((parsedData as any).periodStart) {
+                const parsedPeriodStart = new Date((parsedData as any).periodStart);
+                if (!isNaN(parsedPeriodStart.getTime())) {
+                  periodStart = parsedPeriodStart;
+                }
+              }
+              
+              if ((parsedData as any).periodEnd) {
+                const parsedPeriodEnd = new Date((parsedData as any).periodEnd);
+                if (!isNaN(parsedPeriodEnd.getTime())) {
+                  periodEnd = parsedPeriodEnd;
+                }
+              }
+              
+              return {
+                ...item,
+                period_start: periodStart,
+                period_end: periodEnd
+              };
+            });
+            insertedItems = await storage.createScZeptoJmRange(zeptoItemsWithPeriod as any);
             tableName = "SC_Zepto_JM_Range";
           }
         } else if (platform === "blinkit") {
