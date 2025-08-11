@@ -77,8 +77,13 @@ export default function InventoryPage() {
       return response.json();
     },
     onSuccess: (data) => {
+      console.log("Preview success, data received:", data);
       setParsedData(data);
       setCurrentStep("preview");
+    },
+    onError: (error) => {
+      console.error("Preview error:", error);
+      alert(`Preview failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     },
   });
 
@@ -86,13 +91,9 @@ export default function InventoryPage() {
     mutationFn: async () => {
       if (!parsedData) throw new Error("No data to import");
 
-      return apiRequest({
-        url: "/api/inventory/import/jiomart",
-        method: "POST",
-        body: {
-          data: parsedData,
-          attachment_path: uploadedFile?.name || ""
-        }
+      return apiRequest("POST", "/api/inventory/import/jiomart", {
+        data: parsedData,
+        attachment_path: uploadedFile?.name || ""
       });
     },
     onSuccess: () => {
@@ -106,8 +107,18 @@ export default function InventoryPage() {
   });
 
   const handleFileUpload = async (file: File) => {
+    console.log("Uploading file:", file.name);
+    console.log("Selected period type:", selectedPeriodType);
+    console.log("Selected date:", selectedDate);
+    console.log("Selected start date:", selectedStartDate);
+    console.log("Selected end date:", selectedEndDate);
     setUploadedFile(file);
-    await previewMutation.mutateAsync(file);
+    try {
+      await previewMutation.mutateAsync(file);
+    } catch (error) {
+      console.error("File upload error:", error);
+      alert(`Upload failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
