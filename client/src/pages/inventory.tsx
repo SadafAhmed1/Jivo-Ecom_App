@@ -146,7 +146,7 @@ export default function InventoryPage() {
       formData.append("businessUnit", selectedBusinessUnit);
       formData.append("periodType", selectedPeriodType);
       
-      if (selectedPeriodType === "date-range") {
+      if (selectedPeriodType === "range") {
         formData.append("startDate", dateRange.startDate);
         formData.append("endDate", dateRange.endDate);
       }
@@ -579,7 +579,8 @@ export default function InventoryPage() {
 
       {/* Step 6: Preview Data */}
       {currentStep === "preview" && parsedData && (
-        <div className="space-y-6">
+        <div className="max-h-screen overflow-y-auto space-y-6 pb-20">
+          {/* Summary Cards */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
@@ -588,10 +589,14 @@ export default function InventoryPage() {
               </CardTitle>
               <CardDescription>
                 Review the inventory data before importing to {selectedPlatformData?.name} - {selectedBusinessUnitData?.name}
+                <br />
+                <span className="font-medium text-blue-600">
+                  Target Table: INV_JioMart_JM_{selectedPeriodType === 'daily' ? 'Daily' : 'Range'}
+                </span>
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div className="p-4 bg-blue-50 rounded-lg">
                   <div className="text-2xl font-bold text-blue-600">{parsedData.totalItems || 0}</div>
                   <div className="text-sm text-blue-600">Total Records</div>
@@ -609,28 +614,44 @@ export default function InventoryPage() {
                   <div className="text-sm text-yellow-600">In Transit</div>
                 </div>
               </div>
+            </CardContent>
+          </Card>
 
+          {/* Data Table */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Inventory Data Preview</CardTitle>
+              <CardDescription>
+                All {parsedData.items?.length || 0} inventory records from your file
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="p-0">
               {parsedData.items && parsedData.items.length > 0 && (
                 <div className="border rounded-lg overflow-hidden">
-                  <div className="overflow-x-auto">
+                  <div className="max-h-96 overflow-y-auto">
                     <Table>
-                      <TableHeader>
+                      <TableHeader className="sticky top-0 bg-white z-10">
                         <TableRow>
-                          <TableHead>SKU ID</TableHead>
-                          <TableHead>Title</TableHead>
-                          <TableHead>Category</TableHead>
-                          <TableHead>Status</TableHead>
-                          <TableHead className="text-right">Sellable</TableHead>
-                          <TableHead className="text-right">Unsellable</TableHead>
-                          <TableHead className="text-right">In Transit</TableHead>
+                          <TableHead className="w-32">RFC ID</TableHead>
+                          <TableHead className="w-40">SKU ID</TableHead>
+                          <TableHead className="min-w-[200px]">Title</TableHead>
+                          <TableHead className="w-32">Category</TableHead>
+                          <TableHead className="w-24">Status</TableHead>
+                          <TableHead className="text-right w-24">Sellable</TableHead>
+                          <TableHead className="text-right w-24">Unsellable</TableHead>
+                          <TableHead className="text-right w-24">In Transit</TableHead>
+                          <TableHead className="text-right w-24">Orders</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {parsedData.items.slice(0, 10).map((item, index) => (
-                          <TableRow key={index}>
-                            <TableCell className="font-mono text-sm">{item.sku_id}</TableCell>
-                            <TableCell className="max-w-[200px] truncate">{item.title}</TableCell>
-                            <TableCell>{item.category}</TableCell>
+                        {parsedData.items.map((item, index) => (
+                          <TableRow key={index} className="hover:bg-gray-50">
+                            <TableCell className="font-mono text-xs">{item.rfc_id}</TableCell>
+                            <TableCell className="font-mono text-xs">{item.sku_id}</TableCell>
+                            <TableCell className="max-w-[200px] truncate" title={item.title}>
+                              {item.title}
+                            </TableCell>
+                            <TableCell className="text-sm">{item.category}</TableCell>
                             <TableCell>
                               <span className={`px-2 py-1 text-xs rounded-full ${
                                 item.product_status === 'Active' 
@@ -640,53 +661,58 @@ export default function InventoryPage() {
                                 {item.product_status}
                               </span>
                             </TableCell>
-                            <TableCell className="text-right">{parseInt(item.total_sellable_inv || '0').toLocaleString()}</TableCell>
-                            <TableCell className="text-right">{parseInt(item.total_unsellable_inv || '0').toLocaleString()}</TableCell>
-                            <TableCell className="text-right">{parseInt(item.mtd_fwd_intransit || '0').toLocaleString()}</TableCell>
+                            <TableCell className="text-right text-sm">
+                              {parseInt(item.total_sellable_inv || '0').toLocaleString()}
+                            </TableCell>
+                            <TableCell className="text-right text-sm">
+                              {parseInt(item.total_unsellable_inv || '0').toLocaleString()}
+                            </TableCell>
+                            <TableCell className="text-right text-sm">
+                              {parseInt(item.mtd_fwd_intransit || '0').toLocaleString()}
+                            </TableCell>
+                            <TableCell className="text-right text-sm">
+                              {parseInt(item.mtd_order_count || '0').toLocaleString()}
+                            </TableCell>
                           </TableRow>
                         ))}
                       </TableBody>
                     </Table>
                   </div>
-                  {parsedData.items.length > 10 && (
-                    <div className="p-3 bg-gray-50 text-center text-sm text-gray-600 border-t">
-                      Showing first 10 of {parsedData.items.length} items
-                    </div>
-                  )}
                 </div>
               )}
-
-              <div className="flex justify-between mt-6">
-                <Button variant="outline" onClick={goBack} className="flex items-center space-x-2">
-                  <ArrowLeft className="w-4 h-4" />
-                  <span>Back</span>
-                </Button>
-                <div className="flex space-x-2">
-                  <Button variant="outline" onClick={resetToStart} className="flex items-center space-x-2">
-                    <RotateCcw className="w-4 h-4" />
-                    <span>Start Over</span>
-                  </Button>
-                  <Button
-                    onClick={() => importMutation.mutate()}
-                    disabled={importMutation.isPending}
-                    className="flex items-center space-x-2"
-                  >
-                    {importMutation.isPending ? (
-                      <>
-                        <div className="w-4 h-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                        <span>Importing...</span>
-                      </>
-                    ) : (
-                      <>
-                        <Package className="w-4 h-4" />
-                        <span>Import Data</span>
-                      </>
-                    )}
-                  </Button>
-                </div>
-              </div>
             </CardContent>
           </Card>
+
+          {/* Action Buttons */}
+          <div className="flex justify-between items-center pt-4">
+            <Button variant="outline" onClick={goBack} className="flex items-center space-x-2">
+              <ArrowLeft className="w-4 h-4" />
+              <span>Back</span>
+            </Button>
+            <div className="flex space-x-2">
+              <Button variant="outline" onClick={resetToStart} className="flex items-center space-x-2">
+                <RotateCcw className="w-4 h-4" />
+                <span>Start Over</span>
+              </Button>
+              <Button
+                onClick={() => importMutation.mutate()}
+                disabled={importMutation.isPending || !parsedData.items?.length}
+                className="bg-green-600 hover:bg-green-700 text-white flex items-center space-x-2"
+              >
+                {importMutation.isPending ? (
+                  <>
+                    <div className="w-4 h-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                    <span>Importing...</span>
+                  </>
+                ) : (
+                  <>
+                    <Database className="w-4 h-4" />
+                    <span>Import to Database</span>
+                  </>
+                )}
+              </Button>
+            </div>
+          </div>
         </div>
       )}
     </div>
