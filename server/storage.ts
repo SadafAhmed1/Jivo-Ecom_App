@@ -76,6 +76,8 @@ import {
   type InsertInvJioMartJmRange,
   type BlinkitInventoryItem,
   type InsertBlinkitInventoryItem,
+  type SwiggyInventoryItem,
+  type InsertSwiggyInventoryItem,
 
   type DistributorMst,
   type InsertDistributorMst,
@@ -133,6 +135,8 @@ import {
   invAmazonJmRange,
   invAmazonJwDaily,
   invAmazonJwRange,
+  invSwiggyJmDaily,
+  invSwiggyJmRange,
 
   distributorMst,
   distributorPo,
@@ -1586,14 +1590,12 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Swiggy Inventory JM Daily
-  async createInventorySwiggyJmDaily(items: any[]): Promise<any[]> {
-    const { invSwiggyJmDaily } = await import("@shared/schema");
+  async createInventorySwiggyJmDaily(items: any[]): Promise<SwiggyInventoryItem[]> {
     return await db.insert(invSwiggyJmDaily).values(items).returning();
   }
 
   // Swiggy Inventory JM Range
-  async createInventorySwiggyJmRange(items: any[]): Promise<any[]> {
-    const { invSwiggyJmRange } = await import("@shared/schema");
+  async createInventorySwiggyJmRange(items: any[]): Promise<SwiggyInventoryItem[]> {
     return await db.insert(invSwiggyJmRange).values(items).returning();
   }
 

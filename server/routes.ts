@@ -2591,11 +2591,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const { platform, businessUnit, periodType, reportDate, periodStart, periodEnd, fileHash } = req.body;
       
+      console.log("DEBUG: Inventory preview request for platform:", platform);
+      console.log("DEBUG: Full request body:", req.body);
+      
       if (!platform || !businessUnit || !periodType) {
         return res.status(400).json({ error: "Platform, business unit, and period type are required" });
       }
 
       if (!["jiomart", "blinkit", "amazon", "swiggy"].includes(platform)) {
+        console.log("DEBUG: Platform not supported:", platform, "- supported platforms:", ["jiomart", "blinkit", "amazon", "swiggy"]);
         return res.status(400).json({ error: "Currently only Jio Mart, Blinkit, Amazon, and Swiggy inventory are supported" });
       }
 
@@ -2680,6 +2684,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
             reportDate ? new Date(reportDate) : new Date(),
             periodStart ? new Date(periodStart) : null,
             periodEnd ? new Date(periodEnd) : null
+          );
+          
+          // Add attachment path to all items
+          const itemsWithAttachment = parsedData.items.map(item => ({
+            ...item,
+            attachment_path: attachmentPath
+          }));
+          
+          parsedData = {
+            ...parsedData,
+            items: itemsWithAttachment
+          };
+        } else if (platform === "swiggy") {
+          console.log("Processing Swiggy inventory preview...");
+          const { parseSwiggyInventoryCsv } = await import("./swiggy-inventory-parser");
+          parsedData = parseSwiggyInventoryCsv(
+            req.file.buffer.toString('utf8'),
+            businessUnit,
+            periodType,
+            reportDate ? new Date(reportDate) : undefined,
+            periodStart ? new Date(periodStart) : undefined,
+            periodEnd ? new Date(periodEnd) : undefined
           );
           
           // Add attachment path to all items
@@ -2785,6 +2811,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             periodEnd
           );
         } else if (platform === "swiggy") {
+          console.log("Processing Swiggy inventory file...");
           const { parseSwiggyInventoryCsv } = await import("./swiggy-inventory-parser");
           parsedData = parseSwiggyInventoryCsv(
             req.file.buffer.toString('utf8'),
@@ -2794,16 +2821,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             periodStart,
             periodEnd
           );
-        } else if (platform === "swiggy") {
-          const { parseSwiggyInventoryCsv } = await import("./swiggy-inventory-parser");
-          parsedData = parseSwiggyInventoryCsv(
-            req.file.buffer.toString('utf8'),
-            businessUnit,
-            periodType,
-            reportDate,
-            periodStart,
-            periodEnd
-          );
+          console.log("Swiggy parsing completed, data:", parsedData ? 'Success' : 'Failed');
         }
 
         if (!parsedData) {
