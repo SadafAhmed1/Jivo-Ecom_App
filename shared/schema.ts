@@ -7,7 +7,7 @@ import { relations } from "drizzle-orm";
 // File Upload Tracking Table for Duplicate Prevention
 export const fileUploadTracking = pgTable("file_upload_tracking", {
   id: serial("id").primaryKey(),
-  file_hash: varchar("file_hash", { length: 64 }).notNull().unique(),
+  file_hash: varchar("file_hash", { length: 64 }).notNull(),
   original_filename: text("original_filename").notNull(),
   platform: varchar("platform", { length: 50 }).notNull(),
   business_unit: varchar("business_unit", { length: 50 }).notNull(),

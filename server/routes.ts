@@ -1737,16 +1737,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
   async function trackFileUpload(fileHash: string, filename: string, platform: string, businessUnit: string, periodType: string, uploadType: string, fileSize: number): Promise<void> {
     try {
       const { fileUploadTracking } = await import("@shared/schema");
-      await db.insert(fileUploadTracking).values({
-        file_hash: fileHash,
-        original_filename: filename,
-        platform: platform,
-        business_unit: businessUnit,
-        period_type: periodType,
-        upload_type: uploadType,
-        file_size: fileSize,
-        uploader_info: 'system'
-      });
+      const { eq, and } = await import("drizzle-orm");
+      
+      // Check if this exact combination already exists
+      const existing = await db.select().from(fileUploadTracking)
+        .where(and(
+          eq(fileUploadTracking.file_hash, fileHash),
+          eq(fileUploadTracking.platform, platform),
+          eq(fileUploadTracking.business_unit, businessUnit),
+          eq(fileUploadTracking.period_type, periodType),
+          eq(fileUploadTracking.upload_type, uploadType)
+        ))
+        .limit(1);
+      
+      // Only insert if this exact combination doesn't exist
+      if (existing.length === 0) {
+        await db.insert(fileUploadTracking).values({
+          file_hash: fileHash,
+          original_filename: filename,
+          platform: platform,
+          business_unit: businessUnit,
+          period_type: periodType,
+          upload_type: uploadType,
+          file_size: fileSize,
+          uploader_info: 'system'
+        });
+      }
     } catch (error) {
       console.error("Error tracking file upload:", error);
       // Don't throw - file tracking is not critical to upload success
@@ -2622,9 +2638,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const isDuplicate = await checkForDuplicateInventoryFile(fileHash, platform, businessUnit, periodType);
         if (isDuplicate) {
           return res.status(409).json({ 
-            error: "Duplicate file detected", 
-            message: "This file has already been uploaded for this platform, business unit, and period type. Please upload a different file or check your previous uploads.",
-            fileHash: fileHash.substring(0, 8) + "..."
+            error: "Duplicate File Detected", 
+            message: `This exact file has already been uploaded for ${platform.charAt(0).toUpperCase() + platform.slice(1)} ${businessUnit.toUpperCase()} ${periodType} inventory preview. Please upload a different file or verify your data.`,
+            details: {
+              platform: platform.charAt(0).toUpperCase() + platform.slice(1),
+              businessUnit: businessUnit.toUpperCase(),
+              periodType: periodType.charAt(0).toUpperCase() + periodType.slice(1),
+              fileHash: fileHash.substring(0, 8) + "...",
+              uploadType: "Inventory Preview"
+            }
           });
         }
       }
@@ -2766,9 +2788,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const isDuplicate = await checkForDuplicateInventoryFile(fileHash, platform, businessUnit, periodType);
         if (isDuplicate) {
           return res.status(409).json({ 
-            error: "Duplicate file detected", 
-            message: "This file has already been uploaded for this platform, business unit, and period type. Please upload a different file or check your previous uploads.",
-            fileHash: fileHash.substring(0, 8) + "..."
+            error: "Duplicate File Detected", 
+            message: `This exact file has already been uploaded for ${platform.charAt(0).toUpperCase() + platform.slice(1)} ${businessUnit.toUpperCase()} ${periodType} inventory import. Please upload a different file or verify your data.`,
+            details: {
+              platform: platform.charAt(0).toUpperCase() + platform.slice(1),
+              businessUnit: businessUnit.toUpperCase(),
+              periodType: periodType.charAt(0).toUpperCase() + periodType.slice(1),
+              fileHash: fileHash.substring(0, 8) + "...",
+              uploadType: "Inventory Import"
+            }
           });
         }
       }

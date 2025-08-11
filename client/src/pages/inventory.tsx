@@ -203,10 +203,11 @@ export default function InventoryPage() {
 
       if (!response.ok) {
         const error = await response.json();
-        if (error.error === "Duplicate file detected") {
-          throw new Error(`Duplicate file: ${error.message}`);
-        }
-        throw new Error(error.error || "Failed to preview file");
+        
+        // Throw an error object with response details for better error handling
+        const errorObj = new Error(error.error || "Failed to preview file");
+        (errorObj as any).response = { status: response.status, data: error };
+        throw errorObj;
       }
 
       setUploadProgress(100);
@@ -223,15 +224,27 @@ export default function InventoryPage() {
         duration: 3000,
       });
     },
-    onError: (error) => {
+    onError: (error: any) => {
       setIsUploading(false);
       setUploadProgress(0);
-      toast({
-        title: "Failed to parse file",
-        description: error.message,
-        variant: "destructive",
-        duration: 5000,
-      });
+      
+      // Handle duplicate file detection with detailed error message
+      if (error.response?.status === 409) {
+        const errorData = error.response.data;
+        toast({
+          title: errorData.error || "Duplicate File Detected",
+          description: errorData.message || "This file has already been uploaded for this configuration.",
+          variant: "destructive",
+          duration: 8000,
+        });
+      } else {
+        toast({
+          title: "Failed to parse file",
+          description: error.message,
+          variant: "destructive",
+          duration: 5000,
+        });
+      }
     },
   });
 
@@ -267,10 +280,11 @@ export default function InventoryPage() {
 
       if (!response.ok) {
         const error = await response.json();
-        if (error.error === "Duplicate file detected") {
-          throw new Error(`Duplicate file: ${error.message}`);
-        }
-        throw new Error(error.error || "Failed to import data");
+        
+        // Throw an error object with response details for better error handling
+        const errorObj = new Error(error.error || "Failed to import data");
+        (errorObj as any).response = { status: response.status, data: error };
+        throw errorObj;
       }
 
       setUploadProgress(100);
@@ -290,12 +304,24 @@ export default function InventoryPage() {
     onError: (error: any) => {
       setIsUploading(false);
       setUploadProgress(0);
-      toast({
-        title: "Import failed",
-        description: error.message,
-        variant: "destructive",
-        duration: 5000,
-      });
+      
+      // Handle duplicate file detection with detailed error message
+      if (error.response?.status === 409) {
+        const errorData = error.response.data;
+        toast({
+          title: errorData.error || "Duplicate File Detected",
+          description: errorData.message || "This file has already been uploaded for this configuration.",
+          variant: "destructive",
+          duration: 8000,
+        });
+      } else {
+        toast({
+          title: "Import failed",
+          description: error.message,
+          variant: "destructive",
+          duration: 5000,
+        });
+      }
     }
   });
 
