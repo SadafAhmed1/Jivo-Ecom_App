@@ -73,29 +73,32 @@ export async function parseBlinkitInventoryCsv(
 
         // Process each record
         for (const record of records) {
+          // Cast record to any to handle dynamic property access
+          const recordData = record as any;
+          
           // Skip empty rows
-          if (!record.sku_id && !record.product_name) {
+          if (!recordData.sku_id && !recordData.product_name) {
             continue;
           }
 
           const item: BlinkitInventoryRow = {
-            sku_id: record.sku_id || record.SKU_ID || record['SKU ID'] || '',
-            product_name: record.product_name || record.Product_Name || record['Product Name'] || '',
-            category: record.category || record.Category || '',
-            subcategory: record.subcategory || record.Subcategory || record['Sub Category'] || '',
-            brand: record.brand || record.Brand || '',
-            size: record.size || record.Size || '',
-            unit: record.unit || record.Unit || '',
-            stock_on_hand: record.stock_on_hand || record.Stock_On_Hand || record['Stock on Hand'] || '0',
-            reserved_quantity: record.reserved_quantity || record.Reserved_Quantity || record['Reserved Quantity'] || '0',
-            available_quantity: record.available_quantity || record.Available_Quantity || record['Available Quantity'] || '0',
-            inbound_quantity: record.inbound_quantity || record.Inbound_Quantity || record['Inbound Quantity'] || '0',
-            outbound_quantity: record.outbound_quantity || record.Outbound_Quantity || record['Outbound Quantity'] || '0',
-            damaged_quantity: record.damaged_quantity || record.Damaged_Quantity || record['Damaged Quantity'] || '0',
-            expired_quantity: record.expired_quantity || record.Expired_Quantity || record['Expired Quantity'] || '0',
-            last_updated_at: record.last_updated_at || record.Last_Updated_At || record['Last Updated'] || '',
-            warehouse_location: record.warehouse_location || record.Warehouse_Location || record['Warehouse Location'] || '',
-            supplier_name: record.supplier_name || record.Supplier_Name || record['Supplier Name'] || ''
+            sku_id: recordData.sku_id || recordData.SKU_ID || recordData['SKU ID'] || '',
+            product_name: recordData.product_name || recordData.Product_Name || recordData['Product Name'] || '',
+            category: recordData.category || recordData.Category || '',
+            subcategory: recordData.subcategory || recordData.Subcategory || recordData['Sub Category'] || '',
+            brand: recordData.brand || recordData.Brand || '',
+            size: recordData.size || recordData.Size || '',
+            unit: recordData.unit || recordData.Unit || '',
+            stock_on_hand: recordData.stock_on_hand || recordData.Stock_On_Hand || recordData['Stock on Hand'] || '0',
+            reserved_quantity: recordData.reserved_quantity || recordData.Reserved_Quantity || recordData['Reserved Quantity'] || '0',
+            available_quantity: recordData.available_quantity || recordData.Available_Quantity || recordData['Available Quantity'] || '0',
+            inbound_quantity: recordData.inbound_quantity || recordData.Inbound_Quantity || recordData['Inbound Quantity'] || '0',
+            outbound_quantity: recordData.outbound_quantity || recordData.Outbound_Quantity || recordData['Outbound Quantity'] || '0',
+            damaged_quantity: recordData.damaged_quantity || recordData.Damaged_Quantity || recordData['Damaged Quantity'] || '0',
+            expired_quantity: recordData.expired_quantity || recordData.Expired_Quantity || recordData['Expired Quantity'] || '0',
+            last_updated_at: recordData.last_updated_at || recordData.Last_Updated_At || recordData['Last Updated'] || '',
+            warehouse_location: recordData.warehouse_location || recordData.Warehouse_Location || recordData['Warehouse Location'] || '',
+            supplier_name: recordData.supplier_name || recordData.Supplier_Name || recordData['Supplier Name'] || ''
           };
 
           items.push(item);

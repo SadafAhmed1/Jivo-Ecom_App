@@ -1,0 +1,6 @@
+sku_id,product_name,category,brand,size,unit,stock_on_hand,available_quantity,reserved_quantity,inbound_quantity,outbound_quantity,damaged_quantity,expired_quantity,warehouse_location,supplier_name
+BLK001,Jivo Cold Pressed Canola Oil,Oil & Ghee,Jivo,5L,Liters,100,85,15,20,5,2,1,Warehouse A,Jivo Wellness Pvt Ltd
+BLK002,Jivo Organic Coconut Oil,Oil & Ghee,Jivo,500ml,ml,75,60,10,15,8,3,2,Warehouse A,Jivo Wellness Pvt Ltd
+BLK003,Jivo Pure Mustard Oil,Oil & Ghee,Jivo,1L,Liters,150,120,20,25,10,4,3,Warehouse B,Jivo Wellness Pvt Ltd
+BLK004,Jivo Sesame Oil,Oil & Ghee,Jivo,250ml,ml,80,65,12,18,6,2,1,Warehouse A,Jivo Wellness Pvt Ltd
+BLK005,Jivo Almond Oil,Beauty & Personal Care,Jivo,100ml,ml,45,35,8,12,4,1,0,Warehouse C,Jivo Wellness Pvt Ltd
