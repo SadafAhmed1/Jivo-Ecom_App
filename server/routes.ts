@@ -2204,11 +2204,68 @@ export async function registerRoutes(app: Express): Promise<Server> {
             tableName = "SC_Swiggy_JM_Range";
           }
         } else if (platform === "jiomartsale") {
+          // Process JioMartSale data with proper date handling
+          const jioMartSaleItemsWithDates = (parsedData as any).items.map((item: any) => {
+            // Parse report date safely
+            let reportDate = new Date();
+            if ((parsedData as any).reportDate) {
+              const parsedReportDate = new Date((parsedData as any).reportDate);
+              if (!isNaN(parsedReportDate.getTime())) {
+                reportDate = parsedReportDate;
+              }
+            }
+
+            // Parse date fields safely
+            const parseJioMartDate = (dateStr: string): Date | null => {
+              if (!dateStr || dateStr.trim() === '') return null;
+              try {
+                const cleanStr = dateStr.replace(/\s*\+\d{4}$/, ''); // Remove timezone
+                const date = new Date(cleanStr);
+                return isNaN(date.getTime()) ? null : date;
+              } catch {
+                return null;
+              }
+            };
+
+            return {
+              ...item,
+              report_date: reportDate,
+              shipment_created_at: parseJioMartDate(item.shipment_created_at),
+              accepted_at: parseJioMartDate(item.accepted_at),
+              acceptance_tat_date_time: parseJioMartDate(item.acceptance_tat_date_time)
+            };
+          });
+
           if (businessUnit === "jivo-mart" && periodType === "daily") {
-            insertedItems = await storage.createScJioMartSaleJmDaily(parsedData.items as any);
+            insertedItems = await storage.createScJioMartSaleJmDaily(jioMartSaleItemsWithDates as any);
             tableName = "SC_JioMartSale_JM_Daily";
           } else if (businessUnit === "jivo-mart" && periodType === "date-range") {
-            insertedItems = await storage.createScJioMartSaleJmRange(parsedData.items as any);
+            // For date-range, also add period fields
+            const jioMartSaleItemsWithPeriod = jioMartSaleItemsWithDates.map(item => {
+              let periodStart = new Date();
+              let periodEnd = new Date();
+              
+              if ((parsedData as any).periodStart) {
+                const parsedPeriodStart = new Date((parsedData as any).periodStart);
+                if (!isNaN(parsedPeriodStart.getTime())) {
+                  periodStart = parsedPeriodStart;
+                }
+              }
+              
+              if ((parsedData as any).periodEnd) {
+                const parsedPeriodEnd = new Date((parsedData as any).periodEnd);
+                if (!isNaN(parsedPeriodEnd.getTime())) {
+                  periodEnd = parsedPeriodEnd;
+                }
+              }
+              
+              return {
+                ...item,
+                period_start: periodStart,
+                period_end: periodEnd
+              };
+            });
+            insertedItems = await storage.createScJioMartSaleJmRange(jioMartSaleItemsWithPeriod as any);
             tableName = "SC_JioMartSale_JM_Range";
           }
         }
