@@ -24,6 +24,7 @@ import ViewBlinkitPos from "./pages/ViewBlinkitPos";
 import SwiggyUpload from "./pages/SwiggyUpload";
 import UnifiedPoUpload from "@/pages/unified-po-upload";
 import SapSync from "@/pages/sap-sync";
+import SqlQuery from "@/pages/SqlQuery";
 import DistributorPO from "@/pages/distributor-po";
 import SecondarySales from "@/pages/secondary-sales";
 import Inventory from "@/pages/inventory";
@@ -66,6 +67,7 @@ function Router() {
           <Route path="/distributor-po" component={DistributorPO} />
           <Route path="/secondary-sales" component={SecondarySales} />
           <Route path="/inventory" component={Inventory} />
+          <Route path="/sql-query" component={SqlQuery} />
 
           <Route component={NotFound} />
         </Switch>

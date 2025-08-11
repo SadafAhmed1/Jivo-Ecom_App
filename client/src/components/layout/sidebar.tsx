@@ -7,7 +7,8 @@ import {
   Package, 
   Store, 
   User,
-  Database
+  Database,
+  Terminal
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -61,6 +62,13 @@ const navigation: NavigationItem[] = [
     icon: Database,
     active: true,
     description: "Sync item master data from SAP B1 Hanna ERP"
+  },
+  {
+    name: "SQL Query",
+    href: "/sql-query",
+    icon: Terminal,
+    active: true,
+    description: "Execute custom SQL queries and generate reports"
   }
 ];
 

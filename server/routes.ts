@@ -22,6 +22,7 @@ import { parseJioMartInventoryCsv } from "./jiomart-inventory-parser";
 import { parseBlinkitInventoryCsv } from "./blinkit-inventory-parser";
 import { parseAmazonInventoryFile } from "./amazon-inventory-parser";
 import { db } from "./db";
+import { sql } from "drizzle-orm";
 import { 
   scAmJwDaily, scAmJwRange, scAmJmDaily, scAmJmRange,
   scZeptoJmDaily, scZeptoJmRange, 
@@ -3198,6 +3199,76 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.sendStatus(404);
       }
       return res.sendStatus(500);
+    }
+  });
+
+  // SQL Query endpoints
+  app.get('/api/sql-query/tables', async (req, res) => {
+    try {
+      const result = await db.execute(sql`
+        SELECT table_name 
+        FROM information_schema.tables 
+        WHERE table_schema = 'public' 
+        AND table_type = 'BASE TABLE'
+        ORDER BY table_name;
+      `);
+      
+      const tables = result.rows.map((row: any) => row.table_name);
+      res.json(tables);
+    } catch (error) {
+      console.error('Error fetching tables:', error);
+      res.status(500).json({ error: 'Failed to fetch database tables' });
+    }
+  });
+
+  app.post('/api/sql-query/execute', async (req, res) => {
+    try {
+      const { query } = req.body;
+
+      if (!query || typeof query !== 'string') {
+        return res.status(400).json({ error: 'Query is required and must be a string' });
+      }
+
+      // Security: Only allow SELECT statements
+      const trimmedQuery = query.trim().toLowerCase();
+      if (!trimmedQuery.startsWith('select')) {
+        return res.status(400).json({ 
+          error: 'Only SELECT statements are allowed for security reasons' 
+        });
+      }
+
+      // Prevent dangerous keywords
+      const dangerousKeywords = ['drop', 'delete', 'update', 'insert', 'alter', 'create', 'truncate'];
+      for (const keyword of dangerousKeywords) {
+        if (trimmedQuery.includes(keyword)) {
+          return res.status(400).json({ 
+            error: `Query contains forbidden keyword: ${keyword.toUpperCase()}` 
+          });
+        }
+      }
+
+      const startTime = performance.now();
+      const result = await db.execute(sql.raw(query));
+      const executionTime = Math.round(performance.now() - startTime);
+
+      // Format results for frontend consumption
+      const columns = result.fields ? result.fields.map(field => field.name) : [];
+      const rows = result.rows.map(row => 
+        columns.map(col => row[col] ?? null)
+      );
+
+      res.json({
+        columns,
+        rows,
+        rowCount: result.rows.length,
+        executionTime
+      });
+
+    } catch (error: any) {
+      console.error('SQL Query execution error:', error);
+      res.status(400).json({ 
+        error: error.message || 'Query execution failed' 
+      });
     }
   });
 
