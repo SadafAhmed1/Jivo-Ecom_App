@@ -4,6 +4,20 @@ import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 import { relations } from "drizzle-orm";
 
+// File Upload Tracking Table for Duplicate Prevention
+export const fileUploadTracking = pgTable("file_upload_tracking", {
+  id: serial("id").primaryKey(),
+  file_hash: varchar("file_hash", { length: 64 }).notNull().unique(),
+  original_filename: text("original_filename").notNull(),
+  platform: varchar("platform", { length: 50 }).notNull(),
+  business_unit: varchar("business_unit", { length: 50 }).notNull(),
+  period_type: varchar("period_type", { length: 20 }).notNull(),
+  upload_type: varchar("upload_type", { length: 50 }).notNull(), // 'inventory', 'secondary-sales', 'po'
+  uploaded_at: timestamp("uploaded_at").defaultNow(),
+  file_size: integer("file_size"),
+  uploader_info: text("uploader_info")
+});
+
 // SAP Item Master Table
 export const sapItemMst = pgTable("sap_item_mst", {
   id: integer("id").primaryKey().generatedByDefaultAsIdentity(),

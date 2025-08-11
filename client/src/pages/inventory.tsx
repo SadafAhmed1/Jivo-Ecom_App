@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { useToast } from "@/hooks/use-toast";
 import { 
   ArrowLeft, 
@@ -18,7 +19,10 @@ import {
   Package,
   TrendingUp,
   Boxes,
-  AlertTriangle
+  AlertTriangle,
+  Menu,
+  CheckCircle2,
+  XCircle
 } from "lucide-react";
 import { format } from "date-fns";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -116,7 +120,31 @@ export default function InventoryPage() {
   const [file, setFile] = useState<File | null>(null);
   const [parsedData, setParsedData] = useState<ParsedInventoryData | null>(null);
   const [dragActive, setDragActive] = useState(false);
+  const [fileHash, setFileHash] = useState<string>("");
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [isMobile, setIsMobile] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const { toast } = useToast();
+
+  // Check for mobile view
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  // Generate file hash for duplicate detection
+  const generateFileHash = async (file: File): Promise<string> => {
+    const buffer = await file.arrayBuffer();
+    const hashBuffer = await crypto.subtle.digest('SHA-256', buffer);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  };
 
   const selectedPlatformData = PLATFORMS.find((p) => p.id === selectedPlatform);
   const selectedBusinessUnitData = BUSINESS_UNITS.find((bu) => bu.id === selectedBusinessUnit);
@@ -132,42 +160,65 @@ export default function InventoryPage() {
 
   const previewMutation = useMutation({
     mutationFn: async (file: File) => {
+      setIsUploading(true);
+      setUploadProgress(10);
+      
+      // Generate file hash for duplicate detection
+      const hash = await generateFileHash(file);
+      setFileHash(hash);
+      setUploadProgress(30);
+      
       const formData = new FormData();
       formData.append("file", file);
       formData.append("platform", selectedPlatform);
       formData.append("businessUnit", selectedBusinessUnit);
       formData.append("periodType", selectedPeriodType);
+      formData.append("fileHash", hash);
       
       if (selectedPeriodType === "range") {
         formData.append("periodStart", dateRange.startDate);
         formData.append("periodEnd", dateRange.endDate);
       }
 
+      setUploadProgress(60);
+
       const response = await fetch("/api/inventory/preview", {
         method: "POST",
         body: formData,
       });
 
+      setUploadProgress(80);
+
       if (!response.ok) {
         const error = await response.json();
+        if (error.error === "Duplicate file detected") {
+          throw new Error(`Duplicate file: ${error.message}`);
+        }
         throw new Error(error.error || "Failed to preview file");
       }
 
+      setUploadProgress(100);
       return response.json();
     },
     onSuccess: (data) => {
       setParsedData(data);
       setCurrentStep("preview");
+      setIsUploading(false);
+      setUploadProgress(0);
       toast({
         title: "File parsed successfully",
         description: `Found ${data.totalItems || 0} items`,
+        duration: 3000,
       });
     },
     onError: (error) => {
+      setIsUploading(false);
+      setUploadProgress(0);
       toast({
         title: "Failed to parse file",
         description: error.message,
         variant: "destructive",
+        duration: 5000,
       });
     },
   });
@@ -178,42 +229,60 @@ export default function InventoryPage() {
         throw new Error("Missing required data");
       }
 
+      setIsUploading(true);
+      setUploadProgress(10);
+
       const formData = new FormData();
       formData.append("file", file);
       formData.append("platform", selectedPlatform);
       formData.append("businessUnit", selectedBusinessUnit);
       formData.append("periodType", selectedPeriodType);
+      formData.append("fileHash", fileHash);
       
       if (selectedPeriodType === "range") {
         formData.append("startDate", dateRange.startDate);
         formData.append("endDate", dateRange.endDate);
       }
 
+      setUploadProgress(50);
+
       const response = await fetch("/api/inventory/import", {
         method: "POST",
         body: formData,
       });
 
+      setUploadProgress(80);
+
       if (!response.ok) {
         const error = await response.json();
+        if (error.error === "Duplicate file detected") {
+          throw new Error(`Duplicate file: ${error.message}`);
+        }
         throw new Error(error.error || "Failed to import data");
       }
 
+      setUploadProgress(100);
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      setIsUploading(false);
+      setUploadProgress(0);
       queryClient.invalidateQueries({ queryKey: ["/api/inventory"] });
       toast({
-        title: "Success",
-        description: "Inventory data imported successfully!",
+        title: "Data imported successfully",
+        description: `Imported ${data.importedCount || 0} items to ${data.targetTable}`,
+        duration: 4000,
       });
       resetToStart();
     },
     onError: (error: any) => {
+      setIsUploading(false);
+      setUploadProgress(0);
       toast({
         title: "Import failed",
         description: error.message,
         variant: "destructive",
+        duration: 5000,
       });
     }
   });
@@ -282,79 +351,197 @@ export default function InventoryPage() {
     }
   };
 
+  // Mobile sidebar navigation content
+  const SidebarContent = () => (
+    <div className="p-4 h-full bg-gray-50">
+      <div className="mb-6">
+        <h2 className="text-lg font-semibold text-gray-900">Navigation</h2>
+        <p className="text-sm text-gray-600">Inventory workflow steps</p>
+      </div>
+      
+      {/* Progress in sidebar */}
+      <div className="space-y-4">
+        <div className={`flex items-center space-x-3 p-3 rounded-lg ${currentStep === "platform" ? "bg-blue-100 text-blue-700" : "bg-white"}`}>
+          <div className="w-6 h-6 rounded-full bg-blue-500 text-white text-xs flex items-center justify-center">1</div>
+          <span className="font-medium">Platform</span>
+          {selectedPlatform && <CheckCircle2 className="w-4 h-4 text-green-500" />}
+        </div>
+        
+        <div className={`flex items-center space-x-3 p-3 rounded-lg ${currentStep === "business-unit" ? "bg-blue-100 text-blue-700" : "bg-white"}`}>
+          <div className="w-6 h-6 rounded-full bg-blue-500 text-white text-xs flex items-center justify-center">2</div>
+          <span className="font-medium">Business Unit</span>
+          {selectedBusinessUnit && <CheckCircle2 className="w-4 h-4 text-green-500" />}
+        </div>
+        
+        <div className={`flex items-center space-x-3 p-3 rounded-lg ${currentStep === "period-type" ? "bg-blue-100 text-blue-700" : "bg-white"}`}>
+          <div className="w-6 h-6 rounded-full bg-blue-500 text-white text-xs flex items-center justify-center">3</div>
+          <span className="font-medium">Period Type</span>
+          {selectedPeriodType && <CheckCircle2 className="w-4 h-4 text-green-500" />}
+        </div>
+        
+        <div className={`flex items-center space-x-3 p-3 rounded-lg ${currentStep === "range" ? "bg-blue-100 text-blue-700" : "bg-white"}`}>
+          <div className="w-6 h-6 rounded-full bg-blue-500 text-white text-xs flex items-center justify-center">4</div>
+          <span className="font-medium">Date Range</span>
+          {(selectedPeriodType === "daily" || (dateRange.startDate && dateRange.endDate)) && <CheckCircle2 className="w-4 h-4 text-green-500" />}
+        </div>
+        
+        <div className={`flex items-center space-x-3 p-3 rounded-lg ${currentStep === "upload" ? "bg-blue-100 text-blue-700" : "bg-white"}`}>
+          <div className="w-6 h-6 rounded-full bg-blue-500 text-white text-xs flex items-center justify-center">5</div>
+          <span className="font-medium">Upload</span>
+          {file && <CheckCircle2 className="w-4 h-4 text-green-500" />}
+        </div>
+        
+        <div className={`flex items-center space-x-3 p-3 rounded-lg ${currentStep === "preview" ? "bg-blue-100 text-blue-700" : "bg-white"}`}>
+          <div className="w-6 h-6 rounded-full bg-blue-500 text-white text-xs flex items-center justify-center">6</div>
+          <span className="font-medium">Preview</span>
+          {parsedData && <CheckCircle2 className="w-4 h-4 text-green-500" />}
+        </div>
+      </div>
+      
+      {/* Upload progress */}
+      {isUploading && (
+        <div className="mt-6 p-4 bg-blue-50 rounded-lg">
+          <div className="flex items-center space-x-2 mb-2">
+            <Upload className="w-4 h-4 text-blue-600" />
+            <span className="text-sm font-medium text-blue-900">Uploading...</span>
+          </div>
+          <div className="w-full bg-blue-200 rounded-full h-2">
+            <div 
+              className="bg-blue-600 h-2 rounded-full transition-all duration-300" 
+              style={{ width: `${uploadProgress}%` }}
+            ></div>
+          </div>
+          <p className="text-xs text-blue-700 mt-1">{uploadProgress}% complete</p>
+        </div>
+      )}
+    </div>
+  );
+
   return (
     <div className="container mx-auto p-4 sm:p-6 max-w-6xl">
-      <div className="mb-6 sm:mb-8">
-        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">Inventory Management</h1>
-        <p className="text-sm sm:text-base text-gray-600">
-          Upload and manage inventory data with step-by-step workflow
-        </p>
+      {/* Mobile header with hamburger menu */}
+      <div className="flex items-center justify-between mb-6 sm:mb-8">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">Inventory Management</h1>
+          <p className="text-sm sm:text-base text-gray-600">
+            Upload and manage inventory data with step-by-step workflow
+          </p>
+        </div>
+        
+        {/* Mobile menu button */}
+        {isMobile && (
+          <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
+            <SheetTrigger asChild>
+              <Button variant="outline" size="icon" className="lg:hidden">
+                <Menu className="h-4 w-4" />
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="left" className="w-80">
+              <SheetHeader>
+                <SheetTitle>Inventory Workflow</SheetTitle>
+              </SheetHeader>
+              <SidebarContent />
+            </SheetContent>
+          </Sheet>
+        )}
       </div>
 
-      {/* Progress Steps */}
-      <div className="mb-6 sm:mb-8">
-        <div className="flex flex-wrap items-center justify-between space-y-2 sm:space-y-0 bg-white p-4 rounded-lg border">
-          {/* Step 1: Platform */}
-          <div className="flex items-center space-x-2">
-            <div className={`flex items-center space-x-2 ${currentStep === "platform" ? "text-blue-600" : ["business-unit", "period-type", "range", "upload", "preview"].includes(currentStep) ? "text-green-600" : "text-gray-400"}`}>
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${currentStep === "platform" ? "bg-blue-100 text-blue-600" : ["business-unit", "period-type", "range", "upload", "preview"].includes(currentStep) ? "bg-green-100 text-green-600" : "bg-gray-100"}`}>
-                1
+      {/* Progress Steps - Hidden on mobile, shown on desktop */}
+      {!isMobile && (
+        <div className="mb-6 sm:mb-8">
+          <div className="flex flex-wrap items-center justify-between space-y-2 sm:space-y-0 bg-white p-4 rounded-lg border">
+            {/* Step 1: Platform */}
+            <div className="flex items-center space-x-2">
+              <div className={`flex items-center space-x-2 ${currentStep === "platform" ? "text-blue-600" : ["business-unit", "period-type", "range", "upload", "preview"].includes(currentStep) ? "text-green-600" : "text-gray-400"}`}>
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${currentStep === "platform" ? "bg-blue-100 text-blue-600" : ["business-unit", "period-type", "range", "upload", "preview"].includes(currentStep) ? "bg-green-100 text-green-600" : "bg-gray-100"}`}>
+                  1
+                </div>
+                <span className="text-sm font-medium">Platform</span>
               </div>
-              <span className="text-sm font-medium">Platform</span>
             </div>
-          </div>
 
-          {/* Step 2: Business Unit */}
-          <div className="flex items-center space-x-2">
-            <div className={`flex items-center space-x-2 ${currentStep === "business-unit" ? "text-blue-600" : ["period-type", "range", "upload", "preview"].includes(currentStep) ? "text-green-600" : "text-gray-400"}`}>
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${currentStep === "business-unit" ? "bg-blue-100 text-blue-600" : ["period-type", "range", "upload", "preview"].includes(currentStep) ? "bg-green-100 text-green-600" : "bg-gray-100"}`}>
-                2
+            {/* Step 2: Business Unit */}
+            <div className="flex items-center space-x-2">
+              <div className={`flex items-center space-x-2 ${currentStep === "business-unit" ? "text-blue-600" : ["period-type", "range", "upload", "preview"].includes(currentStep) ? "text-green-600" : "text-gray-400"}`}>
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${currentStep === "business-unit" ? "bg-blue-100 text-blue-600" : ["period-type", "range", "upload", "preview"].includes(currentStep) ? "bg-green-100 text-green-600" : "bg-gray-100"}`}>
+                  2
+                </div>
+                <span className="text-sm font-medium">Business Unit</span>
               </div>
-              <span className="text-sm font-medium">Business Unit</span>
             </div>
-          </div>
 
-          {/* Step 3: Period Type */}
-          <div className="flex items-center space-x-2">
-            <div className={`flex items-center space-x-2 ${currentStep === "period-type" ? "text-blue-600" : ["range", "upload", "preview"].includes(currentStep) ? "text-green-600" : "text-gray-400"}`}>
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${currentStep === "period-type" ? "bg-blue-100 text-blue-600" : ["range", "upload", "preview"].includes(currentStep) ? "bg-green-100 text-green-600" : "bg-gray-100"}`}>
-                3
+            {/* Step 3: Period Type */}
+            <div className="flex items-center space-x-2">
+              <div className={`flex items-center space-x-2 ${currentStep === "period-type" ? "text-blue-600" : ["range", "upload", "preview"].includes(currentStep) ? "text-green-600" : "text-gray-400"}`}>
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${currentStep === "period-type" ? "bg-blue-100 text-blue-600" : ["range", "upload", "preview"].includes(currentStep) ? "bg-green-100 text-green-600" : "bg-gray-100"}`}>
+                  3
+                </div>
+                <span className="text-sm font-medium">Period Type</span>
               </div>
-              <span className="text-sm font-medium">Period Type</span>
             </div>
-          </div>
 
-          {/* Step 4: Date Range */}
-          <div className="flex items-center space-x-2">
-            <div className={`flex items-center space-x-2 ${currentStep === "range" ? "text-blue-600" : ["upload", "preview"].includes(currentStep) ? "text-green-600" : "text-gray-400"}`}>
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${currentStep === "range" ? "bg-blue-100 text-blue-600" : ["upload", "preview"].includes(currentStep) ? "bg-green-100 text-green-600" : "bg-gray-100"}`}>
-                4
+            {/* Step 4: Date Range */}
+            <div className="flex items-center space-x-2">
+              <div className={`flex items-center space-x-2 ${currentStep === "range" ? "text-blue-600" : ["upload", "preview"].includes(currentStep) ? "text-green-600" : "text-gray-400"}`}>
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${currentStep === "range" ? "bg-blue-100 text-blue-600" : ["upload", "preview"].includes(currentStep) ? "bg-green-100 text-green-600" : "bg-gray-100"}`}>
+                  4
+                </div>
+                <span className="text-sm font-medium">Date Range</span>
               </div>
-              <span className="text-sm font-medium">Date Range</span>
             </div>
-          </div>
 
-          {/* Step 5: Upload */}
-          <div className="flex items-center space-x-2">
-            <div className={`flex items-center space-x-2 ${currentStep === "upload" ? "text-blue-600" : currentStep === "preview" ? "text-green-600" : "text-gray-400"}`}>
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${currentStep === "upload" ? "bg-blue-100 text-blue-600" : currentStep === "preview" ? "bg-green-100 text-green-600" : "bg-gray-100"}`}>
-                5
+            {/* Step 5: Upload */}
+            <div className="flex items-center space-x-2">
+              <div className={`flex items-center space-x-2 ${currentStep === "upload" ? "text-blue-600" : currentStep === "preview" ? "text-green-600" : "text-gray-400"}`}>
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${currentStep === "upload" ? "bg-blue-100 text-blue-600" : currentStep === "preview" ? "bg-green-100 text-green-600" : "bg-gray-100"}`}>
+                  5
+                </div>
+                <span className="text-sm font-medium">Upload</span>
               </div>
-              <span className="text-sm font-medium">Upload</span>
             </div>
-          </div>
 
-          {/* Step 6: Preview */}
-          <div className="flex items-center space-x-2">
-            <div className={`flex items-center space-x-2 ${currentStep === "preview" ? "text-blue-600" : "text-gray-400"}`}>
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${currentStep === "preview" ? "bg-blue-100 text-blue-600" : "bg-gray-100"}`}>
-                6
+            {/* Step 6: Preview */}
+            <div className="flex items-center space-x-2">
+              <div className={`flex items-center space-x-2 ${currentStep === "preview" ? "text-blue-600" : "text-gray-400"}`}>
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${currentStep === "preview" ? "bg-blue-100 text-blue-600" : "bg-gray-100"}`}>
+                  6
+                </div>
+                <span className="text-sm font-medium">Preview</span>
               </div>
-              <span className="text-sm font-medium">Preview</span>
             </div>
           </div>
         </div>
-      </div>
+      )}
+
+      {/* Mobile progress indicator */}
+      {isMobile && (
+        <div className="mb-6">
+          <div className="bg-white p-4 rounded-lg border">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <div className="w-6 h-6 rounded-full bg-blue-500 text-white text-xs flex items-center justify-center">
+                  {currentStep === "platform" ? "1" : currentStep === "business-unit" ? "2" : currentStep === "period-type" ? "3" : currentStep === "range" ? "4" : currentStep === "upload" ? "5" : "6"}
+                </div>
+                <span className="text-sm font-medium capitalize">{currentStep.replace("-", " ")}</span>
+              </div>
+              {isUploading && (
+                <div className="flex items-center space-x-2">
+                  <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                  <span className="text-xs text-blue-600">{uploadProgress}%</span>
+                </div>
+              )}
+            </div>
+            {isUploading && (
+              <div className="mt-2 w-full bg-gray-200 rounded-full h-1">
+                <div 
+                  className="bg-blue-600 h-1 rounded-full transition-all duration-300" 
+                  style={{ width: `${uploadProgress}%` }}
+                ></div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Step 1: Platform Selection */}
       {currentStep === "platform" && (

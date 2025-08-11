@@ -99,6 +99,9 @@ const upload = multer({
   limits: { fileSize: 5 * 1024 * 1024 } // 5MB limit
 });
 
+// Import crypto for file hashing
+import crypto from 'crypto';
+
 export async function registerRoutes(app: Express): Promise<Server> {
   // Platform routes
   app.get("/api/platforms", async (_req, res) => {
@@ -1730,6 +1733,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
     return hash.digest('hex');
   }
 
+  // Helper function to track file upload
+  async function trackFileUpload(fileHash: string, filename: string, platform: string, businessUnit: string, periodType: string, uploadType: string, fileSize: number): Promise<void> {
+    try {
+      const { fileUploadTracking } = await import("@shared/schema");
+      await db.insert(fileUploadTracking).values({
+        file_hash: fileHash,
+        original_filename: filename,
+        platform: platform,
+        business_unit: businessUnit,
+        period_type: periodType,
+        upload_type: uploadType,
+        file_size: fileSize,
+        uploader_info: 'system'
+      });
+    } catch (error) {
+      console.error("Error tracking file upload:", error);
+      // Don't throw - file tracking is not critical to upload success
+    }
+  }
+
+  // Helper function to check for duplicate inventory files
+  async function checkForDuplicateInventoryFile(fileHash: string, platform: string, businessUnit: string, periodType: string): Promise<boolean> {
+    try {
+      const { fileUploadTracking } = await import("@shared/schema");
+      const { eq, and } = await import("drizzle-orm");
+      
+      const existingFile = await db.select().from(fileUploadTracking)
+        .where(and(
+          eq(fileUploadTracking.file_hash, fileHash),
+          eq(fileUploadTracking.platform, platform),
+          eq(fileUploadTracking.business_unit, businessUnit),
+          eq(fileUploadTracking.period_type, periodType),
+          eq(fileUploadTracking.upload_type, 'inventory')
+        ))
+        .limit(1);
+      
+      return existingFile.length > 0;
+    } catch (error) {
+      console.error("Error checking for duplicate inventory file:", error);
+      return false; // If check fails, allow upload to proceed
+    }
+  }
+
   // Helper function to check for duplicate files
   async function checkForDuplicateFile(fileHash: string, platform: string, businessUnit: string, periodType: string): Promise<boolean> {
     try {
@@ -2543,7 +2589,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "No file uploaded" });
       }
 
-      const { platform, businessUnit, periodType, reportDate, periodStart, periodEnd } = req.body;
+      const { platform, businessUnit, periodType, reportDate, periodStart, periodEnd, fileHash } = req.body;
       
       if (!platform || !businessUnit || !periodType) {
         return res.status(400).json({ error: "Platform, business unit, and period type are required" });
@@ -2565,6 +2611,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       if (!["daily", "range"].includes(periodType)) {
         return res.status(400).json({ error: "Period type must be either daily or range" });
+      }
+
+      // Check for duplicate file if hash is provided
+      if (fileHash) {
+        const isDuplicate = await checkForDuplicateInventoryFile(fileHash, platform, businessUnit, periodType);
+        if (isDuplicate) {
+          return res.status(409).json({ 
+            error: "Duplicate file detected", 
+            message: "This file has already been uploaded for this platform, business unit, and period type. Please upload a different file or check your previous uploads.",
+            fileHash: fileHash.substring(0, 8) + "..."
+          });
+        }
       }
 
       // Store the file for attachment
@@ -2667,7 +2725,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "No file uploaded" });
       }
 
-      const { platform, businessUnit, periodType, startDate, endDate } = req.body;
+      const { platform, businessUnit, periodType, startDate, endDate, fileHash } = req.body;
 
       if (!platform || !businessUnit || !periodType) {
         return res.status(400).json({ error: "Missing required fields" });
@@ -2675,6 +2733,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       if (!["daily", "range"].includes(periodType)) {
         return res.status(400).json({ error: "Period type must be either daily or range" });
+      }
+
+      // Check for duplicate file if hash is provided
+      if (fileHash) {
+        const isDuplicate = await checkForDuplicateInventoryFile(fileHash, platform, businessUnit, periodType);
+        if (isDuplicate) {
+          return res.status(409).json({ 
+            error: "Duplicate file detected", 
+            message: "This file has already been uploaded for this platform, business unit, and period type. Please upload a different file or check your previous uploads.",
+            fileHash: fileHash.substring(0, 8) + "..."
+          });
+        }
       }
 
       // Store the file for attachment
@@ -2778,13 +2848,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(400).json({ error: "Invalid business unit and period type combination" });
         }
 
+        // Track successful file upload if hash is provided
+        if (fileHash) {
+          await trackFileUpload(
+            fileHash, 
+            req.file.originalname, 
+            platform, 
+            businessUnit, 
+            periodType, 
+            'inventory', 
+            req.file.size
+          );
+        }
+
         res.status(201).json({
           success: true,
           platform,
           businessUnit,
           periodType,
-          tableName,
-          totalItems: insertedItems.length,
+          targetTable: tableName,
+          importedCount: insertedItems.length,
           summary: parsedData.summary,
           reportDate: reportDate.toISOString(),
           periodStart: periodStart?.toISOString(),
