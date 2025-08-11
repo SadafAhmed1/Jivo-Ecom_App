@@ -2,6 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { callSpGetItemDetails } from "./sqlserver";
+import { setupTerminalWebSocket } from "./terminal-server";
 import { insertPfPoSchema, insertPfOrderItemsSchema, insertFlipkartGroceryPoHeaderSchema, insertFlipkartGroceryPoLinesSchema, insertDistributorMstSchema, insertDistributorPoSchema, insertDistributorOrderItemsSchema } from "@shared/schema";
 import { z } from "zod";
 import { seedTestData } from "./seed-data";
@@ -3652,5 +3653,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   const httpServer = createServer(app);
+  
+  // Setup enhanced WebSocket terminal with full system access
+  setupTerminalWebSocket(httpServer);
+  
   return httpServer;
 }

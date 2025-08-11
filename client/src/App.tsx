@@ -26,6 +26,7 @@ import UnifiedPoUpload from "@/pages/unified-po-upload";
 import SapSync from "@/pages/sap-sync";
 import SqlQuery from "@/pages/SqlQuery";
 import Terminal from "@/pages/Terminal";
+import EnhancedTerminal from "@/pages/EnhancedTerminal";
 import DistributorPO from "@/pages/distributor-po";
 import SecondarySales from "@/pages/secondary-sales";
 import Inventory from "@/pages/inventory";
@@ -70,6 +71,7 @@ function Router() {
           <Route path="/inventory" component={Inventory} />
           <Route path="/sql-query" component={SqlQuery} />
           <Route path="/terminal" component={Terminal} />
+          <Route path="/enhanced-terminal" component={EnhancedTerminal} />
 
           <Route component={NotFound} />
         </Switch>

@@ -1,26 +1,25 @@
-# Claude Code - AI Coding Assistant Guide
+# Enhanced Terminal IDE - Full System Access Guide
 
-## Quick Start
+## Overview
 
-Claude Code is now installed and ready to use in your Terminal IDE! Here's how to get started:
+The Enhanced Terminal IDE provides complete system access through WebSocket connections, giving you a real terminal experience directly in the web interface. This replaces the limited Claude Code approach with a more powerful solution.
 
-### Basic Usage
+## Key Features
 
-Run Claude Code from the terminal:
-```bash
-npx @anthropic-ai/claude-code
-```
+✅ **Full System Terminal Access** - Real shell with all commands available
+✅ **WebSocket Connection** - Real-time terminal communication  
+✅ **File Explorer Integration** - VS Code-like file tree with clickable files
+✅ **Tabbed Editor** - Open and view multiple files simultaneously
+✅ **Connection Status** - Visual indicators for terminal connectivity
+✅ **Complete Command Support** - All system commands, network tools, interpreters
 
-Or if globally accessible:
-```bash
-claude
-```
+## How It Works
 
-### First-Time Setup
-
-1. **Authentication Required**: Claude Code needs API access to Anthropic's services
-2. **Billing**: Requires an active Anthropic account with billing enabled
-3. **Login**: Follow the authentication prompts when first running
+Unlike the previous Claude Code approach, this system:
+- Connects to your actual system terminal through WebSocket
+- Runs commands directly on the host system (not sandboxed)
+- Provides full access to file system, network, and system resources
+- Maintains persistent terminal sessions
 
 ### Common Commands & Use Cases
 

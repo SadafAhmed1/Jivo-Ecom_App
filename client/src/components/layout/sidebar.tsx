@@ -72,11 +72,11 @@ const navigation: NavigationItem[] = [
     description: "Execute custom SQL queries and generate reports"
   },
   {
-    name: "Terminal",
-    href: "/terminal",
-    icon: Terminal,
+    name: "Terminal IDE",
+    href: "/enhanced-terminal",
+    icon: Code,
     active: true,
-    description: "Full-featured terminal and IDE for code analysis"
+    description: "Full system terminal with WebSocket connection & file explorer"
   }
 ];
 
