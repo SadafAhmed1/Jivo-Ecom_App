@@ -1,0 +1,469 @@
+To run the actual Claude Code CLI tool in your web app terminal, you need a backend that can execute real shell commands. Here's how to set it up:
+
+## 1. Backend with Real Shell Access
+
+### Using node-pty and WebSocket
+
+```javascript
+// backend/server.js
+const express = require('express');
+const http = require('http');
+const WebSocket = require('ws');
+const pty = require('node-pty');
+const path = require('path');
+
+const app = express();
+const server = http.createServer(app);
+const wss = new WebSocket.Server({ server });
+
+// Serve your frontend
+app.use(express.static('public'));
+
+// WebSocket connection for terminal
+wss.on('connection', (ws) => {
+  console.log('Terminal connected');
+  
+  // Spawn a real shell
+  const shell = pty.spawn('bash', [], {
+    name: 'xterm-color',
+    cols: 80,
+    rows: 30,
+    cwd: process.env.HOME,
+    env: {
+      ...process.env,
+      ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY // Pass your API key
+    }
+  });
+
+  shell.on('data', (data) => {
+    ws.send(JSON.stringify({ type: 'output', data }));
+  });
+
+  ws.on('message', (msg) => {
+    const message = JSON.parse(msg);
+    
+    if (message.type === 'input') {
+      shell.write(message.data);
+    } else if (message.type === 'resize') {
+      shell.resize(message.cols, message.rows);
+    }
+  });
+
+  ws.on('close', () => {
+    shell.kill();
+    console.log('Terminal disconnected');
+  });
+});
+
+server.listen(3000, () => {
+  console.log('Server running on http://localhost:3000');
+});
+```
+
+### Install dependencies:
+
+```bash
+npm init -y
+npm install express ws node-pty
+```
+
+## 2. Frontend Terminal
+
+```html
+<!-- public/index.html -->
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Claude Code Terminal</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm@5.3.0/css/xterm.css" />
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background: #1e1e1e;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+    
+    #terminal {
+      flex: 1;
+      padding: 10px;
+    }
+    
+    .header {
+      background: #2d2d30;
+      color: #cccccc;
+      padding: 10px 20px;
+      font-family: 'Segoe UI', sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    
+    .status {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .status-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #4CAF50;
+    }
+    
+    .status-dot.disconnected {
+      background: #f44336;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h3>Claude Code Terminal</h3>
+    <div class="status">
+      <div class="status-dot" id="status"></div>
+      <span id="status-text">Connected</span>
+    </div>
+  </div>
+  <div id="terminal"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/xterm@5.3.0/lib/xterm.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xterm-addon-fit@0.8.0/lib/xterm-addon-fit.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xterm-addon-web-links@0.9.0/lib/xterm-addon-web-links.js"></script>
+  <script>
+    // Initialize terminal
+    const term = new Terminal({
+      cursorBlink: true,
+      fontSize: 14,
+      fontFamily: '"Cascadia Code", "Courier New", monospace',
+      theme: {
+        background: '#1e1e1e',
+        foreground: '#d4d4d4',
+        cursor: '#ffffff',
+        black: '#000000',
+        red: '#cd3131',
+        green: '#0dbc79',
+        yellow: '#e5e510',
+        blue: '#2472c8',
+        magenta: '#bc3fbc',
+        cyan: '#11a8cd',
+        white: '#e5e5e5',
+        brightBlack: '#666666',
+        brightRed: '#f14c4c',
+        brightGreen: '#23d18b',
+        brightYellow: '#f5f543',
+        brightBlue: '#3b8eea',
+        brightMagenta: '#d670d6',
+        brightCyan: '#29b8db',
+        brightWhite: '#e5e5e5'
+      }
+    });
+
+    // Load addons
+    const fitAddon = new FitAddon.FitAddon();
+    const webLinksAddon = new WebLinksAddon.WebLinksAddon();
+    term.loadAddon(fitAddon);
+    term.loadAddon(webLinksAddon);
+
+    // Open terminal in DOM
+    term.open(document.getElementById('terminal'));
+    fitAddon.fit();
+
+    // Handle window resize
+    window.addEventListener('resize', () => {
+      fitAddon.fit();
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({
+          type: 'resize',
+          cols: term.cols,
+          rows: term.rows
+        }));
+      }
+    });
+
+    // WebSocket connection
+    let ws;
+    
+    function connect() {
+      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+      ws = new WebSocket(`${protocol}//${window.location.host}`);
+
+      ws.onopen = () => {
+        console.log('Connected to terminal server');
+        document.getElementById('status').classList.remove('disconnected');
+        document.getElementById('status-text').textContent = 'Connected';
+        
+        // Send initial terminal size
+        ws.send(JSON.stringify({
+          type: 'resize',
+          cols: term.cols,
+          rows: term.rows
+        }));
+        
+        // Clear and show welcome message
+        term.clear();
+        term.writeln('Welcome to Claude Code Terminal!');
+        term.writeln('');
+        term.writeln('To get started with Claude Code:');
+        term.writeln('  1. Run: npm install -g @anthropic-ai/claude-code');
+        term.writeln('  2. Run: claude-code --help');
+        term.writeln('');
+      };
+
+      ws.onmessage = (event) => {
+        const message = JSON.parse(event.data);
+        if (message.type === 'output') {
+          term.write(message.data);
+        }
+      };
+
+      ws.onerror = (error) => {
+        console.error('WebSocket error:', error);
+        term.writeln('\r\n\x1b[31mConnection error occurred\x1b[0m');
+      };
+
+      ws.onclose = () => {
+        console.log('Disconnected from terminal server');
+        document.getElementById('status').classList.add('disconnected');
+        document.getElementById('status-text').textContent = 'Disconnected';
+        term.writeln('\r\n\x1b[31mConnection lost. Attempting to reconnect...\x1b[0m');
+        
+        // Attempt to reconnect after 3 seconds
+        setTimeout(connect, 3000);
+      };
+    }
+
+    // Send terminal input to server
+    term.onData((data) => {
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({ type: 'input', data }));
+      }
+    });
+
+    // Initial connection
+    connect();
+  </script>
+</body>
+</html>
+```
+
+## 3. Setup Environment Variables
+
+Create a `.env` file:
+
+```bash
+# .env
+ANTHROPIC_API_KEY=your-api-key-here
+```
+
+Update your server to load env variables:
+
+```javascript
+// At the top of server.js
+require('dotenv').config();
+```
+
+## 4. Docker Option (More Secure)
+
+For production, use Docker to isolate the terminal:
+
+```dockerfile
+# Dockerfile
+FROM node:18
+
+# Install Claude Code globally
+RUN npm install -g @anthropic-ai/claude-code
+
+# Create app directory
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+RUN npm install
+
+# Copy app files
+COPY . .
+
+# Create a non-root user
+RUN useradd -m -s /bin/bash terminal-user
+
+# Switch to non-root user
+USER terminal-user
+WORKDIR /home/terminal-user
+
+EXPOSE 3000
+
+CMD ["node", "/app/server.js"]
+```
+
+Docker Compose setup:
+
+```yaml
+# docker-compose.yml
+version: '3.8'
+
+services:
+  terminal:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+    volumes:
+      - terminal-data:/home/terminal-user
+    restart: unless-stopped
+
+volumes:
+  terminal-data:
+```
+
+## 5. Enhanced Security Version
+
+For production with authentication:
+
+```javascript
+// server-secure.js
+const express = require('express');
+const session = require('express-session');
+const http = require('http');
+const WebSocket = require('ws');
+const pty = require('node-pty');
+const Docker = require('dockerode');
+
+const app = express();
+const server = http.createServer(app);
+
+// Authentication middleware
+app.use(session({
+  secret: process.env.SESSION_SECRET,
+  resave: false,
+  saveUninitialized: false
+}));
+
+// Simple auth check (implement your own)
+app.post('/login', express.json(), (req, res) => {
+  const { username, password } = req.body;
+  // Verify credentials
+  if (username === 'admin' && password === 'password') {
+    req.session.authenticated = true;
+    res.json({ success: true });
+  } else {
+    res.status(401).json({ success: false });
+  }
+});
+
+// WebSocket with authentication
+const wss = new WebSocket.Server({
+  server,
+  verifyClient: (info, cb) => {
+    // Verify session
+    const session = parseSession(info.req);
+    if (session && session.authenticated) {
+      cb(true);
+    } else {
+      cb(false, 401, 'Unauthorized');
+    }
+  }
+});
+
+const docker = new Docker();
+
+wss.on('connection', async (ws) => {
+  // Create isolated Docker container for each session
+  const container = await docker.createContainer({
+    Image: 'claude-terminal',
+    Cmd: ['/bin/bash'],
+    Tty: true,
+    OpenStdin: true,
+    StdinOnce: false,
+    Env: [`ANTHROPIC_API_KEY=${process.env.ANTHROPIC_API_KEY}`],
+    HostConfig: {
+      Memory: 512 * 1024 * 1024, // 512MB limit
+      CpuShares: 512, // CPU limit
+      AutoRemove: true
+    }
+  });
+
+  await container.start();
+  
+  const stream = await container.attach({
+    stream: true,
+    stdin: true,
+    stdout: true,
+    stderr: true
+  });
+
+  stream.on('data', (chunk) => {
+    ws.send(JSON.stringify({ type: 'output', data: chunk.toString() }));
+  });
+
+  ws.on('message', (msg) => {
+    const message = JSON.parse(msg);
+    if (message.type === 'input') {
+      stream.write(message.data);
+    }
+  });
+
+  ws.on('close', () => {
+    container.stop().catch(console.error);
+  });
+});
+
+server.listen(3000);
+```
+
+## 6. Quick Start Instructions
+
+1. **Install dependencies:**
+```bash
+npm install express ws node-pty dotenv
+```
+
+2. **Set your API key:**
+```bash
+export ANTHROPIC_API_KEY="your-api-key-here"
+# Or add to .env file
+```
+
+3. **Run the server:**
+```bash
+node server.js
+```
+
+4. **Open browser:**
+Navigate to `http://localhost:3000`
+
+5. **In the terminal, run:**
+```bash
+# Install Claude Code
+npm install -g @anthropic-ai/claude-code
+
+# Configure Claude Code
+claude-code configure
+
+# Use Claude Code
+claude-code "Create a React todo app"
+```
+
+## Important Notes:
+
+1. **Security**: Running a real shell in a web app is a security risk. Always:
+   - Use authentication
+   - Run in Docker containers
+   - Limit resources
+   - Use HTTPS in production
+   - Consider using a VPN
+
+2. **API Key**: The Anthropic API key needs to be available in the environment where Claude Code runs.
+
+3. **Permissions**: The user running the terminal needs permissions to install npm packages globally.
+
+4. **Alternative**: Consider using cloud-based solutions like:
+   - Google Cloud Shell
+   - AWS CloudShell
+   - Gitpod
+   - GitHub Codespaces
+
+These provide secure, isolated environments with terminal access built-in.
