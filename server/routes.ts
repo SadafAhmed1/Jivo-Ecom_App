@@ -3272,6 +3272,274 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Terminal endpoint for executing commands
+  app.post('/api/terminal/execute', async (req, res) => {
+    try {
+      const { command, cwd = process.cwd() } = req.body;
+
+      if (!command || typeof command !== 'string') {
+        return res.status(400).json({ error: 'Command is required and must be a string' });
+      }
+
+      // Security: Block dangerous commands
+      const dangerousCommands = [
+        'rm -rf', 'rm -f', 'rmdir', 'del', 'format', 'fdisk', 
+        'mkfs', 'dd', 'wget', 'curl -X POST', 'curl -X PUT', 
+        'curl -X DELETE', 'systemctl', 'service', 'sudo', 'su',
+        'passwd', 'useradd', 'userdel', 'chmod 777', 'chown',
+        '> /dev/', 'shutdown', 'reboot', 'halt', 'poweroff',
+        'kill -9', 'killall', 'pkill'
+      ];
+
+      const lowerCommand = command.toLowerCase();
+      for (const dangerous of dangerousCommands) {
+        if (lowerCommand.includes(dangerous)) {
+          return res.status(400).json({ 
+            error: `Command contains restricted operation: ${dangerous}` 
+          });
+        }
+      }
+
+      // Execute command safely
+      const { spawn } = await import('child_process');
+      const { promisify } = await import('util');
+
+      let workingDir = cwd;
+      
+      // Handle cd commands specially
+      if (command.trim().startsWith('cd ')) {
+        const { resolve } = await import('path');
+        const targetDir = command.trim().substring(3).trim() || process.cwd();
+        
+        try {
+          // Resolve the new directory path
+          const newDir = resolve(workingDir, targetDir);
+          
+          // Check if directory exists and is accessible
+          const { access, constants } = await import('fs/promises');
+          await access(newDir, constants.R_OK);
+          
+          workingDir = newDir;
+          return res.json({
+            output: `Changed directory to: ${workingDir}`,
+            cwd: workingDir,
+            exitCode: 0
+          });
+        } catch (error) {
+          return res.json({
+            output: `cd: ${targetDir}: No such file or directory`,
+            cwd: workingDir,
+            exitCode: 1
+          });
+        }
+      }
+
+      // Execute the command using spawn for better Replit compatibility
+      const executeCommand = (cmd: string, cwd: string): Promise<{stdout: string, stderr: string, exitCode: number}> => {
+        return new Promise((resolve, reject) => {
+          const args = cmd.split(' ');
+          const mainCmd = args[0];
+          const cmdArgs = args.slice(1);
+          
+          const child = spawn(mainCmd, cmdArgs, { 
+            cwd,
+            stdio: ['pipe', 'pipe', 'pipe'],
+            shell: false
+          });
+
+          let stdout = '';
+          let stderr = '';
+
+          child.stdout?.on('data', (data) => {
+            stdout += data.toString();
+          });
+
+          child.stderr?.on('data', (data) => {
+            stderr += data.toString();
+          });
+
+          const timeout = setTimeout(() => {
+            child.kill();
+            reject(new Error('Command timed out (30s limit)'));
+          }, 30000);
+
+          child.on('close', (code) => {
+            clearTimeout(timeout);
+            resolve({
+              stdout,
+              stderr,
+              exitCode: code || 0
+            });
+          });
+
+          child.on('error', (error) => {
+            clearTimeout(timeout);
+            reject(error);
+          });
+        });
+      };
+
+      // Handle built-in Node.js commands first (more reliable in Replit environment)
+      try {
+        if (command.startsWith('ls')) {
+          const { readdir, stat } = await import('fs/promises');
+          const { join } = await import('path');
+          
+          try {
+            const files = await readdir(workingDir);
+            let output = '';
+            
+            if (command.includes('-la') || command.includes('-l')) {
+              for (const file of files) {
+                try {
+                  const filePath = join(workingDir, file);
+                  const stats = await stat(filePath);
+                  const isDir = stats.isDirectory() ? 'd' : '-';
+                  const size = stats.size;
+                  const modified = stats.mtime.toISOString().split('T')[0];
+                  output += `${isDir}rwxrwxrwx 1 user user ${size.toString().padStart(8)} ${modified} ${file}\n`;
+                } catch (e) {
+                  output += `?????????? 1 user user        ? ? ${file}\n`;
+                }
+              }
+            } else {
+              output = files.join('  ') + '\n';
+            }
+            
+            return res.json({
+              output,
+              cwd: workingDir,
+              exitCode: 0
+            });
+          } catch (error) {
+            return res.json({
+              output: `ls: cannot access '${workingDir}': Permission denied`,
+              cwd: workingDir,
+              exitCode: 1
+            });
+          }
+        } else if (command.startsWith('pwd')) {
+          return res.json({
+            output: workingDir,
+            cwd: workingDir,
+            exitCode: 0
+          });
+        } else if (command.startsWith('cat ')) {
+          const { readFile } = await import('fs/promises');
+          const { join } = await import('path');
+          const filename = command.substring(4).trim();
+          
+          try {
+            const filePath = join(workingDir, filename);
+            const content = await readFile(filePath, 'utf-8');
+            return res.json({
+              output: content,
+              cwd: workingDir,
+              exitCode: 0
+            });
+          } catch (error) {
+            return res.json({
+              output: `cat: ${filename}: No such file or directory`,
+              cwd: workingDir,
+              exitCode: 1
+            });
+          }
+        } else if (command.startsWith('find ')) {
+          const { readdir } = await import('fs/promises');
+          const { join, relative } = await import('path');
+          
+          try {
+            const searchTerm = command.includes('-name') ? 
+              command.split('-name')[1].trim().replace(/['"]/g, '') : '';
+            
+            const findFiles = async (dir: string): Promise<string[]> => {
+              const files = await readdir(dir, { withFileTypes: true });
+              let results: string[] = [];
+              
+              for (const file of files) {
+                const fullPath = join(dir, file.name);
+                const relativePath = relative(workingDir, fullPath);
+                
+                if (!searchTerm || file.name.includes(searchTerm.replace('*', ''))) {
+                  results.push(relativePath || file.name);
+                }
+                
+                if (file.isDirectory() && !file.name.startsWith('.') && file.name !== 'node_modules') {
+                  try {
+                    const subResults = await findFiles(fullPath);
+                    results = results.concat(subResults);
+                  } catch (e) {
+                    // Skip directories we can't access
+                  }
+                }
+              }
+              
+              return results;
+            };
+            
+            const results = await findFiles(workingDir);
+            return res.json({
+              output: results.join('\n') + '\n',
+              cwd: workingDir,
+              exitCode: 0
+            });
+          } catch (error) {
+            return res.json({
+              output: `find: error searching directory`,
+              cwd: workingDir,
+              exitCode: 1
+            });
+          }
+        } else {
+          // For other commands, try spawn as fallback
+          try {
+            const result = await executeCommand(command, workingDir);
+            
+            return res.json({
+              output: result.stdout || result.stderr || 'Command completed successfully',
+              cwd: workingDir,
+              exitCode: result.exitCode
+            });
+          } catch (spawnError) {
+            return res.json({
+              output: `Command '${command}' not found or not supported in this environment`,
+              cwd: workingDir,
+              exitCode: 127
+            });
+          }
+        }
+      } catch (error) {
+        return res.json({
+          output: `Error: ${error}`,
+          cwd: workingDir,
+          exitCode: 1
+        });
+      }
+
+    } catch (error: any) {
+      console.error('Terminal command execution error:', error);
+      
+      // Handle timeout and other exec errors
+      let errorMessage = 'Command execution failed';
+      let exitCode = 1;
+
+      if (error.code === 'TIMEOUT') {
+        errorMessage = 'Command timed out (30s limit)';
+      } else if (error.stdout || error.stderr) {
+        errorMessage = error.stderr || error.stdout || error.message;
+        exitCode = error.code || 1;
+      } else {
+        errorMessage = error.message;
+      }
+
+      res.json({
+        output: errorMessage,
+        cwd: req.body.cwd || process.cwd(),
+        exitCode
+      });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
