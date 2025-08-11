@@ -74,6 +74,8 @@ import {
   type InsertInvJioMartJmDaily,
   type InvJioMartJmRange,
   type InsertInvJioMartJmRange,
+  type BlinkitInventoryItem,
+  type InsertBlinkitInventoryItem,
 
   type DistributorMst,
   type InsertDistributorMst,
@@ -125,6 +127,8 @@ import {
 
   invJioMartJmDaily,
   invJioMartJmRange,
+  invBlinkitJmDaily,
+  invBlinkitJmRange,
 
   distributorMst,
   distributorPo,
@@ -1550,6 +1554,14 @@ export class DatabaseStorage implements IStorage {
 
   async createInventoryJioMartJmRange(items: InsertInvJioMartJmRange[]): Promise<InvJioMartJmRange[]> {
     return await db.insert(invJioMartJmRange).values(items).returning();
+  }
+
+  async createInventoryBlinkitJmDaily(items: InsertBlinkitInventoryItem[]): Promise<BlinkitInventoryItem[]> {
+    return await db.insert(invBlinkitJmDaily).values(items).returning();
+  }
+
+  async createInventoryBlinkitJmRange(items: InsertBlinkitInventoryItem[]): Promise<BlinkitInventoryItem[]> {
+    return await db.insert(invBlinkitJmRange).values(items).returning();
   }
 
   async updateInventory(id: number, header: any, items: any): Promise<any> {

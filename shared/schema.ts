@@ -1478,4 +1478,67 @@ export const insertJioMartInventoryItemSchema = createInsertSchema(invJioMartJmD
 export type JioMartInventoryItem = typeof invJioMartJmDaily.$inferSelect;
 export type InsertJioMartInventoryItem = z.infer<typeof insertJioMartInventoryItemSchema>;
 
+// Blinkit Inventory Tables
+export const invBlinkitJmDaily = pgTable("INV_Blinkit_JM_Daily", {
+  id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
+  report_date: timestamp("report_date").notNull(),
+  sku_id: text("sku_id").notNull(),
+  product_name: text("product_name"),
+  category: text("category"),
+  subcategory: text("subcategory"),
+  brand: text("brand"),
+  size: text("size"),
+  unit: text("unit"),
+  stock_on_hand: integer("stock_on_hand"),
+  reserved_quantity: integer("reserved_quantity"),
+  available_quantity: integer("available_quantity"),
+  inbound_quantity: integer("inbound_quantity"),
+  outbound_quantity: integer("outbound_quantity"),
+  damaged_quantity: integer("damaged_quantity"),
+  expired_quantity: integer("expired_quantity"),
+  last_updated_at: timestamp("last_updated_at"),
+  warehouse_location: text("warehouse_location"),
+  supplier_name: text("supplier_name"),
+  attachment_path: text("attachment_path"),
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow()
+});
+
+export const invBlinkitJmRange = pgTable("INV_Blinkit_JM_Range", {
+  id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
+  period_start: timestamp("period_start").notNull(),
+  period_end: timestamp("period_end").notNull(),
+  sku_id: text("sku_id").notNull(),
+  product_name: text("product_name"),
+  category: text("category"),
+  subcategory: text("subcategory"),
+  brand: text("brand"),
+  size: text("size"),
+  unit: text("unit"),
+  stock_on_hand: integer("stock_on_hand"),
+  reserved_quantity: integer("reserved_quantity"),
+  available_quantity: integer("available_quantity"),
+  inbound_quantity: integer("inbound_quantity"),
+  outbound_quantity: integer("outbound_quantity"),
+  damaged_quantity: integer("damaged_quantity"),
+  expired_quantity: integer("expired_quantity"),
+  last_updated_at: timestamp("last_updated_at"),
+  warehouse_location: text("warehouse_location"),
+  supplier_name: text("supplier_name"),
+  attachment_path: text("attachment_path"),
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow()
+});
+
+// Insert schemas for Blinkit Inventory
+export const insertBlinkitInventoryItemSchema = createInsertSchema(invBlinkitJmDaily).omit({
+  id: true,
+  created_at: true,
+  updated_at: true
+});
+
+// Types for Blinkit Inventory
+export type BlinkitInventoryItem = typeof invBlinkitJmDaily.$inferSelect;
+export type InsertBlinkitInventoryItem = z.infer<typeof insertBlinkitInventoryItemSchema>;
+
 

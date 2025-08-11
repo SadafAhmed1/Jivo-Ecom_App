@@ -36,10 +36,17 @@ interface ParsedInventoryData {
   items: any[];
   summary: {
     totalProducts: number;
-    totalSellableInventory: number;
-    totalUnsellableInventory: number;
-    totalIntransit: number;
-    totalOrders: number;
+    // Jio Mart specific fields
+    totalSellableInventory?: number;
+    totalUnsellableInventory?: number;
+    totalIntransit?: number;
+    totalOrders?: number;
+    // Blinkit specific fields
+    totalStockOnHand?: number;
+    totalAvailableQuantity?: number;
+    totalReservedQuantity?: number;
+    totalDamagedQuantity?: number;
+    totalExpiredQuantity?: number;
   };
 }
 
@@ -48,6 +55,12 @@ const PLATFORMS = [
     id: "jiomart",
     name: "Jio Mart",
     description: "Upload Jio Mart inventory data",
+    icon: Package,
+  },
+  {
+    id: "blinkit",
+    name: "Blinkit",
+    description: "Upload Blinkit inventory data",
     icon: Package,
   },
 ];
@@ -591,7 +604,7 @@ export default function InventoryPage() {
                 Review the inventory data before importing to {selectedPlatformData?.name} - {selectedBusinessUnitData?.name}
                 <br />
                 <span className="font-medium text-blue-600">
-                  Target Table: INV_JioMart_JM_{selectedPeriodType === 'daily' ? 'Daily' : 'Range'}
+                  Target Table: INV_{selectedPlatform === 'jiomart' ? 'JioMart' : 'Blinkit'}_JM_{selectedPeriodType === 'daily' ? 'Daily' : 'Range'}
                 </span>
               </CardDescription>
             </CardHeader>
@@ -601,18 +614,37 @@ export default function InventoryPage() {
                   <div className="text-2xl font-bold text-blue-600">{parsedData.totalItems || 0}</div>
                   <div className="text-sm text-blue-600">Total Records</div>
                 </div>
-                <div className="p-4 bg-green-50 rounded-lg">
-                  <div className="text-2xl font-bold text-green-600">{parsedData.summary?.totalSellableInventory || 0}</div>
-                  <div className="text-sm text-green-600">Sellable Inventory</div>
-                </div>
-                <div className="p-4 bg-red-50 rounded-lg">
-                  <div className="text-2xl font-bold text-red-600">{parsedData.summary?.totalUnsellableInventory || 0}</div>
-                  <div className="text-sm text-red-600">Unsellable Inventory</div>
-                </div>
-                <div className="p-4 bg-yellow-50 rounded-lg">
-                  <div className="text-2xl font-bold text-yellow-600">{parsedData.summary?.totalIntransit || 0}</div>
-                  <div className="text-sm text-yellow-600">In Transit</div>
-                </div>
+                {selectedPlatform === 'jiomart' ? (
+                  <>
+                    <div className="p-4 bg-green-50 rounded-lg">
+                      <div className="text-2xl font-bold text-green-600">{parsedData.summary?.totalSellableInventory || 0}</div>
+                      <div className="text-sm text-green-600">Sellable Inventory</div>
+                    </div>
+                    <div className="p-4 bg-red-50 rounded-lg">
+                      <div className="text-2xl font-bold text-red-600">{parsedData.summary?.totalUnsellableInventory || 0}</div>
+                      <div className="text-sm text-red-600">Unsellable Inventory</div>
+                    </div>
+                    <div className="p-4 bg-yellow-50 rounded-lg">
+                      <div className="text-2xl font-bold text-yellow-600">{parsedData.summary?.totalIntransit || 0}</div>
+                      <div className="text-sm text-yellow-600">In Transit</div>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="p-4 bg-green-50 rounded-lg">
+                      <div className="text-2xl font-bold text-green-600">{parsedData.summary?.totalStockOnHand || 0}</div>
+                      <div className="text-sm text-green-600">Stock on Hand</div>
+                    </div>
+                    <div className="p-4 bg-blue-50 rounded-lg">
+                      <div className="text-2xl font-bold text-blue-600">{parsedData.summary?.totalAvailableQuantity || 0}</div>
+                      <div className="text-sm text-blue-600">Available</div>
+                    </div>
+                    <div className="p-4 bg-red-50 rounded-lg">
+                      <div className="text-2xl font-bold text-red-600">{(parsedData.summary?.totalDamagedQuantity || 0) + (parsedData.summary?.totalExpiredQuantity || 0)}</div>
+                      <div className="text-sm text-red-600">Damaged + Expired</div>
+                    </div>
+                  </>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -632,47 +664,89 @@ export default function InventoryPage() {
                     <Table>
                       <TableHeader className="sticky top-0 bg-white z-10 border-b">
                         <TableRow>
-                          <TableHead className="w-32 border-r">RFC ID</TableHead>
+                          {selectedPlatform === 'jiomart' && <TableHead className="w-32 border-r">RFC ID</TableHead>}
                           <TableHead className="w-40 border-r">SKU ID</TableHead>
-                          <TableHead className="min-w-[250px] border-r">Title</TableHead>
+                          <TableHead className="min-w-[250px] border-r">{selectedPlatform === 'jiomart' ? 'Title' : 'Product Name'}</TableHead>
                           <TableHead className="w-32 border-r">Category</TableHead>
-                          <TableHead className="w-24 border-r">Status</TableHead>
-                          <TableHead className="text-right w-24 border-r">Sellable</TableHead>
-                          <TableHead className="text-right w-24 border-r">Unsellable</TableHead>
-                          <TableHead className="text-right w-24 border-r">In Transit</TableHead>
-                          <TableHead className="text-right w-24">Orders</TableHead>
+                          {selectedPlatform === 'blinkit' && <TableHead className="w-32 border-r">Brand</TableHead>}
+                          <TableHead className="w-24 border-r">{selectedPlatform === 'jiomart' ? 'Status' : 'Size'}</TableHead>
+                          {selectedPlatform === 'jiomart' ? (
+                            <>
+                              <TableHead className="text-right w-24 border-r">Sellable</TableHead>
+                              <TableHead className="text-right w-24 border-r">Unsellable</TableHead>
+                              <TableHead className="text-right w-24 border-r">In Transit</TableHead>
+                              <TableHead className="text-right w-24">Orders</TableHead>
+                            </>
+                          ) : (
+                            <>
+                              <TableHead className="text-right w-24 border-r">Stock</TableHead>
+                              <TableHead className="text-right w-24 border-r">Available</TableHead>
+                              <TableHead className="text-right w-24 border-r">Reserved</TableHead>
+                              <TableHead className="text-right w-24">Damaged</TableHead>
+                            </>
+                          )}
                         </TableRow>
                       </TableHeader>
                       <TableBody>
                         {parsedData.items.map((item, index) => (
                           <TableRow key={index} className="hover:bg-gray-50">
-                            <TableCell className="font-mono text-xs border-r">{item.rfc_id}</TableCell>
+                            {selectedPlatform === 'jiomart' && (
+                              <TableCell className="font-mono text-xs border-r">{item.rfc_id}</TableCell>
+                            )}
                             <TableCell className="font-mono text-xs border-r">{item.sku_id}</TableCell>
-                            <TableCell className="border-r" title={item.title}>
-                              <div className="max-w-[250px] truncate text-sm">{item.title}</div>
+                            <TableCell className="border-r" title={selectedPlatform === 'jiomart' ? item.title : item.product_name}>
+                              <div className="max-w-[250px] truncate text-sm">
+                                {selectedPlatform === 'jiomart' ? item.title : item.product_name}
+                              </div>
                             </TableCell>
                             <TableCell className="text-sm border-r">{item.category}</TableCell>
+                            {selectedPlatform === 'blinkit' && (
+                              <TableCell className="text-sm border-r">{item.brand}</TableCell>
+                            )}
                             <TableCell className="border-r">
-                              <span className={`px-2 py-1 text-xs rounded-full ${
-                                item.product_status === 'Active' 
-                                  ? 'bg-green-100 text-green-800' 
-                                  : 'bg-gray-100 text-gray-800'
-                              }`}>
-                                {item.product_status}
-                              </span>
+                              {selectedPlatform === 'jiomart' ? (
+                                <span className={`px-2 py-1 text-xs rounded-full ${
+                                  item.product_status === 'Active' 
+                                    ? 'bg-green-100 text-green-800' 
+                                    : 'bg-gray-100 text-gray-800'
+                                }`}>
+                                  {item.product_status}
+                                </span>
+                              ) : (
+                                <span className="text-sm">{item.size}</span>
+                              )}
                             </TableCell>
-                            <TableCell className="text-right text-sm border-r">
-                              {parseInt(item.total_sellable_inv || '0').toLocaleString()}
-                            </TableCell>
-                            <TableCell className="text-right text-sm border-r">
-                              {parseInt(item.total_unsellable_inv || '0').toLocaleString()}
-                            </TableCell>
-                            <TableCell className="text-right text-sm border-r">
-                              {parseInt(item.mtd_fwd_intransit || '0').toLocaleString()}
-                            </TableCell>
-                            <TableCell className="text-right text-sm">
-                              {parseInt(item.mtd_order_count || '0').toLocaleString()}
-                            </TableCell>
+                            {selectedPlatform === 'jiomart' ? (
+                              <>
+                                <TableCell className="text-right text-sm border-r">
+                                  {parseInt(item.total_sellable_inv || '0').toLocaleString()}
+                                </TableCell>
+                                <TableCell className="text-right text-sm border-r">
+                                  {parseInt(item.total_unsellable_inv || '0').toLocaleString()}
+                                </TableCell>
+                                <TableCell className="text-right text-sm border-r">
+                                  {parseInt(item.mtd_fwd_intransit || '0').toLocaleString()}
+                                </TableCell>
+                                <TableCell className="text-right text-sm">
+                                  {parseInt(item.mtd_order_count || '0').toLocaleString()}
+                                </TableCell>
+                              </>
+                            ) : (
+                              <>
+                                <TableCell className="text-right text-sm border-r">
+                                  {parseInt(item.stock_on_hand || '0').toLocaleString()}
+                                </TableCell>
+                                <TableCell className="text-right text-sm border-r">
+                                  {parseInt(item.available_quantity || '0').toLocaleString()}
+                                </TableCell>
+                                <TableCell className="text-right text-sm border-r">
+                                  {parseInt(item.reserved_quantity || '0').toLocaleString()}
+                                </TableCell>
+                                <TableCell className="text-right text-sm">
+                                  {parseInt(item.damaged_quantity || '0').toLocaleString()}
+                                </TableCell>
+                              </>
+                            )}
                           </TableRow>
                         ))}
                       </TableBody>

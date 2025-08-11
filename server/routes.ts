@@ -18,6 +18,7 @@ import { parseJioMartSaleSecondarySales } from "./jiomartsale-secondary-sales-pa
 import { parseJioMartCancelSecondarySales } from "./jiomartcancel-secondary-sales-parser";
 import { parseBigBasketSecondarySales } from "./bigbasket-secondary-sales-parser";
 import { parseJioMartInventoryCsv } from "./jiomart-inventory-parser";
+import { parseBlinkitInventoryCsv } from "./blinkit-inventory-parser";
 import { db } from "./db";
 import { 
   scAmJwDaily, scAmJwRange, scAmJmDaily, scAmJmRange,
@@ -27,7 +28,8 @@ import {
   scJioMartSaleJmDaily, scJioMartSaleJmRange,
   scJioMartCancelJmDaily, scJioMartCancelJmRange,
   scBigBasketJmDaily, scBigBasketJmRange,
-  invJioMartJmDaily, invJioMartJmRange
+  invJioMartJmDaily, invJioMartJmRange,
+  invBlinkitJmDaily, invBlinkitJmRange
 } from "@shared/schema";
 
 import multer from 'multer';
@@ -2546,8 +2548,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Platform, business unit, and period type are required" });
       }
 
-      if (platform !== "jiomart") {
-        return res.status(400).json({ error: "Currently only Jio Mart inventory is supported" });
+      if (!["jiomart", "blinkit"].includes(platform)) {
+        return res.status(400).json({ error: "Currently only Jio Mart and Blinkit inventory are supported" });
       }
 
       if (businessUnit !== "jm") {
@@ -2572,6 +2574,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
             reportDate,
             periodStart,
             periodEnd
+          );
+          
+          // Add attachment path to all items
+          const itemsWithAttachment = parsedData.items.map(item => ({
+            ...item,
+            attachment_path: attachmentPath
+          }));
+          
+          parsedData = {
+            ...parsedData,
+            items: itemsWithAttachment
+          };
+        } else if (platform === "blinkit") {
+          parsedData = await parseBlinkitInventoryCsv(
+            req.file.buffer.toString('utf8'),
+            businessUnit,
+            periodType,
+            reportDate ? new Date(reportDate) : new Date(),
+            periodStart ? new Date(periodStart) : null,
+            periodEnd ? new Date(periodEnd) : null
           );
           
           // Add attachment path to all items
@@ -2645,6 +2667,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
             periodStart,
             periodEnd
           );
+        } else if (platform === "blinkit") {
+          parsedData = await parseBlinkitInventoryCsv(
+            req.file.buffer.toString('utf8'),
+            businessUnit,
+            periodType,
+            reportDate,
+            periodStart,
+            periodEnd
+          );
         }
 
         if (!parsedData) {
@@ -2679,12 +2710,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
           };
         });
 
-        if (businessUnit === "jm" && periodType === "daily") {
+        if (platform === "jiomart" && businessUnit === "jm" && periodType === "daily") {
           insertedItems = await storage.createInventoryJioMartJmDaily(inventoryItemsWithDates as any);
           tableName = "INV_JioMart_JM_Daily";
-        } else if (businessUnit === "jm" && periodType === "range") {
+        } else if (platform === "jiomart" && businessUnit === "jm" && periodType === "range") {
           insertedItems = await storage.createInventoryJioMartJmRange(inventoryItemsWithDates as any);
           tableName = "INV_JioMart_JM_Range";
+        } else if (platform === "blinkit" && businessUnit === "jm" && periodType === "daily") {
+          insertedItems = await storage.createInventoryBlinkitJmDaily(inventoryItemsWithDates as any);
+          tableName = "INV_Blinkit_JM_Daily";
+        } else if (platform === "blinkit" && businessUnit === "jm" && periodType === "range") {
+          insertedItems = await storage.createInventoryBlinkitJmRange(inventoryItemsWithDates as any);
+          tableName = "INV_Blinkit_JM_Range";
         }
 
         if (!insertedItems) {
