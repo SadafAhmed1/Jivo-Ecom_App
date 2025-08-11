@@ -8,7 +8,8 @@ import {
   Store, 
   User,
   Database,
-  Terminal
+  Terminal,
+  Code
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -66,9 +67,16 @@ const navigation: NavigationItem[] = [
   {
     name: "SQL Query",
     href: "/sql-query",
-    icon: Terminal,
+    icon: Database,
     active: true,
     description: "Execute custom SQL queries and generate reports"
+  },
+  {
+    name: "Terminal",
+    href: "/terminal",
+    icon: Terminal,
+    active: true,
+    description: "Full-featured terminal and IDE for code analysis"
   }
 ];
 

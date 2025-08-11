@@ -3540,6 +3540,117 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // File tree endpoint for Terminal IDE
+  app.post('/api/terminal/files', async (req, res) => {
+    try {
+      const { path: requestPath } = req.body;
+      const targetPath = requestPath || process.cwd();
+
+      const { readdir, stat } = await import('fs/promises');
+      const { join, relative } = await import('path');
+
+      try {
+        const items = await readdir(targetPath, { withFileTypes: true });
+        const fileTree = [];
+
+        for (const item of items) {
+          // Skip hidden files and common directories we don't want to show
+          if (item.name.startsWith('.') && !item.name.includes('replit')) {
+            continue;
+          }
+          if (['node_modules', '.git', 'dist', '.cache'].includes(item.name)) {
+            continue;
+          }
+
+          const fullPath = join(targetPath, item.name);
+          const relativePath = relative(process.cwd(), fullPath);
+
+          try {
+            const stats = await stat(fullPath);
+            fileTree.push({
+              name: item.name,
+              type: item.isDirectory() ? 'directory' : 'file',
+              path: relativePath,
+              size: item.isFile() ? stats.size : undefined
+            });
+          } catch (e) {
+            // Skip files we can't stat
+          }
+        }
+
+        // Sort directories first, then files
+        fileTree.sort((a, b) => {
+          if (a.type !== b.type) {
+            return a.type === 'directory' ? -1 : 1;
+          }
+          return a.name.localeCompare(b.name);
+        });
+
+        res.json(fileTree);
+      } catch (error) {
+        res.status(400).json({ error: `Cannot access directory: ${targetPath}` });
+      }
+    } catch (error: any) {
+      console.error('File tree error:', error);
+      res.status(500).json({ error: 'Failed to read directory' });
+    }
+  });
+
+  // Read file content endpoint for Terminal IDE
+  app.post('/api/terminal/read-file', async (req, res) => {
+    try {
+      const { filePath } = req.body;
+
+      if (!filePath || typeof filePath !== 'string') {
+        return res.status(400).json({ error: 'File path is required' });
+      }
+
+      const { readFile, stat } = await import('fs/promises');
+      const { resolve, join } = await import('path');
+
+      try {
+        // Resolve the file path relative to project root
+        const fullPath = resolve(process.cwd(), filePath);
+        
+        // Security check: ensure file is within project directory
+        if (!fullPath.startsWith(process.cwd())) {
+          return res.status(400).json({ error: 'Access denied: file outside project directory' });
+        }
+
+        // Check if file exists and get stats
+        const stats = await stat(fullPath);
+        
+        // Check file size (limit to 1MB for viewing)
+        if (stats.size > 1024 * 1024) {
+          return res.json({ 
+            content: `File is too large to display (${(stats.size / 1024 / 1024).toFixed(2)}MB). Use terminal commands to view.`,
+            size: stats.size
+          });
+        }
+
+        // Read file content
+        const content = await readFile(fullPath, 'utf-8');
+        
+        res.json({
+          content,
+          size: stats.size,
+          path: filePath
+        });
+      } catch (error: any) {
+        if (error.code === 'ENOENT') {
+          return res.status(404).json({ error: `File not found: ${filePath}` });
+        } else if (error.code === 'EISDIR') {
+          return res.status(400).json({ error: `Cannot read directory as file: ${filePath}` });
+        } else {
+          return res.status(400).json({ error: `Cannot read file: ${error.message}` });
+        }
+      }
+    } catch (error: any) {
+      console.error('Read file error:', error);
+      res.status(500).json({ error: 'Failed to read file' });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
