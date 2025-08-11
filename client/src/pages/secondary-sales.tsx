@@ -921,13 +921,13 @@ export default function SecondarySales() {
                                     </div>
                                   </TableCell>
                                   <TableCell className="px-4 py-3">
-                                    <div className="truncate max-w-[120px]" title={item.category || "N/A"}>
-                                      {item.category || "N/A"}
+                                    <div className="truncate max-w-[120px]" title={item.sku_category || "N/A"}>
+                                      {item.sku_category || "N/A"}
                                     </div>
                                   </TableCell>
                                   <TableCell className="px-4 py-3">
-                                    <div className="truncate max-w-[100px]" title={item.brand || "N/A"}>
-                                      {item.brand || "N/A"}
+                                    <div className="truncate max-w-[100px]" title={item.brand_name || "N/A"}>
+                                      {item.brand_name || "N/A"}
                                     </div>
                                   </TableCell>
                                   <TableCell className="px-4 py-3">
@@ -936,13 +936,15 @@ export default function SecondarySales() {
                                     </div>
                                   </TableCell>
                                   <TableCell className="text-right px-4 py-3">
-                                    {item.units_sold || 0}
+                                    {item.sales_qty_units || 0}
                                   </TableCell>
                                   <TableCell className="text-right px-4 py-3">
                                     ₹{parseFloat(item.gmv || "0").toFixed(2)}
                                   </TableCell>
                                   <TableCell className="text-right px-4 py-3">
-                                    ₹{parseFloat(item.asp || "0").toFixed(2)}
+                                    ₹{(item.sales_qty_units && parseFloat(item.gmv || "0") && item.sales_qty_units > 0 
+                                      ? (parseFloat(item.gmv || "0") / item.sales_qty_units).toFixed(2) 
+                                      : parseFloat(item.mrp || "0").toFixed(2))}
                                   </TableCell>
                                 </>
                               )}

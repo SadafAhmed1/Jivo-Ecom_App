@@ -26,19 +26,36 @@ export function parseZeptoSecondaryData(csvContent: string, reportDate: Date, pe
         try {
           // Parse date from CSV (expected format: DD-MM-YYYY)
           const dateStr = record['Date'];
-          let parsedDate: Date;
+          let parsedDate: Date = new Date();
           
-          if (dateStr && dateStr.includes('-')) {
-            const [day, month, year] = dateStr.split('-');
-            parsedDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
-          } else {
-            parsedDate = new Date(dateStr);
+          if (dateStr && typeof dateStr === 'string') {
+            if (dateStr.includes('-')) {
+              const parts = dateStr.split('-');
+              if (parts.length === 3) {
+                const day = parseInt(parts[0]);
+                const month = parseInt(parts[1]);
+                const year = parseInt(parts[2]);
+                if (!isNaN(day) && !isNaN(month) && !isNaN(year)) {
+                  parsedDate = new Date(year, month - 1, day);
+                }
+              }
+            }
+            
+            // Fallback: try parsing directly
+            if (isNaN(parsedDate.getTime())) {
+              parsedDate = new Date(dateStr);
+            }
+            
+            // Another fallback: try ISO format
+            if (isNaN(parsedDate.getTime())) {
+              parsedDate = new Date(dateStr + 'T00:00:00.000Z');
+            }
           }
 
-          // Validate date
+          // Validate date - if still invalid, use current date
           if (isNaN(parsedDate.getTime())) {
-            console.warn(`Invalid date found: ${dateStr}, skipping row`);
-            return;
+            console.warn(`Invalid date found: ${dateStr}, using current date`);
+            parsedDate = new Date();
           }
 
           const item: InsertZeptoSecondarySalesItem = {
