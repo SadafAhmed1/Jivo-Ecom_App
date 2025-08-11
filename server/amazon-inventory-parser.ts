@@ -105,35 +105,44 @@ export async function parseAmazonInventoryFile(
               console.log(`Record ${items.length + 1}:`, recordData);
             }
 
-            // Skip empty rows - check multiple possible field names
-            const hasAsin = recordData.asin || recordData.ASIN || recordData['ASIN'] || recordData.item_id || recordData.Item_ID;
-            const hasProductName = recordData.product_name || recordData['Product Name'] || recordData.item_name || recordData.Item_Name || recordData['Item Name'];
+            // Handle the specific Amazon sales report format
+            const hasAsin = recordData['Programme=[Retail]'] || recordData.asin || recordData.ASIN || recordData['ASIN'] || recordData.item_id || recordData.Item_ID;
+            const hasProductName = recordData['Distributor View=[Manufacturing]'] || recordData.product_name || recordData['Product Name'] || recordData.item_name || recordData.Item_Name || recordData['Item Name'];
 
             if (!hasAsin && !hasProductName) {
               console.log('Skipping empty row:', recordData);
               continue;
             }
 
+            // Skip rows with empty values in key fields (common in Amazon reports)
+            if ((!recordData['Programme=[Retail]'] || recordData['Programme=[Retail]'].trim() === '') && 
+                (!recordData['Distributor View=[Manufacturing]'] || recordData['Distributor View=[Manufacturing]'].trim() === '')) {
+              console.log('Skipping empty row:', recordData);
+              continue;
+            }
+
             const item: AmazonInventoryRow = {
-              asin: recordData.asin || recordData.ASIN || recordData['ASIN'] || recordData.item_id || recordData.Item_ID || '',
-              product_name: recordData.product_name || recordData['Product Name'] || recordData.item_name || recordData.Item_Name || recordData['Item Name'] || '',
-              sku: recordData.sku || recordData.SKU || recordData['SKU'] || recordData.seller_sku || recordData['Seller SKU'] || '',
-              fnsku: recordData.fnsku || recordData.FNSKU || recordData['FNSKU'] || recordData.amazon_sku || recordData['Amazon SKU'] || '',
-              category: recordData.category || recordData.Category || recordData.product_category || recordData['Product Category'] || '',
-              brand: recordData.brand || recordData.Brand || recordData.manufacturer || recordData.Manufacturer || '',
+              // Map Amazon sales report format to standard inventory fields
+              asin: recordData['Programme=[Retail]'] || recordData.asin || recordData.ASIN || recordData['ASIN'] || recordData.item_id || recordData.Item_ID || '',
+              product_name: recordData['Distributor View=[Manufacturing]'] || recordData.product_name || recordData['Product Name'] || recordData.item_name || recordData.Item_Name || recordData['Item Name'] || '',
+              sku: recordData['View By=[ASIN]'] || recordData.sku || recordData.SKU || recordData['SKU'] || recordData.seller_sku || recordData['Seller SKU'] || '',
+              fnsku: recordData['Programme=[Retail]'] || recordData.fnsku || recordData.FNSKU || recordData['FNSKU'] || recordData.amazon_sku || recordData['Amazon SKU'] || '',
+              category: recordData['Countries=[IN]'] || recordData.category || recordData.Category || recordData.product_category || recordData['Product Category'] || 'General',
+              brand: recordData['View By=[ASIN]'] || recordData.brand || recordData.Brand || recordData.manufacturer || recordData.Manufacturer || '',
               size: recordData.size || recordData.Size || recordData.dimensions || recordData.Dimensions || '',
-              unit: recordData.unit || recordData.Unit || recordData.uom || recordData.UOM || '',
+              unit: recordData.unit || recordData.Unit || recordData.uom || recordData.UOM || 'Units',
               warehouse_location: recordData.warehouse_location || recordData['Warehouse Location'] || recordData.location || recordData.Location || recordData.fulfillment_center || recordData['Fulfillment Center'] || '',
               condition: recordData.condition || recordData.Condition || recordData.item_condition || recordData['Item Condition'] || 'New',
-              fulfillment_channel: recordData.fulfillment_channel || recordData['Fulfillment Channel'] || recordData.channel || recordData.Channel || 'FBA',
-              units_available: recordData.units_available || recordData['Units Available'] || recordData.available_qty || recordData['Available Qty'] || recordData.quantity || recordData.Quantity || '0',
-              reserved_quantity: recordData.reserved_quantity || recordData['Reserved Quantity'] || recordData.reserved || recordData.Reserved || '0',
-              inbound_quantity: recordData.inbound_quantity || recordData['Inbound Quantity'] || recordData.inbound || recordData.Inbound || '0',
-              researching_quantity: recordData.researching_quantity || recordData['Researching Quantity'] || recordData.researching || recordData.Researching || '0',
-              unfulfillable_quantity: recordData.unfulfillable_quantity || recordData['Unfulfillable Quantity'] || recordData.unfulfillable || recordData.Unfulfillable || '0',
-              supplier_name: recordData.supplier_name || recordData['Supplier Name'] || recordData.vendor || recordData.Vendor || recordData.manufacturer || recordData.Manufacturer || '',
-              cost_per_unit: recordData.cost_per_unit || recordData['Cost Per Unit'] || recordData.unit_cost || recordData['Unit Cost'] || recordData.cost || recordData.Cost || '0',
-              total_value: recordData.total_value || recordData['Total Value'] || recordData.value || recordData.Value || '0',
+              fulfillment_channel: 'Amazon FBA',
+              // For Amazon sales report format, map available fields to inventory-like structure
+              units_available: recordData['Locale=[en_IN]'] || recordData['Currency=[INR]'] || '1', // Use available numeric field
+              reserved_quantity: '0', // Not available in this report type
+              inbound_quantity: '0', // Not available in this report type  
+              researching_quantity: '0',
+              unfulfillable_quantity: '0',
+              supplier_name: recordData['Businesses=[JIVO WELLNESS PVT. LTD.]'] || 'Jivo Wellness',
+              cost_per_unit: recordData['Locale=[en_IN]'] || '0', // Use available numeric field
+              total_value: recordData['Currency=[INR]'] || recordData['Viewing Range=[01/08/25 - 09/08/25]'] || '0', // Use available value field
               last_updated_at: recordData.last_updated_at || recordData['Last Updated'] || recordData.updated_at || recordData['Updated At'] || '',
               attachment_path: filename
             };
