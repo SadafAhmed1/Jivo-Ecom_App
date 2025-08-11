@@ -16,6 +16,7 @@ import { parseBlinkitSecondarySalesFile } from "./blinkit-secondary-sales-parser
 import { parseSwiggySecondaryData } from "./swiggy-secondary-sales-parser";
 
 import multer from 'multer';
+import crypto from "crypto";
 
 const createPoSchema = z.object({
   po: insertPfPoSchema.extend({
@@ -1672,6 +1673,102 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Helper function to generate file hash
+  function generateFileHash(buffer: Buffer, filename: string): string {
+    const hash = crypto.createHash('sha256');
+    hash.update(buffer);
+    hash.update(filename);
+    return hash.digest('hex');
+  }
+
+  // Helper function to check for duplicate files
+  async function checkForDuplicateFile(fileHash: string, platform: string, businessUnit: string, periodType: string): Promise<boolean> {
+    try {
+      let table;
+      const tableName = getTableName(platform, businessUnit, periodType);
+      
+      // Import the schema for the appropriate table
+      const { 
+        scAmJwDaily, scAmJwRange, scAmJmDaily, scAmJmRange,
+        scZeptoJmDaily, scZeptoJmRange,
+        scBlinkitJmDaily, scBlinkitJmRange,
+        scSwiggyJmDaily, scSwiggyJmRange
+      } = await import("@shared/schema");
+      
+      // Select the appropriate table based on platform and period type
+      switch (tableName) {
+        case "SC_Amazon_JW_Daily":
+          table = scAmJwDaily;
+          break;
+        case "SC_Amazon_JW_Range":
+          table = scAmJwRange;
+          break;
+        case "SC_Amazon_JM_Daily":
+          table = scAmJmDaily;
+          break;
+        case "SC_Amazon_JM_Range":
+          table = scAmJmRange;
+          break;
+        case "SC_Zepto_JM_Daily":
+          table = scZeptoJmDaily;
+          break;
+        case "SC_Zepto_JM_Range":
+          table = scZeptoJmRange;
+          break;
+        case "SC_Blinkit_JM_Daily":
+          table = scBlinkitJmDaily;
+          break;
+        case "SC_Blinkit_JM_Range":
+          table = scBlinkitJmRange;
+          break;
+        case "SC_Swiggy_JM_Daily":
+          table = scSwiggyJmDaily;
+          break;
+        case "SC_Swiggy_JM_Range":
+          table = scSwiggyJmRange;
+          break;
+        default:
+          return false;
+      }
+      
+      // Check if any record exists with the same file hash in attachment_path
+      const { like, isNotNull, and } = await import("drizzle-orm");
+      const existingRecords = await db.select().from(table).where(
+        and(
+          isNotNull(table.attachment_path),
+          like(table.attachment_path, `%${fileHash}%`)
+        )
+      ).limit(1);
+      
+      return existingRecords.length > 0;
+    } catch (error) {
+      console.error("Error checking for duplicate file:", error);
+      return false;
+    }
+  }
+
+  // Helper function to get table name
+  function getTableName(platform: string, businessUnit: string, periodType: string): string {
+    const platformMap: Record<string, string> = {
+      "amazon": "Amazon",
+      "zepto": "Zepto", 
+      "blinkit": "Blinkit",
+      "swiggy": "Swiggy"
+    };
+    
+    const businessUnitMap: Record<string, string> = {
+      "jivo-wellness": "JW",
+      "jivo-mart": "JM"
+    };
+    
+    const periodTypeMap: Record<string, string> = {
+      "daily": "Daily",
+      "date-range": "Range"
+    };
+    
+    return `SC_${platformMap[platform]}_${businessUnitMap[businessUnit]}_${periodTypeMap[periodType]}`;
+  }
+
   // Secondary Sales Import Route
   app.post("/api/secondary-sales/import/:platform", upload.single('file'), async (req, res) => {
     try {
@@ -1702,6 +1799,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Start date and end date are required for date-range period type" });
       }
 
+      // Generate file hash for duplicate detection
+      const fileHash = generateFileHash(req.file.buffer, req.file.originalname || 'unknown');
+      
+      // Check for duplicate file
+      const isDuplicate = await checkForDuplicateFile(fileHash, platform, businessUnit, periodType);
+      if (isDuplicate) {
+        return res.status(409).json({ 
+          error: "Duplicate file detected", 
+          message: "This file has already been imported into the database. Please upload a different file or check your previous imports.",
+          fileHash: fileHash.substring(0, 8) + "..." // Show partial hash for reference
+        });
+      }
+
       let parsedData;
 
       // Upload file to object storage first
@@ -1721,7 +1831,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
         
         if (uploadResponse.ok) {
-          attachmentPath = objectStorageService.normalizeObjectEntityPath(uploadURL);
+          attachmentPath = objectStorageService.normalizeObjectEntityPath(uploadURL) + `?hash=${fileHash}`;
         }
       } catch (uploadError) {
         console.error("Error uploading file to object storage:", uploadError);

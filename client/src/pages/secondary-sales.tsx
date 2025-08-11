@@ -221,6 +221,10 @@ export default function SecondarySales() {
 
       if (!response.ok) {
         const error = await response.json();
+        if (response.status === 409) {
+          // Handle duplicate file error specifically
+          throw new Error(`Duplicate File: ${error.message || "This file has already been imported into the database."}`);
+        }
         throw new Error(error.error || "Failed to import data");
       }
 
