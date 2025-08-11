@@ -1238,4 +1238,71 @@ export type InsertBlinkitSecondarySalesItem = z.infer<typeof insertBlinkitSecond
 export type SwiggySecondarySalesItem = typeof scSwiggyJmDaily.$inferSelect;
 export type InsertSwiggySecondarySalesItem = z.infer<typeof insertSwiggySecondarySalesItemSchema>;
 
+// Jio Mart Sale Secondary Sales Tables - Jivo Mart
+export const scJioMartSaleJmDaily = pgTable("SC_JioMartSale_JM_Daily", {
+  id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
+  report_date: timestamp("report_date").notNull(),
+  shipment_number: text("shipment_number"),
+  fulfillment_type: text("fulfillment_type"),
+  shipment_created_at: timestamp("shipment_created_at"),
+  shipment_status: text("shipment_status"),
+  fulfiller_name: text("fulfiller_name"),
+  accepted_at: timestamp("accepted_at"),
+  product_title: text("product_title"),
+  ean: text("ean"),
+  sku: text("sku"),
+  qty: integer("qty"),
+  mrp: decimal("mrp", { precision: 10, scale: 2 }),
+  promotion_amt: decimal("promotion_amt", { precision: 10, scale: 2 }),
+  shipping_charge: decimal("shipping_charge", { precision: 10, scale: 2 }),
+  item_total: decimal("item_total", { precision: 10, scale: 2 }),
+  payment_method_used: text("payment_method_used"),
+  tracking_code: text("tracking_code"),
+  shipping_agent_code: text("shipping_agent_code"),
+  invoice_id: text("invoice_id"),
+  acceptance_tat_date_time: timestamp("acceptance_tat_date_time"),
+  attachment_path: text("attachment_path"),
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow()
+});
+
+export const scJioMartSaleJmRange = pgTable("SC_JioMartSale_JM_Range", {
+  id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
+  period_start: timestamp("period_start").notNull(),
+  period_end: timestamp("period_end").notNull(),
+  shipment_number: text("shipment_number"),
+  fulfillment_type: text("fulfillment_type"),
+  shipment_created_at: timestamp("shipment_created_at"),
+  shipment_status: text("shipment_status"),
+  fulfiller_name: text("fulfiller_name"),
+  accepted_at: timestamp("accepted_at"),
+  product_title: text("product_title"),
+  ean: text("ean"),
+  sku: text("sku"),
+  qty: integer("qty"),
+  mrp: decimal("mrp", { precision: 10, scale: 2 }),
+  promotion_amt: decimal("promotion_amt", { precision: 10, scale: 2 }),
+  shipping_charge: decimal("shipping_charge", { precision: 10, scale: 2 }),
+  item_total: decimal("item_total", { precision: 10, scale: 2 }),
+  payment_method_used: text("payment_method_used"),
+  tracking_code: text("tracking_code"),
+  shipping_agent_code: text("shipping_agent_code"),
+  invoice_id: text("invoice_id"),
+  acceptance_tat_date_time: timestamp("acceptance_tat_date_time"),
+  attachment_path: text("attachment_path"),
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow()
+});
+
+// Insert schemas for Jio Mart Sale
+export const insertJioMartSaleSecondarySalesItemSchema = createInsertSchema(scJioMartSaleJmDaily).omit({
+  id: true,
+  created_at: true,
+  updated_at: true
+});
+
+// Types for Jio Mart Sale
+export type JioMartSaleSecondarySalesItem = typeof scJioMartSaleJmDaily.$inferSelect;
+export type InsertJioMartSaleSecondarySalesItem = z.infer<typeof insertJioMartSaleSecondarySalesItemSchema>;
+
 

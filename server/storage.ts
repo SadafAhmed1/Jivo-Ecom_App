@@ -63,6 +63,10 @@ import {
   type InsertBlinkitSecondarySalesItem,
   type SwiggySecondarySalesItem,
   type InsertSwiggySecondarySalesItem,
+  type ScJioMartSaleJmDaily,
+  type InsertScJioMartSaleJmDaily,
+  type ScJioMartSaleJmRange,
+  type InsertScJioMartSaleJmRange,
 
   type DistributorMst,
   type InsertDistributorMst,
@@ -105,6 +109,8 @@ import {
   scBlinkitJmRange,
   scSwiggyJmDaily,
   scSwiggyJmRange,
+  scJioMartSaleJmDaily,
+  scJioMartSaleJmRange,
 
   distributorMst,
   distributorPo,
@@ -240,6 +246,8 @@ export interface IStorage {
   createScBlinkitJmRange(items: InsertBlinkitSecondarySalesItem[]): Promise<BlinkitSecondarySalesItem[]>;
   createScSwiggyJmDaily(items: InsertSwiggySecondarySalesItem[]): Promise<SwiggySecondarySalesItem[]>;
   createScSwiggyJmRange(items: InsertSwiggySecondarySalesItem[]): Promise<SwiggySecondarySalesItem[]>;
+  createScJioMartSaleJmDaily(items: InsertScJioMartSaleJmDaily[]): Promise<ScJioMartSaleJmDaily[]>;
+  createScJioMartSaleJmRange(items: InsertScJioMartSaleJmRange[]): Promise<ScJioMartSaleJmRange[]>;
   getScAmJwDaily(dateStart?: string, dateEnd?: string): Promise<ScAmJwDaily[]>;
   getScAmJwRange(dateStart?: string, dateEnd?: string): Promise<ScAmJwRange[]>;
   getScAmJmDaily(dateStart?: string, dateEnd?: string): Promise<ScAmJmDaily[]>;
@@ -1463,6 +1471,14 @@ export class DatabaseStorage implements IStorage {
 
   async createScSwiggyJmRange(items: InsertSwiggySecondarySalesItem[]): Promise<SwiggySecondarySalesItem[]> {
     return await db.insert(scSwiggyJmRange).values(items).returning();
+  }
+
+  async createScJioMartSaleJmDaily(items: InsertScJioMartSaleJmDaily[]): Promise<ScJioMartSaleJmDaily[]> {
+    return await db.insert(scJioMartSaleJmDaily).values(items).returning();
+  }
+
+  async createScJioMartSaleJmRange(items: InsertScJioMartSaleJmRange[]): Promise<ScJioMartSaleJmRange[]> {
+    return await db.insert(scJioMartSaleJmRange).values(items).returning();
   }
 
 

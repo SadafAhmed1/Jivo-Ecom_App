@@ -90,6 +90,12 @@ const PLATFORMS = [
     description: "Upload Swiggy secondary sales data",
     icon: ShoppingCart,
   },
+  {
+    id: "jiomartsale",
+    name: "Jio Mart Sale",
+    description: "Upload Jio Mart Sale secondary sales data",
+    icon: ShoppingCart,
+  },
 ];
 
 const BUSINESS_UNITS = [
@@ -151,7 +157,7 @@ export default function SecondarySales() {
       return BUSINESS_UNITS.filter(bu => bu.id === "jivo-wellness" || bu.id === "jivo-mart");
     }
     // New platforms only support Jivo Mart
-    if (["zepto", "blinkit", "swiggy"].includes(selectedPlatform)) {
+    if (["zepto", "blinkit", "swiggy", "jiomartsale"].includes(selectedPlatform)) {
       return BUSINESS_UNITS.filter(bu => bu.id === "jivo-mart");
     }
     return BUSINESS_UNITS;
