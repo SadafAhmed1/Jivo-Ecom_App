@@ -350,73 +350,73 @@ export default function SecondarySales() {
   };
 
   return (
-    <div className="container mx-auto py-8 px-4 max-h-screen overflow-y-auto" style={{scrollbarWidth: 'thin'}}>
-      <div className="max-w-4xl mx-auto">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">Secondary Sales</h1>
-          <p className="text-muted-foreground">
+    <div className="container mx-auto py-4 sm:py-8 px-4 max-h-screen overflow-y-auto" style={{scrollbarWidth: 'thin'}}>
+      <div className="max-w-6xl mx-auto">
+        <div className="mb-6 sm:mb-8">
+          <h1 className="text-2xl sm:text-3xl font-bold mb-2">Secondary Sales</h1>
+          <p className="text-sm sm:text-base text-muted-foreground">
             Upload and manage secondary sales data from various platforms
           </p>
         </div>
 
         {/* Progress Steps */}
-        <div className="mb-8">
-          <div className="flex items-center space-x-2 flex-wrap">
+        <div className="mb-6 sm:mb-8">
+          <div className="flex items-center justify-center gap-1 sm:gap-2 flex-wrap overflow-x-auto pb-2">
             {/* Step 1: Platform */}
-            <div className={`flex items-center space-x-2 ${currentStep === "platform" ? "text-blue-600" : ["business-unit", "period-type", "date-range", "upload", "preview"].includes(currentStep) ? "text-green-600" : "text-gray-400"}`}>
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${currentStep === "platform" ? "bg-blue-100 text-blue-600" : ["business-unit", "period-type", "date-range", "upload", "preview"].includes(currentStep) ? "bg-green-100 text-green-600" : "bg-gray-100"}`}>
+            <div className={`flex items-center space-x-1 sm:space-x-2 ${currentStep === "platform" ? "text-blue-600" : ["business-unit", "period-type", "date-range", "upload", "preview"].includes(currentStep) ? "text-green-600" : "text-gray-400"}`}>
+              <div className={`w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs sm:text-sm font-medium ${currentStep === "platform" ? "bg-blue-100 text-blue-600" : ["business-unit", "period-type", "date-range", "upload", "preview"].includes(currentStep) ? "bg-green-100 text-green-600" : "bg-gray-100"}`}>
                 1
               </div>
-              <span className="text-sm font-medium">Platform</span>
+              <span className="text-xs sm:text-sm font-medium hidden xs:inline">Platform</span>
             </div>
-            <ArrowRight className="w-4 h-4 text-gray-400" />
+            <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400" />
             
             {/* Step 2: Business Unit */}
-            <div className={`flex items-center space-x-2 ${currentStep === "business-unit" ? "text-blue-600" : ["period-type", "date-range", "upload", "preview"].includes(currentStep) ? "text-green-600" : "text-gray-400"}`}>
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${currentStep === "business-unit" ? "bg-blue-100 text-blue-600" : ["period-type", "date-range", "upload", "preview"].includes(currentStep) ? "bg-green-100 text-green-600" : "bg-gray-100"}`}>
+            <div className={`flex items-center space-x-1 sm:space-x-2 ${currentStep === "business-unit" ? "text-blue-600" : ["period-type", "date-range", "upload", "preview"].includes(currentStep) ? "text-green-600" : "text-gray-400"}`}>
+              <div className={`w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs sm:text-sm font-medium ${currentStep === "business-unit" ? "bg-blue-100 text-blue-600" : ["period-type", "date-range", "upload", "preview"].includes(currentStep) ? "bg-green-100 text-green-600" : "bg-gray-100"}`}>
                 2
               </div>
-              <span className="text-sm font-medium">Business Unit</span>
+              <span className="text-xs sm:text-sm font-medium hidden xs:inline">Business</span>
             </div>
-            <ArrowRight className="w-4 h-4 text-gray-400" />
+            <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400" />
             
             {/* Step 3: Period Type */}
-            <div className={`flex items-center space-x-2 ${currentStep === "period-type" ? "text-blue-600" : ["date-range", "upload", "preview"].includes(currentStep) ? "text-green-600" : "text-gray-400"}`}>
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${currentStep === "period-type" ? "bg-blue-100 text-blue-600" : ["date-range", "upload", "preview"].includes(currentStep) ? "bg-green-100 text-green-600" : "bg-gray-100"}`}>
+            <div className={`flex items-center space-x-1 sm:space-x-2 ${currentStep === "period-type" ? "text-blue-600" : ["date-range", "upload", "preview"].includes(currentStep) ? "text-green-600" : "text-gray-400"}`}>
+              <div className={`w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs sm:text-sm font-medium ${currentStep === "period-type" ? "bg-blue-100 text-blue-600" : ["date-range", "upload", "preview"].includes(currentStep) ? "bg-green-100 text-green-600" : "bg-gray-100"}`}>
                 3
               </div>
-              <span className="text-sm font-medium">Period</span>
+              <span className="text-xs sm:text-sm font-medium hidden xs:inline">Period</span>
             </div>
-            <ArrowRight className="w-4 h-4 text-gray-400" />
+            <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400" />
             
             {/* Step 4: Date Range (conditional) */}
             {selectedPeriodType === "date-range" && (
               <>
-                <div className={`flex items-center space-x-2 ${currentStep === "date-range" ? "text-blue-600" : ["upload", "preview"].includes(currentStep) ? "text-green-600" : "text-gray-400"}`}>
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${currentStep === "date-range" ? "bg-blue-100 text-blue-600" : ["upload", "preview"].includes(currentStep) ? "bg-green-100 text-green-600" : "bg-gray-100"}`}>
+                <div className={`flex items-center space-x-1 sm:space-x-2 ${currentStep === "date-range" ? "text-blue-600" : ["upload", "preview"].includes(currentStep) ? "text-green-600" : "text-gray-400"}`}>
+                  <div className={`w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs sm:text-sm font-medium ${currentStep === "date-range" ? "bg-blue-100 text-blue-600" : ["upload", "preview"].includes(currentStep) ? "bg-green-100 text-green-600" : "bg-gray-100"}`}>
                     4
                   </div>
-                  <span className="text-sm font-medium">Date Range</span>
+                  <span className="text-xs sm:text-sm font-medium hidden xs:inline">Dates</span>
                 </div>
-                <ArrowRight className="w-4 h-4 text-gray-400" />
+                <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400" />
               </>
             )}
             
             {/* Step Upload */}
-            <div className={`flex items-center space-x-2 ${currentStep === "upload" ? "text-blue-600" : currentStep === "preview" ? "text-green-600" : "text-gray-400"}`}>
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${currentStep === "upload" ? "bg-blue-100 text-blue-600" : currentStep === "preview" ? "bg-green-100 text-green-600" : "bg-gray-100"}`}>
+            <div className={`flex items-center space-x-1 sm:space-x-2 ${currentStep === "upload" ? "text-blue-600" : currentStep === "preview" ? "text-green-600" : "text-gray-400"}`}>
+              <div className={`w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs sm:text-sm font-medium ${currentStep === "upload" ? "bg-blue-100 text-blue-600" : currentStep === "preview" ? "bg-green-100 text-green-600" : "bg-gray-100"}`}>
                 {selectedPeriodType === "date-range" ? "5" : "4"}
               </div>
-              <span className="text-sm font-medium">Upload</span>
+              <span className="text-xs sm:text-sm font-medium hidden xs:inline">Upload</span>
             </div>
-            <ArrowRight className="w-4 h-4 text-gray-400" />
+            <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400" />
             
             {/* Step Preview */}
-            <div className={`flex items-center space-x-2 ${currentStep === "preview" ? "text-blue-600" : "text-gray-400"}`}>
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${currentStep === "preview" ? "bg-blue-100 text-blue-600" : "bg-gray-100"}`}>
+            <div className={`flex items-center space-x-1 sm:space-x-2 ${currentStep === "preview" ? "text-blue-600" : "text-gray-400"}`}>
+              <div className={`w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs sm:text-sm font-medium ${currentStep === "preview" ? "bg-blue-100 text-blue-600" : "bg-gray-100"}`}>
                 {selectedPeriodType === "date-range" ? "6" : "5"}
               </div>
-              <span className="text-sm font-medium">Preview</span>
+              <span className="text-xs sm:text-sm font-medium hidden xs:inline">Preview</span>
             </div>
           </div>
         </div>
@@ -431,13 +431,13 @@ export default function SecondarySales() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="grid gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                 {PLATFORMS.map((platform) => (
                   <div
                     key={platform.id}
-                    className={`p-4 border rounded-lg cursor-pointer transition-colors hover:bg-gray-50 ${
+                    className={`p-3 sm:p-4 border rounded-lg cursor-pointer transition-all duration-200 hover:bg-gray-50 hover:shadow-md ${
                       selectedPlatform === platform.id
-                        ? "border-blue-500 bg-blue-50"
+                        ? "border-blue-500 bg-blue-50 shadow-sm"
                         : "border-gray-200"
                     }`}
                     onClick={() => {
@@ -445,11 +445,11 @@ export default function SecondarySales() {
                       setCurrentStep("business-unit");
                     }}
                   >
-                    <div className="flex items-center space-x-3">
-                      <platform.icon className="w-8 h-8 text-gray-600" />
-                      <div>
-                        <h3 className="font-medium">{platform.name}</h3>
-                        <p className="text-sm text-gray-600">{platform.description}</p>
+                    <div className="flex flex-col sm:flex-row items-center sm:items-start space-y-2 sm:space-y-0 sm:space-x-3 text-center sm:text-left">
+                      <platform.icon className="w-6 h-6 sm:w-8 sm:h-8 text-gray-600 flex-shrink-0" />
+                      <div className="min-w-0">
+                        <h3 className="font-medium text-sm sm:text-base truncate">{platform.name}</h3>
+                        <p className="text-xs sm:text-sm text-gray-600 line-clamp-2">{platform.description}</p>
                       </div>
                     </div>
                   </div>
@@ -721,106 +721,129 @@ export default function SecondarySales() {
 
         {/* Step 4: Preview Data */}
         {currentStep === "preview" && parsedData && (
-          <Card className="max-h-[80vh] overflow-y-auto" style={{scrollbarWidth: 'thin'}}>
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <Eye className="w-5 h-5" />
-                <span>Preview Data</span>
-              </CardTitle>
-              <CardDescription>
-                Review the parsed data before importing to {selectedPlatformData?.name} - {selectedBusinessUnitData?.name}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {/* Summary */}
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-                <div className="p-4 bg-blue-50 rounded-lg">
-                  <div className="text-2xl font-bold text-blue-600">
-                    {parsedData.totalItems || 0}
+          <div className="space-y-4 sm:space-y-6">
+            {/* Header Card */}
+            <Card>
+              <CardHeader className="pb-4">
+                <CardTitle className="flex items-center space-x-2 text-lg sm:text-xl">
+                  <Eye className="w-5 h-5" />
+                  <span>Preview Data</span>
+                </CardTitle>
+                <CardDescription className="text-sm">
+                  Review the parsed data before importing to {selectedPlatformData?.name} - {selectedBusinessUnitData?.name}
+                </CardDescription>
+              </CardHeader>
+            </Card>
+
+            {/* Summary Stats */}
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base sm:text-lg">Summary Statistics</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+                  <div className="p-3 sm:p-4 bg-blue-50 rounded-lg">
+                    <div className="text-xl sm:text-2xl font-bold text-blue-600">
+                      {parsedData.totalItems || 0}
+                    </div>
+                    <div className="text-xs sm:text-sm text-blue-600">Total Items</div>
                   </div>
-                  <div className="text-sm text-blue-600">Total Items</div>
-                </div>
                 
-                {/* Platform-specific summary cards */}
-                {parsedData.platform === "amazon" && (
-                  <>
-                    <div className="p-4 bg-green-50 rounded-lg">
-                      <div className="text-2xl font-bold text-green-600">
-                        {parsedData.summary?.totalOrderedUnits || 0}
+                  {/* Platform-specific summary cards */}
+                  {parsedData.platform === "amazon" && (
+                    <>
+                      <div className="p-3 sm:p-4 bg-green-50 rounded-lg">
+                        <div className="text-xl sm:text-2xl font-bold text-green-600">
+                          {parsedData.summary?.totalOrderedUnits || 0}
+                        </div>
+                        <div className="text-xs sm:text-sm text-green-600">Ordered Units</div>
                       </div>
-                      <div className="text-sm text-green-600">Ordered Units</div>
-                    </div>
-                    <div className="p-4 bg-purple-50 rounded-lg">
-                      <div className="text-2xl font-bold text-purple-600">
-                        ₹{parsedData.summary?.totalOrderedRevenue?.toFixed(2) || "0.00"}
+                      <div className="p-3 sm:p-4 bg-purple-50 rounded-lg">
+                        <div className="text-lg sm:text-xl font-bold text-purple-600">
+                          ₹{parsedData.summary?.totalOrderedRevenue?.toFixed(2) || "0.00"}
+                        </div>
+                        <div className="text-xs sm:text-sm text-purple-600">Ordered Revenue</div>
                       </div>
-                      <div className="text-sm text-purple-600">Ordered Revenue</div>
-                    </div>
-                    <div className="p-4 bg-orange-50 rounded-lg">
-                      <div className="text-2xl font-bold text-orange-600">
-                        ₹{parsedData.summary?.totalShippedRevenue?.toFixed(2) || "0.00"}
+                      <div className="p-3 sm:p-4 bg-orange-50 rounded-lg">
+                        <div className="text-lg sm:text-xl font-bold text-orange-600">
+                          ₹{parsedData.summary?.totalShippedRevenue?.toFixed(2) || "0.00"}
+                        </div>
+                        <div className="text-xs sm:text-sm text-orange-600">Shipped Revenue</div>
                       </div>
-                      <div className="text-sm text-orange-600">Shipped Revenue</div>
-                    </div>
-                  </>
-                )}
-                
-                {/* New platforms summary cards */}
-                {["zepto", "blinkit", "swiggy", "jiomartsale", "jiomartcancel", "bigbasket"].includes(parsedData.platform || "") && (
-                  <>
-                    <div className="p-4 bg-green-50 rounded-lg">
-                      <div className="text-2xl font-bold text-green-600">
-                        {parsedData.summary?.totalRecords || 0}
+                    </>
+                  )}
+                  
+                  {/* New platforms summary cards */}
+                  {["zepto", "blinkit", "swiggy", "jiomartsale", "jiomartcancel", "bigbasket"].includes(parsedData.platform || "") && (
+                    <>
+                      <div className="p-3 sm:p-4 bg-green-50 rounded-lg">
+                        <div className="text-xl sm:text-2xl font-bold text-green-600">
+                          {parsedData.summary?.totalRecords || 0}
+                        </div>
+                        <div className="text-xs sm:text-sm text-green-600">Total Records</div>
                       </div>
-                      <div className="text-sm text-green-600">Total Records</div>
-                    </div>
-                    <div className="p-4 bg-purple-50 rounded-lg">
-                      <div className="text-2xl font-bold text-purple-600">
-                        ₹{parsedData.summary?.totalSalesValue?.toFixed(2) || "0.00"}
+                      <div className="p-3 sm:p-4 bg-purple-50 rounded-lg">
+                        <div className="text-lg sm:text-xl font-bold text-purple-600">
+                          ₹{parsedData.summary?.totalSalesValue?.toFixed(2) || "0.00"}
+                        </div>
+                        <div className="text-xs sm:text-sm text-purple-600">Total Sales Value</div>
                       </div>
-                      <div className="text-sm text-purple-600">Total Sales Value</div>
-                    </div>
-                    <div className="p-4 bg-orange-50 rounded-lg">
-                      <div className="text-2xl font-bold text-orange-600">
-                        {parsedData.summary?.uniqueProducts || 0}
+                      <div className="p-3 sm:p-4 bg-orange-50 rounded-lg">
+                        <div className="text-lg sm:text-xl font-bold text-orange-600">
+                          {parsedData.summary?.uniqueProducts || 0}
+                        </div>
+                        <div className="text-xs sm:text-sm text-orange-600">Unique Products</div>
                       </div>
-                      <div className="text-sm text-orange-600">Unique Products</div>
-                    </div>
-                  </>
-                )}
+                    </>
+                  )}
 
-              </div>
-              
-              {/* Period Information */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 p-4 bg-gray-50 rounded-lg">
-                <div>
-                  <span className="text-sm text-gray-600">Business Unit:</span>
-                  <div className="font-medium">{parsedData.businessUnit}</div>
                 </div>
-                <div>
-                  <span className="text-sm text-gray-600">Period Type:</span>
-                  <div className="font-medium">{parsedData.periodType}</div>
-                </div>
-                <div>
-                  <span className="text-sm text-gray-600">Period:</span>
-                  <div className="font-medium">
-                    {parsedData.periodType === 'daily' 
-                      ? new Date(parsedData.reportDate || '').toLocaleDateString()
-                      : `${new Date(parsedData.periodStart || '').toLocaleDateString()} - ${new Date(parsedData.periodEnd || '').toLocaleDateString()}`
-                    }
+              </CardContent>
+            </Card>
+
+            {/* Period Information Card */}
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base sm:text-lg">Import Information</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 p-3 sm:p-4 bg-gray-50 rounded-lg">
+                  <div>
+                    <span className="text-xs sm:text-sm text-gray-600">Business Unit:</span>
+                    <div className="font-medium text-sm sm:text-base">{parsedData.businessUnit}</div>
+                  </div>
+                  <div>
+                    <span className="text-xs sm:text-sm text-gray-600">Period Type:</span>
+                    <div className="font-medium text-sm sm:text-base">{parsedData.periodType}</div>
+                  </div>
+                  <div>
+                    <span className="text-xs sm:text-sm text-gray-600">Period:</span>
+                    <div className="font-medium text-sm sm:text-base">
+                      {parsedData.periodType === 'daily' 
+                        ? new Date(parsedData.reportDate || '').toLocaleDateString()
+                        : `${new Date(parsedData.periodStart || '').toLocaleDateString()} - ${new Date(parsedData.periodEnd || '').toLocaleDateString()}`
+                      }
+                    </div>
                   </div>
                 </div>
-              </div>
+              </CardContent>
+            </Card>
 
 
 
-              {/* Preview Table - Force Show for Debug */}
-              {parsedData.items && Array.isArray(parsedData.items) && parsedData.items.length > 0 ? (
-                <div className="border rounded-lg overflow-hidden mb-6">
-                  <div className="overflow-x-auto">
-                    <div className="max-h-60 overflow-y-auto" style={{scrollbarWidth: 'thin'}}>
-                      <Table>
-                        <TableHeader className="sticky top-0 bg-white shadow-sm z-10">
+            {/* Data Preview Table Card */}
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base sm:text-lg">Data Preview</CardTitle>
+                <CardDescription className="text-sm">First {parsedData.items?.length || 0} records from your file</CardDescription>
+              </CardHeader>
+              <CardContent className="p-0">
+                {parsedData.items && Array.isArray(parsedData.items) && parsedData.items.length > 0 ? (
+                  <div className="border rounded-lg overflow-hidden">
+                    <div className="overflow-x-auto">
+                      <div className="max-h-48 sm:max-h-60 overflow-y-auto" style={{scrollbarWidth: 'thin'}}>
+                        <Table>
+                          <TableHeader className="sticky top-0 bg-white shadow-sm z-10">
                           <TableRow>
                             {/* Amazon table headers */}
                             {parsedData.platform === "amazon" && (
@@ -1260,8 +1283,9 @@ export default function SecondarySales() {
                   </Button>
                 </div>
               </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+            </div>
         )}
 
         {/* Loading States */}
