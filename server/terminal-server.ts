@@ -11,35 +11,37 @@ export function setupTerminalWebSocket(server: Server) {
   });
 
   wss.on('connection', (ws: WebSocket) => {
-    console.log('Terminal WebSocket connection established');
+    console.log('REAL TERMINAL WebSocket connection established - UNRESTRICTED ACCESS');
     
-    // Enhanced terminal session with full system access
-    const shell = process.platform === 'win32' ? 'cmd.exe' : '/bin/bash';
-    const shellArgs = process.platform === 'win32' ? [] : ['-i']; // Interactive shell
+    // REAL TERMINAL WITH FULL SYSTEM ACCESS - NO SANDBOXING
+    const shell = process.platform === 'win32' ? 'powershell.exe' : '/bin/bash';
+    const shellArgs = process.platform === 'win32' ? ['-NoProfile', '-Command', '-'] : ['--login', '-i']; // Interactive login shell
     
-    // Set up enhanced environment with full internet access
+    // UNRESTRICTED TERMINAL - FULL SYSTEM AND NETWORK ACCESS
     const terminalProcess = spawn(shell, shellArgs, {
       cwd: process.cwd(),
       env: {
-        ...process.env,
+        ...process.env, // Inherit ALL environment variables
         TERM: 'xterm-256color',
         COLORTERM: 'truecolor',
         SHELL: shell,
         HOME: os.homedir(),
-        USER: process.env.USER || process.env.USERNAME || 'user',
-        PATH: process.env.PATH || '/usr/local/bin:/usr/bin:/bin',
-        // Network configuration
+        USER: process.env.USER || process.env.USERNAME || os.userInfo().username,
+        // Keep original PATH - no restrictions
+        PATH: process.env.PATH,
+        // Network access (inherit existing proxy settings)
         HTTP_PROXY: process.env.HTTP_PROXY || '',
         HTTPS_PROXY: process.env.HTTPS_PROXY || '',
         NO_PROXY: process.env.NO_PROXY || '',
-        // Project-specific paths
+        // Project context
         PROJECT_ROOT: process.cwd(),
         DATABASE_URL: process.env.DATABASE_URL || '',
-        // Enable internet access
-        DNS_NAMESERVERS: '8.8.8.8,8.8.4.4',
       },
       stdio: ['pipe', 'pipe', 'pipe'],
-      detached: false
+      detached: false,
+      // Enable full system access
+      uid: process.getuid && process.getuid(),
+      gid: process.getgid && process.getgid(),
     });
 
     // Send terminal output to WebSocket
@@ -81,7 +83,8 @@ export function setupTerminalWebSocket(server: Server) {
             terminalProcess.stdin?.write(data);
             break;
           case 'command':
-            // Execute commands with enhanced capabilities
+            // Execute commands with FULL SYSTEM ACCESS - NO RESTRICTIONS
+            console.log(`UNRESTRICTED TERMINAL: Executing: ${data}`);
             terminalProcess.stdin?.write(`${data}\n`);
             break;
           default:
@@ -109,31 +112,45 @@ export function setupTerminalWebSocket(server: Server) {
       }
     });
 
-    // Send welcome message with system info
-    const welcomeMsg = `╭─ Enhanced Terminal Connected ─╮
-│ Platform: ${process.platform}
-│ Shell: ${shell}  
-│ Directory: ${process.cwd()}
-│ Internet: Available
-│ Full system access enabled
-╰─────────────────────────────────╯
+    // Send welcome message with REAL system info
+    const welcomeMsg = `
+╭─────── REAL TERMINAL - UNRESTRICTED ACCESS ───────╮
+│ Platform: ${process.platform} | Shell: ${shell}
+│ User: ${os.userInfo().username} | Home: ${os.homedir()}
+│ Working Dir: ${process.cwd()}
+│ PID: ${process.pid} | UID: ${process.getuid && process.getuid()}
+│ FULL SYSTEM ACCESS - NO SANDBOXING
+╰─────────────────────────────────────────────────────╯
 
-Test network connectivity:
+🌐 NETWORK ACCESS AVAILABLE:
 • curl ifconfig.me (get public IP)
-• ping google.com (test connectivity)  
-• wget --version (download tool)
+• wget google.com (download files)  
+• ping 8.8.8.8 (test connectivity)
+• ssh user@server (remote connections)
+• git clone <repo> (clone repositories)
 
-Development commands:
-• git status (repository status)
-• npm run dev (start development)
-• node --version (Node.js version)
+🔧 DEVELOPMENT TOOLS:
+• npm install (install packages)
+• npm run dev (start development server)
+• git push/pull (version control)
+• docker ps (container management)
+• python, node, php (interpreters)
 
-System commands:
-• ls -la (list files with details)
-• ps aux (running processes)
-• df -h (disk usage)
+💻 SYSTEM COMMANDS:
+• sudo apt install (install system packages)
+• ps aux | grep process (process management)
+• top, htop (system monitoring)
+• df -h, free -h (disk/memory usage)
+• systemctl status (service management)
 
-Ready for commands...
+📁 FILE SYSTEM ACCESS:
+• ls -la, cd, mkdir, rm -rf (file operations)
+• nano, vim, emacs (text editors)
+• chmod, chown (permissions)
+• find, grep, awk (search/text processing)
+
+Type ANY command - you have COMPLETE system access!
+Real shell ready...
 `;
 
     ws.send(JSON.stringify({

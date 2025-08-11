@@ -141,6 +141,7 @@ export default function EnhancedTerminal() {
 
     addMessage('input', `$ ${command}`);
     
+    // Send command to REAL terminal - no restrictions
     wsRef.current.send(JSON.stringify({
       type: 'command',
       data: command
@@ -480,13 +481,15 @@ export default function EnhancedTerminal() {
                         <div className="text-gray-600 mt-2 text-xs space-y-1 leading-relaxed">
                           <div className="flex items-center gap-2">
                             <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                            Full system access enabled - All commands available
+                            UNRESTRICTED SYSTEM ACCESS - Real terminal, no sandboxing
                           </div>
-                          <div>• Basic: ls -la, pwd, cat, find</div>
-                          <div>• Development: git status, npm run dev, python --version</div>
-                          <div>• Network: curl ifconfig.me, wget, ping google.com</div>
-                          <div>• System: ps aux, df -h, top, htop</div>
-                          <div>• Test: bash scripts/test-system-access.sh</div>
+                          <div className="mt-3 space-y-1">
+                            <div>🌐 <strong>Network:</strong> curl ifconfig.me, wget, ping, ssh</div>
+                            <div>💻 <strong>System:</strong> ps aux, top, df -h, sudo commands</div>
+                            <div>🔧 <strong>Dev:</strong> git, npm, node, python, docker</div>
+                            <div>📁 <strong>Files:</strong> ls -la, rm -rf, chmod, nano, vim</div>
+                            <div>🚀 <strong>Test:</strong> bash scripts/test-system-access.sh</div>
+                          </div>
                         </div>
                       </div>
                     )}
@@ -514,7 +517,7 @@ export default function EnhancedTerminal() {
                     onChange={(e) => setCurrentInput(e.target.value)}
                     onKeyPress={handleKeyPress}
                     className="flex-1 font-mono text-sm border-gray-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                    placeholder={isConnected ? "Enter command... (try: curl ifconfig.me)" : "Connect to terminal first"}
+                    placeholder={isConnected ? "Type ANY command - FULL ACCESS (try: curl ifconfig.me)" : "Connect to terminal first"}
                     disabled={!isConnected}
                   />
                   <Button
