@@ -1889,11 +1889,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
             tableName = "SC_Zepto_JM_Range";
           }
         } else if (platform === "blinkit") {
+          // Convert date strings to Date objects for database insertion
+          const blinkitItemsWithDates = parsedData.items.map(item => ({
+            ...item,
+            date: item.date ? new Date(item.date) : new Date()
+          }));
+          
           if (businessUnit === "jivo-mart" && periodType === "daily") {
-            insertedItems = await storage.createScBlinkitJmDaily(parsedData.items as any);
+            insertedItems = await storage.createScBlinkitJmDaily(blinkitItemsWithDates as any);
             tableName = "SC_Blinkit_JM_Daily";
           } else if (businessUnit === "jivo-mart" && periodType === "date-range") {
-            insertedItems = await storage.createScBlinkitJmRange(parsedData.items as any);
+            insertedItems = await storage.createScBlinkitJmRange(blinkitItemsWithDates as any);
             tableName = "SC_Blinkit_JM_Range";
           }
         } else if (platform === "swiggy") {

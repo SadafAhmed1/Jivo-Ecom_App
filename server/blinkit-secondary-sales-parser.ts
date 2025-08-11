@@ -79,6 +79,9 @@ export function parseBlinkitSecondarySalesFile(
       .map((record, index) => {
         try {
           // Handle different possible column names and formats
+          const dateValue = String(record.date || record['Date'] || '').trim();
+          const parsedDate = dateValue ? new Date(dateValue) : new Date();
+          
           const item: BlinkitSecondarySalesItem = {
             item_id: String(record.item_id || record['Item ID'] || '').trim(),
             item_name: String(record.item_name || record['Item Name'] || '').trim(),
@@ -87,7 +90,7 @@ export function parseBlinkitSecondarySalesFile(
             city_id: String(record.city_id || record['City ID'] || '').trim(),
             city_name: String(record.city_name || record['City Name'] || '').trim(),
             category: String(record.category || record['Category'] || '').trim(),
-            date: String(record.date || record['Date'] || '').trim(),
+            date: dateValue,
             qty_sold: parseFloat(record.qty_sold || record['Qty Sold'] || '0') || 0,
             mrp: parseFloat(record.mrp || record['MRP'] || '0') || 0
           };
