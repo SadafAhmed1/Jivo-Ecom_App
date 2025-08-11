@@ -1682,4 +1682,64 @@ export type InsertBlinkitInventoryItem = z.infer<typeof insertBlinkitInventoryIt
 export type AmazonInventoryItem = typeof invAmazonJmDaily.$inferSelect;
 export type InsertAmazonInventoryItem = z.infer<typeof insertAmazonInventoryItemSchema>;
 
+// Inventory Swiggy JM Daily
+export const invSwiggyJmDaily = pgTable("INV_Swiggy_JM_Daily", {
+  id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
+  report_date: timestamp("report_date").notNull(),
+  storage_type: text("storage_type"),
+  facility_name: text("facility_name"),
+  city: text("city"),
+  sku_code: text("sku_code"),
+  sku_description: text("sku_description"),
+  l1_category: text("l1_category"),
+  l2_category: text("l2_category"),
+  shelf_life_days: integer("shelf_life_days"),
+  business_category: text("business_category"),
+  days_on_hand: integer("days_on_hand"),
+  potential_gmv_loss: decimal("potential_gmv_loss", { precision: 10, scale: 2 }),
+  open_pos: text("open_pos"),
+  open_po_quantity: integer("open_po_quantity"),
+  warehouse_qty_available: integer("warehouse_qty_available"),
+  last_updated_at: timestamp("last_updated_at"),
+  attachment_path: text("attachment_path"),
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow()
+});
+
+// Inventory Swiggy JM Range
+export const invSwiggyJmRange = pgTable("INV_Swiggy_JM_Range", {
+  id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
+  period_start: timestamp("period_start").notNull(),
+  period_end: timestamp("period_end").notNull(),
+  storage_type: text("storage_type"),
+  facility_name: text("facility_name"),
+  city: text("city"),
+  sku_code: text("sku_code"),
+  sku_description: text("sku_description"),
+  l1_category: text("l1_category"),
+  l2_category: text("l2_category"),
+  shelf_life_days: integer("shelf_life_days"),
+  business_category: text("business_category"),
+  days_on_hand: integer("days_on_hand"),
+  potential_gmv_loss: decimal("potential_gmv_loss", { precision: 10, scale: 2 }),
+  open_pos: text("open_pos"),
+  open_po_quantity: integer("open_po_quantity"),
+  warehouse_qty_available: integer("warehouse_qty_available"),
+  last_updated_at: timestamp("last_updated_at"),
+  attachment_path: text("attachment_path"),
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow()
+});
+
+// Insert schemas for Swiggy Inventory
+export const insertSwiggyInventoryItemSchema = createInsertSchema(invSwiggyJmDaily).omit({
+  id: true,
+  created_at: true,
+  updated_at: true
+});
+
+// Types for Swiggy Inventory
+export type SwiggyInventoryItem = typeof invSwiggyJmDaily.$inferSelect;
+export type InsertSwiggyInventoryItem = z.infer<typeof insertSwiggyInventoryItemSchema>;
+
 

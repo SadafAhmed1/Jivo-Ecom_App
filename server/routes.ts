@@ -2595,8 +2595,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Platform, business unit, and period type are required" });
       }
 
-      if (!["jiomart", "blinkit", "amazon"].includes(platform)) {
-        return res.status(400).json({ error: "Currently only Jio Mart, Blinkit, and Amazon inventory are supported" });
+      if (!["jiomart", "blinkit", "amazon", "swiggy"].includes(platform)) {
+        return res.status(400).json({ error: "Currently only Jio Mart, Blinkit, Amazon, and Swiggy inventory are supported" });
       }
 
       if (platform === "amazon") {
@@ -2784,6 +2784,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
             periodStart,
             periodEnd
           );
+        } else if (platform === "swiggy") {
+          const { parseSwiggyInventoryCsv } = await import("./swiggy-inventory-parser");
+          parsedData = parseSwiggyInventoryCsv(
+            req.file.buffer.toString('utf8'),
+            businessUnit,
+            periodType,
+            reportDate,
+            periodStart,
+            periodEnd
+          );
+        } else if (platform === "swiggy") {
+          const { parseSwiggyInventoryCsv } = await import("./swiggy-inventory-parser");
+          parsedData = parseSwiggyInventoryCsv(
+            req.file.buffer.toString('utf8'),
+            businessUnit,
+            periodType,
+            reportDate,
+            periodStart,
+            periodEnd
+          );
         }
 
         if (!parsedData) {
@@ -2842,6 +2862,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         } else if (platform === "amazon" && businessUnit === "jw" && periodType === "range") {
           insertedItems = await storage.createInventoryAmazonJwRange(inventoryItemsWithDates as any);
           tableName = "INV_Amazon_JW_Range";
+        } else if (platform === "swiggy" && businessUnit === "jm" && periodType === "daily") {
+          insertedItems = await storage.createInventorySwiggyJmDaily(inventoryItemsWithDates as any);
+          tableName = "INV_Swiggy_JM_Daily";
+        } else if (platform === "swiggy" && businessUnit === "jm" && periodType === "range") {
+          insertedItems = await storage.createInventorySwiggyJmRange(inventoryItemsWithDates as any);
+          tableName = "INV_Swiggy_JM_Range";
         }
 
         if (!insertedItems) {

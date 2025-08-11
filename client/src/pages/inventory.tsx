@@ -56,6 +56,12 @@ interface ParsedInventoryData {
     totalInboundQuantity?: number;
     totalUnfulfillableQuantity?: number;
     totalValue?: number;
+    // Swiggy specific fields
+    totalWarehouseQty?: number;
+    totalOpenPoQty?: number;
+    totalPotentialGmvLoss?: number;
+    uniqueFacilities?: number;
+    uniqueCities?: number;
   };
 }
 
@@ -76,6 +82,12 @@ const PLATFORMS = [
     id: "amazon",
     name: "Amazon",
     description: "Upload Amazon inventory data (XLSX/CSV)",
+    icon: Package,
+  },
+  {
+    id: "swiggy",
+    name: "Swiggy",
+    description: "Upload Swiggy inventory data",
     icon: Package,
   },
 ];
@@ -861,6 +873,21 @@ export default function InventoryPage() {
                       <div className="text-sm text-purple-600">Net Received Value</div>
                     </div>
                   </>
+                ) : selectedPlatform === 'swiggy' ? (
+                  <>
+                    <div className="p-4 bg-green-50 rounded-lg">
+                      <div className="text-2xl font-bold text-green-600">{parsedData.summary?.totalWarehouseQty || 0}</div>
+                      <div className="text-sm text-green-600">Warehouse Qty</div>
+                    </div>
+                    <div className="p-4 bg-blue-50 rounded-lg">
+                      <div className="text-2xl font-bold text-blue-600">{parsedData.summary?.totalOpenPoQty || 0}</div>
+                      <div className="text-sm text-blue-600">Open PO Qty</div>
+                    </div>
+                    <div className="p-4 bg-red-50 rounded-lg">
+                      <div className="text-2xl font-bold text-red-600">₹{(parsedData.summary?.totalPotentialGmvLoss || 0).toLocaleString()}</div>
+                      <div className="text-sm text-red-600">Potential Loss</div>
+                    </div>
+                  </>
                 ) : (
                   <>
                     <div className="p-4 bg-green-50 rounded-lg">
@@ -909,9 +936,12 @@ export default function InventoryPage() {
                           </TableHead>
                           {selectedPlatform === 'blinkit' && <TableHead className="w-32 border-r">Brand</TableHead>}
                           {selectedPlatform === 'amazon' && <TableHead className="w-32 border-r">Condition</TableHead>}
+                          {selectedPlatform === 'swiggy' && <TableHead className="w-32 border-r">City</TableHead>}
+                          {selectedPlatform === 'swiggy' && <TableHead className="w-32 border-r">Facility</TableHead>}
                           <TableHead className="w-24 border-r">
                             {selectedPlatform === 'jiomart' ? 'Status' : 
-                             selectedPlatform === 'amazon' ? 'Units Available' : 'Size'}
+                             selectedPlatform === 'amazon' ? 'Units Available' : 
+                             selectedPlatform === 'swiggy' ? 'Days on Hand' : 'Size'}
                           </TableHead>
                           {selectedPlatform === 'jiomart' ? (
                             <>
@@ -926,6 +956,13 @@ export default function InventoryPage() {
                               <TableHead className="text-right w-24 border-r">Lead Time (days)</TableHead>
                               <TableHead className="text-right w-24 border-r">Unsellable Units</TableHead>
                               <TableHead className="text-right w-24">Net Received Value</TableHead>
+                            </>
+                          ) : selectedPlatform === 'swiggy' ? (
+                            <>
+                              <TableHead className="text-right w-24 border-r">Warehouse Qty</TableHead>
+                              <TableHead className="text-right w-24 border-r">Open PO Qty</TableHead>
+                              <TableHead className="text-right w-24 border-r">Potential Loss</TableHead>
+                              <TableHead className="text-right w-24">Business Category</TableHead>
                             </>
                           ) : (
                             <>
@@ -964,6 +1001,12 @@ export default function InventoryPage() {
                             {selectedPlatform === 'amazon' && (
                               <TableCell className="text-sm border-r">{item.condition}</TableCell>
                             )}
+                            {selectedPlatform === 'swiggy' && (
+                              <TableCell className="text-sm border-r">{item.city}</TableCell>
+                            )}
+                            {selectedPlatform === 'swiggy' && (
+                              <TableCell className="text-sm border-r">{item.facility_name}</TableCell>
+                            )}
                             <TableCell className="border-r">
                               {selectedPlatform === 'jiomart' ? (
                                 <span className={`px-2 py-1 text-xs rounded-full ${
@@ -975,6 +1018,8 @@ export default function InventoryPage() {
                                 </span>
                               ) : selectedPlatform === 'amazon' ? (
                                 <span className="text-sm font-mono">{parseInt(item.units_available || '0').toLocaleString()}</span>
+                              ) : selectedPlatform === 'swiggy' ? (
+                                <span className="text-sm">{item.days_on_hand || 0}</span>
                               ) : (
                                 <span className="text-sm">{item.size}</span>
                               )}
@@ -1007,6 +1052,21 @@ export default function InventoryPage() {
                                 </TableCell>
                                 <TableCell className="text-right text-sm">
                                   {item.total_value ? `₹${parseFloat(item.total_value).toLocaleString()}` : '₹0'}
+                                </TableCell>
+                              </>
+                            ) : selectedPlatform === 'swiggy' ? (
+                              <>
+                                <TableCell className="text-right text-sm border-r">
+                                  {parseInt(item.warehouse_qty || '0').toLocaleString()}
+                                </TableCell>
+                                <TableCell className="text-right text-sm border-r">
+                                  {parseInt(item.open_po_qty || '0').toLocaleString()}
+                                </TableCell>
+                                <TableCell className="text-right text-sm border-r">
+                                  ₹{parseFloat(item.potential_gmv_loss || '0').toLocaleString()}
+                                </TableCell>
+                                <TableCell className="text-sm">
+                                  {item.business_category}
                                 </TableCell>
                               </>
                             ) : (

@@ -1,0 +1,345 @@
+StorageType,FacilityName,City,SkuCode,SkuDescription,L1,L2,ShelfLifeDays,BusinessCategory,DaysOnHand,PotentialGmvLoss,OpenPos,OpenPoQuantity,WarehouseQtyAvailable
+Ambient,BLR IM1,BANGALORE,570572,Jivo Desi Ghee 1KG 1.0 kg,Edible Oils and Ghee,Ghee,244,Cooking Essentials,167,5561.29,"[MBIPO225691"",""MBIPO220772]",30,89
+Ambient,LKO IM1,LUCKNOW,60711,Jivo Cold Press Kachi Ghani Mustard Oil 1.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,0,6961.5,"[LKOPO110336"",""LKOPO111502"",""LKOPO113149"",""LKOPO111062]",100,0
+Ambient,HYD IM1,HYDERABAD,83633,Jivo Cold Pressed Chemical Free Sunflower Oil 1.0 L,Edible Oils and Ghee,Edible Oils,720,Cooking Essentials,90,2483.25,[CHMPO177357],260,117
+Ambient,HYD IM1,HYDERABAD,88218,Jivo Pomace Daily Cooking Olive Oil 2.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,12,16634.52,"[CHMPO176144"",""CHMPO177357]",19,20
+Ambient,KOL IM2,KOLKATA,401502,Jivo Cold Pressed oil Groundnut Oil 5.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,365,0,[],0,0
+Ambient,DLHY GGNFC9,DELHI,79292,JIVO POMACE OLIVE OIL 5.00 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,0,80133.97,[GGNPO204916],36,0
+Ambient,PUN DELHIVERY,PUNE,88218,Jivo Pomace Daily Cooking Olive Oil 2.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,8,7100.1,[],0,6
+Ambient,PUNE IM2 TEMP,PUNE,83633,Jivo Cold Pressed Chemical Free Sunflower Oil 1.0 L,Edible Oils and Ghee,Edible Oils,720,Cooking Essentials,365,0,[],0,0
+Ambient,PUN DELHIVERY,PUNE,15685,Jivo Canola Cold Press Edible Oil 1.0 ltr,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,36,10946.25,[],0,152
+Ambient,KOC IM1,KOCHI,401502,Jivo Cold Pressed oil Groundnut Oil 5.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,0,3724,[],0,0
+Ambient,CBE ECOM,COIMBATORE,968589,JIVO SO OLIVE OIL 1L 1.00 LTR,Edible Oils and Ghee,Olive Oil,730,Cooking Essentials,0,3185,"[JCEPO117001"",""JCEPO119305"",""JCEPO118409]",112,0
+Ambient,MUM IM1,MUMBAI,429981,Jivo Gold Refined Oil - Blend of Rice Bran oil & Sunflower oil 1.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,365,0,[],0,0
+Ambient,HYD IM2,HYDERABAD,390730,Jivo Cold Pressed oil Groundnut Oil 1.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,0,91806.4,"[CHCPO211193"",""CHCPO213453"",""CHCPO207726"",""CHCPO211738]",480,20
+Ambient,KOC IM1,KOCHI,83633,Jivo Cold Pressed Chemical Free Sunflower Oil 1.0 L,Edible Oils and Ghee,Edible Oils,720,Cooking Essentials,0,20886.25,"[KOCPO26020"",""KOCPO30474"",""KOCPO31393"",""KOCPO28625"",""KOCPO32943"",""KOCPO29553]",259,2
+Ambient,CBE ECOM,COIMBATORE,685793,Jivo Cold Pressed Chemical Free Sunflower Oil 5.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,0,3402,[],0,0
+Ambient,GOA IM1,CENTRAL GOA,88218,Jivo Pomace Daily Cooking Olive Oil 2.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,0,3304.35,[GCAPO02864],4,0
+Ambient,HYD IM1,HYDERABAD,766072,JIVO RICEBRAN OIL 5L 5.00 LTRS,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,36,6583.5,[],0,24
+Ambient,PUN DELHIVERY,PUNE,390730,Jivo Cold Pressed oil Groundnut Oil 1.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,19,30223.2,[CPDPO168089],32,152
+Ambient,KOLKATA ECOM,KOLKATA,240878,Jivo Extra Virgin Olive Oil 250.0 ml,Edible Oils and Ghee,Olive Oil,730,Non Food,65,2677.5,[],0,56
+Ambient,DLHY GGNFC9,DELHI,968589,JIVO SO OLIVE OIL 1L 1.00 LTR,Edible Oils and Ghee,Olive Oil,730,Cooking Essentials,5,20179.25,[GGNPO203883],16,53
+Ambient,CHD ECOM,CHANDIGARH,83633,Jivo Cold Pressed Chemical Free Sunflower Oil 1.0 L,Edible Oils and Ghee,Edible Oils,720,Cooking Essentials,3,21175,"[PCHPO129739"",""PCHPO129030"",""PCHPO128212"",""PCHPO125571"",""PCHPO126390]",224,40
+Ambient,MUM IM3,MUMBAI,15685,Jivo Canola Cold Press Edible Oil 1.0 ltr,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,365,0,[],0,0
+Ambient,AHM DELHIVERY,AHMEDABAD,390730,Jivo Cold Pressed oil Groundnut Oil 1.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,9,27675.2,"[CADPO135850"",""CADPO136583]",64,68
+Ambient,MUM IM1,MUMBAI,67229,EXTRA VIRGIN OLIVE OIL 1.00 LTR,Edible Oils and Ghee,Olive Oil,720,Cooking Essentials,365,0,[],0,0
+Ambient,BLR IM1,BANGALORE,390730,Jivo Cold Pressed oil Groundnut Oil 1.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,10,42532,"[MBIPO226421"",""MBIPO228099"",""MBIPO225691]",128,111
+Ambient,HYD IM1,HYDERABAD,968589,JIVO SO OLIVE OIL 1L 1.00 LTR,Edible Oils and Ghee,Olive Oil,730,Cooking Essentials,3,8190,"[CHMPO178367"",""CHMPO177357"",""CHMPO179458]",80,13
+Ambient,BLR ECOM2,BANGALORE,15687,Jivo Extra Light Daily Cooking Olive Oil 1.0 ltr,Edible Oils and Ghee,Olive Oil,730,Cooking Essentials,4,240814.34,"[MBLPO253797"",""MBLPO251133"",""MBLPO254598"",""MBLPO252370]",416,114
+Ambient,BLR ECOM2,BANGALORE,390730,Jivo Cold Pressed oil Groundnut Oil 1.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,17,74715.2,"[MBLPO251133"",""MBLPO254598"",""MBLPO256004"",""MBLPO252370]",112,326
+Ambient,DLHY GGNFC9,DELHI,60711,Jivo Cold Press Kachi Ghani Mustard Oil 1.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,0,42893.55,"[GGNPO206489"",""GGNPO203883"",""GGNPO204916]",300,1
+Ambient,CHN ECOM,CHENNAI,79292,JIVO POMACE OLIVE OIL 5.00 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,0,5598.88,[],0,0
+Ambient,KOC IM1,KOCHI,390730,Jivo Cold Pressed oil Groundnut Oil 1.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,0,10858.4,"[KOCPO30474"",""KOCPO29553"",""KOCPO32022"",""KOCPO28625]",80,0
+Ambient,CHN ECOM,CHENNAI,968589,JIVO SO OLIVE OIL 1L 1.00 LTR,Edible Oils and Ghee,Olive Oil,730,Cooking Essentials,0,15379,"[JCNPO170927"",""JCNPO171907"",""JCNPO174857"",""JCNPO173907"",""JCNPO176197]",160,0
+Ambient,KOL IM2,KOLKATA,21709,Jivo Daily Cooking Pomace Olive Oil 1.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,365,0,[KWBPO15921],128,37
+Ambient,MUM FC22,MUMBAI,240878,Jivo Extra Virgin Olive Oil 250.0 ml,Edible Oils and Ghee,Olive Oil,730,Non Food,22,283.5,[],0,2
+Ambient,MUM IM3,MUMBAI,390730,Jivo Cold Pressed oil Groundnut Oil 1.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,365,0,[],0,0
+Ambient,DLHY GGNFC5,GURGAON,333818,Jivo SO OLive Oil 5L 5.0 ltr,Edible Oils and Ghee,Olive Oil,730,Cooking Essentials,37,2730,[FC5PO215588],24,9
+Ambient,CBE ECOM,COIMBATORE,429981,Jivo Gold Refined Oil - Blend of Rice Bran oil & Sunflower oil 1.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,0,12899.25,[JCEPO117001],1040,1
+Ambient,HYD IM2,HYDERABAD,685793,Jivo Cold Pressed Chemical Free Sunflower Oil 5.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,0,15687,[],0,0
+Ambient,BLR IM1,BANGALORE,968589,JIVO SO OLIVE OIL 1L 1.00 LTR,Edible Oils and Ghee,Olive Oil,730,Cooking Essentials,1,7848.75,"[MBIPO228099"",""MBIPO222661"",""MBIPO225691]",80,6
+Ambient,CHN ECOM,CHENNAI,766072,JIVO RICEBRAN OIL 5L 5.00 LTRS,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,0,4389,[],0,0
+Ambient,LKO IM1,LUCKNOW,79292,JIVO POMACE OLIVE OIL 5.00 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,3,9448.11,[],0,1
+Ambient,PUNE IM2 TEMP,PUNE,15686,JIVO CANOLA COLD PRESS OIL INDIAN MEDICAL ASSOCIATION RECOMMENDED 5.00 L,Edible Oils and Ghee,Edible Oils,700,Cooking Essentials,365,0,[],0,3
+Ambient,AHM DELHIVERY,AHMEDABAD,21709,Jivo Daily Cooking Pomace Olive Oil 1.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,10,48757.52,"[CADPO136583"",""CADPO135850]",96,71
+Ambient,BLR ECOM2,BANGALORE,60711,Jivo Cold Press Kachi Ghani Mustard Oil 1.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,1,36949.5,"[MBLPO253797"",""MBLPO252370"",""MBLPO254598"",""MBLPO249728"",""MBLPO256004]",460,25
+Ambient,LKO IM1,LUCKNOW,685793,Jivo Cold Pressed Chemical Free Sunflower Oil 5.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,0,8316,[],0,0
+Ambient,AHM DELHIVERY,AHMEDABAD,60711,Jivo Cold Press Kachi Ghani Mustard Oil 1.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,18,11995.2,"[CADPO136583"",""CADPO135850]",60,121
+Ambient,CHN ECOM,CHENNAI,15685,Jivo Canola Cold Press Edible Oil 1.0 ltr,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,5,7035,[],0,16
+Ambient,MUM FC22,MUMBAI,333818,Jivo SO OLive Oil 5L 5.0 ltr,Edible Oils and Ghee,Olive Oil,730,Cooking Essentials,148,2843.75,[],0,37
+Ambient,AMDTEMP,AHMEDABAD,401502,Jivo Cold Pressed oil Groundnut Oil 5.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,365,0,[],0,0
+Ambient,HYD IM2,HYDERABAD,615911,Jivo Gold Refined Oil - Blend of Rice Bran oil & Sunflower oil 5.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,20,13230,[],0,37
+Ambient,CHD ECOM,CHANDIGARH,390730,Jivo Cold Pressed oil Groundnut Oil 1.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,4,32379.2,"[PCHPO129030"",""PCHPO128212"",""PCHPO126390]",96,41
+Ambient,CBE ECOM,COIMBATORE,401502,Jivo Cold Pressed oil Groundnut Oil 5.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,0,22736,[],0,0
+Ambient,KOC IM1,KOCHI,21709,Jivo Daily Cooking Pomace Olive Oil 1.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,0,31942.05,"[KOCPO28625"",""KOCPO29553"",""KOCPO32943]",96,3
+Ambient,MUM IM3,MUMBAI,79292,JIVO POMACE OLIVE OIL 5.00 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,365,0,[],0,0
+Ambient,KOLKATA ECOM,KOLKATA,88218,Jivo Pomace Daily Cooking Olive Oil 2.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,0,12983.04,[],0,0
+Ambient,AHM DELHIVERY,AHMEDABAD,15687,Jivo Extra Light Daily Cooking Olive Oil 1.0 ltr,Edible Oils and Ghee,Olive Oil,730,Cooking Essentials,9,40922.7,[CADPO136583],64,37
+Ambient,KOLKATA ECOM,KOLKATA,21709,Jivo Daily Cooking Pomace Olive Oil 1.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,0,97882.19,[],0,0
+Ambient,GOA IM1,CENTRAL GOA,83633,Jivo Cold Pressed Chemical Free Sunflower Oil 1.0 L,Edible Oils and Ghee,Edible Oils,720,Cooking Essentials,8,11973.5,"[GCAPO04978"",""GCAPO04376"",""GCAPO04135"",""GCAPO02864"",""GCAPO03235"",""GCAPO03848]",103,54
+Ambient,HYD IM2,HYDERABAD,15687,Jivo Extra Light Daily Cooking Olive Oil 1.0 ltr,Edible Oils and Ghee,Olive Oil,730,Cooking Essentials,0,135779.42,"[CHCPO211193"",""CHCPO207726"",""CHCPO211738]",240,5
+Ambient,KOL IM2,KOLKATA,88218,Jivo Pomace Daily Cooking Olive Oil 2.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,365,0,[],0,0
+Ambient,AHM DELHIVERY,AHMEDABAD,449236,Jivo Extra Light Olive Oil 2.0 L,Edible Oils and Ghee,Olive Oil,730,Cooking Essentials,1,11168.01,[],0,1
+Ambient,HYD IM1,HYDERABAD,15687,Jivo Extra Light Daily Cooking Olive Oil 1.0 ltr,Edible Oils and Ghee,Olive Oil,730,Cooking Essentials,6,74290.44,"[CHMPO178057"",""CHMPO178367]",80,44
+Ambient,HYD IM2,HYDERABAD,401502,Jivo Cold Pressed oil Groundnut Oil 5.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,0,149352,"[CHCPO209307"",""CHCPO210391"",""CHCPO213453"",""CHCPO206519"",""CHCPO207726"",""CHCPO211738]",144,2
+Ambient,DLHY GGNFC9,DELHI,390730,Jivo Cold Pressed oil Groundnut Oil 1.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,0,31791.2,[GGNPO204916],32,0
+Ambient,HYD IM2,HYDERABAD,15685,Jivo Canola Cold Press Edible Oil 1.0 ltr,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,1,21236.25,"[CHCPO210391"",""CHCPO213453"",""CHCPO211738]",140,9
+Ambient,AHM DELHIVERY,AHMEDABAD,615911,Jivo Gold Refined Oil - Blend of Rice Bran oil & Sunflower oil 5.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,2,6247.5,[],0,2
+Ambient,DLHY GGNFC9,DELHI,15685,Jivo Canola Cold Press Edible Oil 1.0 ltr,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,8,47433.75,[GGNPO204916],120,162
+Ambient,BLR IM1,BANGALORE,88218,Jivo Pomace Daily Cooking Olive Oil 2.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,2,21503.16,[],0,5
+Ambient,PUN DELHIVERY,PUNE,60711,Jivo Cold Press Kachi Ghani Mustard Oil 1.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,20,13387.5,[CPDPO168089],20,155
+Ambient,CHN ECOM,CHENNAI,958164,JIVO RICEBRAN OIL 1L 1.00 LTR,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,0,1436.4,[],0,0
+Ambient,AHM DELHIVERY,AHMEDABAD,83633,Jivo Cold Pressed Chemical Free Sunflower Oil 1.0 L,Edible Oils and Ghee,Edible Oils,720,Cooking Essentials,0,8874.25,"[CADPO133583"",""CADPO134906"",""CADPO134369"",""CADPO135580]",102,2
+Ambient,PUNE IM2 TEMP,PUNE,21709,Jivo Daily Cooking Pomace Olive Oil 1.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,365,0,[],0,0
+Ambient,HYD IM2,HYDERABAD,333818,Jivo SO OLive Oil 5L 5.0 ltr,Edible Oils and Ghee,Olive Oil,730,Cooking Essentials,200,2502.5,[CHCPO209307],8,44
+Ambient,BLR IM1,BANGALORE,401502,Jivo Cold Pressed oil Groundnut Oil 5.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,0,100548,"[MBIPO220772"",""MBIPO226421"",""MBIPO225951"",""MBIPO222661]",104,0
+Ambient,BLR IM1,BANGALORE,15685,Jivo Canola Cold Press Edible Oil 1.0 ltr,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,0,16878.75,"[MBIPO226421"",""MBIPO223753"",""MBIPO225691"",""MBIPO228099"",""MBIPO222661]",140,1
+Ambient,PUN DELHIVERY,PUNE,15686,JIVO CANOLA COLD PRESS OIL INDIAN MEDICAL ASSOCIATION RECOMMENDED 5.00 L,Edible Oils and Ghee,Edible Oils,700,Cooking Essentials,17,9817.5,[],0,15
+Ambient,DLHY GGNFC5,GURGAON,60711,Jivo Cold Press Kachi Ghani Mustard Oil 1.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,0,45606.75,[],0,6
+Ambient,MUM IM3,MUMBAI,333818,Jivo SO OLive Oil 5L 5.0 ltr,Edible Oils and Ghee,Olive Oil,730,Cooking Essentials,365,0,[],0,0
+Ambient,MUM IM1,MUMBAI,390730,Jivo Cold Pressed oil Groundnut Oil 1.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,365,0,[],0,0
+Ambient,HYD IM2,HYDERABAD,67229,EXTRA VIRGIN OLIVE OIL 1.00 LTR,Edible Oils and Ghee,Olive Oil,720,Cooking Essentials,21,20904.38,[],0,36
+Ambient,BLR ECOM2,BANGALORE,21709,Jivo Daily Cooking Pomace Olive Oil 1.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,19,119544.04,"[MBLPO256004"",""MBLPO251133"",""MBLPO254071]",112,317
+Ambient,KOL IM2,KOLKATA,95788,Jivo Extra Light Edible Olive Oil Ideal for Everyday Indian Cooking 5.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,365,0,[],0,0
+Ambient,DLHY GGNFC5,GURGAON,15687,Jivo Extra Light Daily Cooking Olive Oil 1.0 ltr,Edible Oils and Ghee,Olive Oil,730,Cooking Essentials,9,348892.25,"[FC5PO215588"",""FC5PO216567]",128,316
+Ambient,CBE ECOM,COIMBATORE,79292,JIVO POMACE OLIVE OIL 5.00 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,0,5598.88,[],0,0
+Ambient,HYD IM1,HYDERABAD,60711,Jivo Cold Press Kachi Ghani Mustard Oil 1.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,11,5544,"[CHMPO174140"",""CHMPO175429]",60,41
+Ambient,CBE ECOM,COIMBATORE,15687,Jivo Extra Light Daily Cooking Olive Oil 1.0 ltr,Edible Oils and Ghee,Olive Oil,730,Cooking Essentials,0,22455.02,"[JCEPO118409"",""JCEPO117001"",""JCEPO119590]",64,0
+Ambient,MUM FC22,MUMBAI,79292,JIVO POMACE OLIVE OIL 5.00 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,59,15396.92,[],0,26
+Ambient,MUM FC22,MUMBAI,83633,Jivo Cold Pressed Chemical Free Sunflower Oil 1.0 L,Edible Oils and Ghee,Edible Oils,720,Cooking Essentials,7,45834.25,"[CMFPO201401"",""CMFPO201856"",""CMFPO199668]",437,182
+Ambient,HYD IM1,HYDERABAD,401502,Jivo Cold Pressed oil Groundnut Oil 5.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,8,79576,"[CHMPO175429"",""CHMPO178367"",""CHMPO179458"",""CHMPO176144"",""CHMPO174140]",76,34
+Ambient,HYD IM2,HYDERABAD,15686,JIVO CANOLA COLD PRESS OIL INDIAN MEDICAL ASSOCIATION RECOMMENDED 5.00 L,Edible Oils and Ghee,Edible Oils,700,Cooking Essentials,0,6814.5,[],0,0
+Ambient,DLHY GGNFC9,DELHI,429981,Jivo Gold Refined Oil - Blend of Rice Bran oil & Sunflower oil 1.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,4,98736.75,[],0,280
+Ambient,AHM DELHIVERY,AHMEDABAD,15686,JIVO CANOLA COLD PRESS OIL INDIAN MEDICAL ASSOCIATION RECOMMENDED 5.00 L,Edible Oils and Ghee,Edible Oils,700,Cooking Essentials,11,5197.5,[],0,5
+Ambient,BLR IM1,BANGALORE,67229,EXTRA VIRGIN OLIVE OIL 1.00 LTR,Edible Oils and Ghee,Olive Oil,720,Cooking Essentials,0,14230.09,[],0,0
+Ambient,MUM FC22,MUMBAI,15687,Jivo Extra Light Daily Cooking Olive Oil 1.0 ltr,Edible Oils and Ghee,Olive Oil,730,Cooking Essentials,11,266417.28,[CMFPO201401],176,282
+Ambient,CHD ECOM,CHANDIGARH,88218,Jivo Pomace Daily Cooking Olive Oil 2.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,1,11664.45,[],0,2
+Ambient,MUM IM1,MUMBAI,15685,Jivo Canola Cold Press Edible Oil 1.0 ltr,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,365,0,[],0,0
+Ambient,DLHY GGNFC9,DELHI,240878,Jivo Extra Virgin Olive Oil 250.0 ml,Edible Oils and Ghee,Olive Oil,730,Cooking Essentials,129,2362.5,[],0,97
+Ambient,CBE ECOM,COIMBATORE,60711,Jivo Cold Press Kachi Ghani Mustard Oil 1.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,0,3462.9,"[JCEPO119590"",""JCEPO119305]",120,0
+Ambient,GOA IM1,CENTRAL GOA,615911,Jivo Gold Refined Oil - Blend of Rice Bran oil & Sunflower oil 5.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,42,514.5,"[GCAPO03235"",""GCAPO02864]",24,3
+Ambient,CHN ECOM,CHENNAI,60711,Jivo Cold Press Kachi Ghani Mustard Oil 1.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,0,11227.65,"[JCNPO172860"",""JCNPO174857"",""JCNPO173907]",120,0
+Ambient,CHD ECOM,CHANDIGARH,88218,Jivo Pomace Daily Cooking Olive Oil 2.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,1,11664.45,[],0,2
+Ambient,MUM IM1,MUMBAI,15685,Jivo Canola Cold Press Edible Oil 1.0 ltr,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,365,0,[],0,0
+Ambient,PUN DELHIVERY,PUNE,15687,Jivo Extra Light Daily Cooking Olive Oil 1.0 ltr,Edible Oils and Ghee,Olive Oil,730,Cooking Essentials,14,66630.55,"[CPDPO169126"",""CPDPO168089]",80,90
+Ambient,DLHY GGNFC9,DELHI,333818,Jivo SO OLive Oil 5L 5.0 ltr,Edible Oils and Ghee,Olive Oil,730,Cooking Essentials,0,1066.45,[],0,0
+Ambient,GOA IM1,CENTRAL GOA,429981,Jivo Gold Refined Oil - Blend of Rice Bran oil & Sunflower oil 1.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,16,13749.75,"[GCAPO03848"",""GCAPO04978]",40,146
+Ambient,MUM IM1,MUMBAI,401502,Jivo Cold Pressed oil Groundnut Oil 5.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,365,0,[],0,0
+Ambient,KOLKATA ECOM,KOLKATA,904426,JIVO COLD PRESSED MUSTARD OIL 5L 5.00 LTRS,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,0,1312.5,[],0,0
+Ambient,CBE ECOM,COIMBATORE,615911,Jivo Gold Refined Oil - Blend of Rice Bran oil & Sunflower oil 5.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,0,10143,"[JCEPO117001"",""JCEPO116689"",""JCEPO118024"",""JCEPO118409]",36,0
+Ambient,CHD ECOM,CHANDIGARH,904426,JIVO COLD PRESSED MUSTARD OIL 5L 5.00 LTRS,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,9,30537.5,"[PCHPO126390"",""PCHPO125571]",24,34
+Ambient,MUM FC22,MUMBAI,968589,JIVO SO OLIVE OIL 1L 1.00 LTR,Edible Oils and Ghee,Olive Oil,730,Cooking Essentials,6,22249.5,"[CMFPO201856"",""CMFPO199668"",""CMFPO201401]",64,63
+Ambient,BLR IM1,BANGALORE,615911,Jivo Gold Refined Oil - Blend of Rice Bran oil & Sunflower oil 5.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,0,5365.5,"[MBIPO220772"",""MBIPO222661]",24,0
+Ambient,CHD IMFC2_TEMP,PATIALA,958164,JIVO RICEBRAN OIL 1L 1.00 LTR,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,365,0,[],0,1
+Ambient,DLHY GGNFC9,DELHI,958164,JIVO RICEBRAN OIL 1L 1.00 LTR,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,0,26274.15,[GGNPO203883],16,0
+Ambient,BLR IM1,BANGALORE,21709,Jivo Daily Cooking Pomace Olive Oil 1.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,13,68583.62,"[MBIPO228099"",""MBIPO225951]",112,125
+Ambient,CHN ECOM,CHENNAI,390730,Jivo Cold Pressed oil Groundnut Oil 1.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,0,108388,"[JCNPO170927"",""JCNPO173907"",""JCNPO174857]",640,1
+Ambient,CBE ECOM,COIMBATORE,240878,Jivo Extra Virgin Olive Oil 250.0 ml,Edible Oils and Ghee,Olive Oil,730,Cooking Essentials,0,18238.5,"[JCEPO119590"",""JCEPO119305"",""JCEPO118409"",""JCEPO120292]",152,0
+Ambient,KOL IM2,KOLKATA,15685,Jivo Canola Cold Press Edible Oil 1.0 ltr,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,365,0,[KWBPO15921],60,1
+Ambient,LKO IM1,LUCKNOW,15685,Jivo Canola Cold Press Edible Oil 1.0 ltr,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,0,5118.75,[],0,0
+Ambient,MUM IM1,MUMBAI,21709,Jivo Daily Cooking Pomace Olive Oil 1.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,365,0,[],0,1
+Ambient,MUM FC22,MUMBAI,615911,Jivo Gold Refined Oil - Blend of Rice Bran oil & Sunflower oil 5.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,16,14626.5,[],0,33
+Ambient,HYD IM1,HYDERABAD,570572,Jivo Desi Ghee 1KG 1.0 kg,Edible Oils and Ghee,Ghee,244,Non Food,733,314.79,[CHMPO174140],6,22
+Ambient,AHM DELHIVERY,AHMEDABAD,88218,Jivo Pomace Daily Cooking Olive Oil 2.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,6,3042.9,[],0,2
+Ambient,HYD IM2,HYDERABAD,79292,JIVO POMACE OLIVE OIL 5.00 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,0,5598.88,[],0,0
+Ambient,LKO IM1,LUCKNOW,429981,Jivo Gold Refined Oil - Blend of Rice Bran oil & Sunflower oil 1.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,0,26759.25,[LKOPO110336],2380,0
+Ambient,MUM FC22,MUMBAI,449236,Jivo Extra Light Olive Oil 2.0 L,Edible Oils and Ghee,Olive Oil,730,Cooking Essentials,3,89344.08,[],0,14
+Ambient,BLR ECOM2,BANGALORE,766072,JIVO RICEBRAN OIL 5L 5.00 LTRS,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,0,2094.75,[],0,0
+Ambient,BLR IM1,BANGALORE,79292,JIVO POMACE OLIVE OIL 5.00 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,0,17146.57,"[MBIPO225691"",""MBIPO220772]",24,0
+Ambient,PUNE IM2 TEMP,PUNE,88218,Jivo Pomace Daily Cooking Olive Oil 2.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,365,0,[],0,0
+Ambient,CBE ECOM,COIMBATORE,958164,JIVO RICEBRAN OIL 1L 1.00 LTR,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,0,3072.3,"[JCEPO119305"",""JCEPO118409]",128,0
+Ambient,CHN ECOM,CHENNAI,67229,EXTRA VIRGIN OLIVE OIL 1.00 LTR,Edible Oils and Ghee,Olive Oil,720,Cooking Essentials,29,15993.11,[],0,37
+Ambient,HYD IM1,HYDERABAD,429981,Jivo Gold Refined Oil - Blend of Rice Bran oil & Sunflower oil 1.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,48,12757.5,[CHMPO174140],1120,390
+Ambient,PUN DELHIVERY,PUNE,449236,Jivo Extra Light Olive Oil 2.0 L,Edible Oils and Ghee,Olive Oil,730,Cooking Essentials,14,20964.51,[],0,16
+Ambient,PUNE IM2 TEMP,PUNE,15685,Jivo Canola Cold Press Edible Oil 1.0 ltr,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,365,0,[],0,0
+Ambient,MUM IM3,MUMBAI,15687,Jivo Extra Light Daily Cooking Olive Oil 1.0 ltr,Edible Oils and Ghee,Olive Oil,730,Cooking Essentials,365,0,[],0,1
+Ambient,CBE ECOM,COIMBATORE,15686,JIVO CANOLA COLD PRESS OIL INDIAN MEDICAL ASSOCIATION RECOMMENDED 5.00 L,Edible Oils and Ghee,Edible Oils,700,Cooking Essentials,365,0,[JCEPO117001],12,0
+Ambient,DLHY GGNFC9,DELHI,904426,JIVO COLD PRESSED MUSTARD OIL 5L 5.00 LTRS,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,0,11025,"[GGNPO204916"",""GGNPO203883]",20,0
+Ambient,CHN ECOM,CHENNAI,401502,Jivo Cold Pressed oil Groundnut Oil 5.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,0,109368,"[JCNPO176197"",""JCNPO172860"",""JCNPO174857"",""JCNPO173907]",128,0
+Ambient,MUM FC22,MUMBAI,429981,Jivo Gold Refined Oil - Blend of Rice Bran oil & Sunflower oil 1.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,92,60495.75,[],0,3561
+Ambient,LKO IM1,LUCKNOW,83633,Jivo Cold Pressed Chemical Free Sunflower Oil 1.0 L,Edible Oils and Ghee,Edible Oils,720,Cooking Essentials,0,8604.75,"[LKOPO111062"",""LKOPO112590"",""LKOPO111502"",""LKOPO113149]",112,0
+Ambient,HYD IM1,HYDERABAD,15685,Jivo Canola Cold Press Edible Oil 1.0 ltr,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,18,11366.25,[],0,78
+Ambient,DLHY GGNFC9,DELHI,95788,Jivo Extra Light Edible Olive Oil Ideal for Everyday Indian Cooking 5.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,7,65054.99,[],0,11
+Ambient,AHM DELHIVERY,AHMEDABAD,429981,Jivo Gold Refined Oil - Blend of Rice Bran oil & Sunflower oil 1.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,145,18553.5,[],0,1715
+Ambient,DLHY GGNFC9,DELHI,15686,JIVO CANOLA COLD PRESS OIL INDIAN MEDICAL ASSOCIATION RECOMMENDED 5.00 L,Edible Oils and Ghee,Edible Oils,700,Cooking Essentials,6,51513,"[GGNPO204916"",""GGNPO203883]",24,27
+Ambient,LKO IM1,LUCKNOW,95788,Jivo Extra Light Edible Olive Oil Ideal for Everyday Indian Cooking 5.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,0,6823.95,[],0,0
+Ambient,CBE ECOM,COIMBATORE,83633,Jivo Cold Pressed Chemical Free Sunflower Oil 1.0 L,Edible Oils and Ghee,Edible Oils,720,Cooking Essentials,0,12820.5,"[JCEPO117001"",""JCEPO119590"",""JCEPO116689"",""JCEPO120292"",""JCEPO118024"",""JCEPO118409]",163,1
+Ambient,MUM FC22,MUMBAI,390730,Jivo Cold Pressed oil Groundnut Oil 1.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,4,149156,"[CMFPO201401"",""CMFPO199668"",""CMFPO201856]",96,158
+Ambient,PUNE IM2 TEMP,PUNE,615911,Jivo Gold Refined Oil - Blend of Rice Bran oil & Sunflower oil 5.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,365,0,[],0,0
+Ambient,CHD ECOM,CHANDIGARH,570572,Jivo Desi Ghee 1KG 1.0 kg,Edible Oils and Ghee,Ghee,244,Cooking Essentials,0,1154.23,[PCHPO125571],6,0
+Ambient,LKO IM1,LUCKNOW,88218,Jivo Pomace Daily Cooking Olive Oil 2.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,0,9838.71,[],0,0
+Ambient,GOA IM1,CENTRAL GOA,95788,Jivo Extra Light Edible Olive Oil Ideal for Everyday Indian Cooking 5.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,44,4094.37,[GCAPO02864],4,4
+Ambient,BLR ECOM2,BANGALORE,240878,Jivo Extra Virgin Olive Oil 250.0 ml,Edible Oils and Ghee,Olive Oil,730,Cooking Essentials,0,26964,"[MBLPO251133"",""MBLPO249728"",""MBLPO252370"",""MBLPO253797]",272,0
+Ambient,AHM DELHIVERY,AHMEDABAD,401502,Jivo Cold Pressed oil Groundnut Oil 5.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,0,59584,[],0,3
+Ambient,BLR ECOM2,BANGALORE,21709,Jivo Daily Cooking Pomace Olive Oil 1.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,19,119544.04,"[MBLPO256004"",""MBLPO251133"",""MBLPO254071]",112,317
+Ambient,KOL IM2,KOLKATA,95788,Jivo Extra Light Edible Olive Oil Ideal for Everyday Indian Cooking 5.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,365,0,[],0,0
+Ambient,DLHY GGNFC5,GURGAON,15687,Jivo Extra Light Daily Cooking Olive Oil 1.0 ltr,Edible Oils and Ghee,Olive Oil,730,Cooking Essentials,9,348892.25,"[FC5PO215588"",""FC5PO216567]",128,316
+Ambient,CBE ECOM,COIMBATORE,79292,JIVO POMACE OLIVE OIL 5.00 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,0,5598.88,[],0,0
+Ambient,HYD IM1,HYDERABAD,60711,Jivo Cold Press Kachi Ghani Mustard Oil 1.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,11,5544,"[CHMPO174140"",""CHMPO175429]",60,41
+Ambient,CHN ECOM,CHENNAI,88218,Jivo Pomace Daily Cooking Olive Oil 2.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,0,12780.18,[],0,0
+Ambient,BLR IM1,BANGALORE,95788,Jivo Extra Light Edible Olive Oil Ideal for Everyday Indian Cooking 5.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,6,28205.66,[],0,4
+Ambient,DLHY GGNFC9,DELHI,429981,Jivo Gold Refined Oil - Blend of Rice Bran oil & Sunflower oil 1.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,4,98736.75,[],0,280
+Ambient,AHM DELHIVERY,AHMEDABAD,15686,JIVO CANOLA COLD PRESS OIL INDIAN MEDICAL ASSOCIATION RECOMMENDED 5.00 L,Edible Oils and Ghee,Edible Oils,700,Cooking Essentials,11,5197.5,[],0,5
+Ambient,KOLKATA ECOM,KOLKATA,15685,Jivo Canola Cold Press Edible Oil 1.0 ltr,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,0,16721.25,[],0,0
+Ambient,PUN DELHIVERY,PUNE,79292,JIVO POMACE OLIVE OIL 5.00 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,0,3149.37,[],0,0
+Ambient,KOC IM1,KOCHI,88218,Jivo Pomace Daily Cooking Olive Oil 2.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,0,8012.97,[KOCPO27729],23,0
+Ambient,CHN ECOM,CHENNAI,95788,Jivo Extra Light Edible Olive Oil Ideal for Everyday Indian Cooking 5.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,0,3639.44,[],0,0
+Ambient,MUM FC22,MUMBAI,685793,Jivo Cold Pressed Chemical Free Sunflower Oil 5.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,2,81364.5,"[CMFPO201856"",""CMFPO199668"",""CMFPO201401]",220,19
+Ambient,BLR ECOM2,BANGALORE,67229,EXTRA VIRGIN OLIVE OIL 1.00 LTR,Edible Oils and Ghee,Olive Oil,720,Cooking Essentials,11,29593.55,[],0,28
+Ambient,DLHY GGNFC5,GURGAON,401502,Jivo Cold Pressed oil Groundnut Oil 5.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,3,98196,"[FC5PO215588"",""FC5PO213365]",64,19
+Ambient,PUN DELHIVERY,PUNE,904426,JIVO COLD PRESSED MUSTARD OIL 5L 5.00 LTRS,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,9,962.5,[],0,1
+Ambient,MUM FC22,MUMBAI,904426,JIVO COLD PRESSED MUSTARD OIL 5L 5.00 LTRS,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,33,9450,[],0,36
+Ambient,MUM FC22,MUMBAI,958164,JIVO RICEBRAN OIL 1L 1.00 LTR,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,11,17955,[CMFPO199668],16,99
+Ambient,BLR IM1,BANGALORE,904426,JIVO COLD PRESSED MUSTARD OIL 5L 5.00 LTRS,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,25,9887.5,"[MBIPO225691"",""MBIPO220772]",28,29
+Ambient,CHN ECOM,CHENNAI,685793,Jivo Cold Pressed Chemical Free Sunflower Oil 5.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,45,13608,[],0,65
+Ambient,MUM FC22,MUMBAI,15686,JIVO CANOLA COLD PRESS OIL INDIAN MEDICAL ASSOCIATION RECOMMENDED 5.00 L,Edible Oils and Ghee,Edible Oils,700,Cooking Essentials,5,11896.5,[],0,6
+Ambient,HYD IM2,HYDERABAD,766072,JIVO RICEBRAN OIL 5L 5.00 LTRS,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,2,11970,"[CHCPO206519"",""CHCPO209307]",20,3
+Ambient,CHD ECOM,CHANDIGARH,21709,Jivo Daily Cooking Pomace Olive Oil 1.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,8,78056.09,"[PCHPO129030"",""PCHPO126390"",""PCHPO128212]",96,89
+Ambient,KOL IM2,KOLKATA,968589,JIVO SO OLIVE OIL 1L 1.00 LTR,Edible Oils and Ghee,Olive Oil,730,Cooking Essentials,365,0,[],0,0
+Ambient,DLHY GGNFC9,DELHI,21709,Jivo Daily Cooking Pomace Olive Oil 1.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,13,121967.23,[GGNPO204241],144,220
+Ambient,CHD ECOM,CHANDIGARH,968589,JIVO SO OLIVE OIL 1L 1.00 LTR,Edible Oils and Ghee,Olive Oil,730,Cooking Essentials,43,3958.5,[],0,75
+Ambient,BLR ECOM2,BANGALORE,429981,Jivo Gold Refined Oil - Blend of Rice Bran oil & Sunflower oil 1.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,0,53077.5,[MBLPO249728],4600,4
+Ambient,BLR IM1,BANGALORE,60711,Jivo Cold Press Kachi Ghani Mustard Oil 1.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,8,19028.1,"[MBIPO228099"",""MBIPO223753"",""MBIPO225691"",""MBIPO226421]",100,93
+Ambient,CHD ECOM,CHANDIGARH,401502,Jivo Cold Pressed oil Groundnut Oil 5.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,5,17248,[],0,5
+Ambient,DLHY GGNFC9,DELHI,401502,Jivo Cold Pressed oil Groundnut Oil 5.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,0,67424,[GGNPO203883],28,2
+Ambient,BLR IM1,BANGALORE,766072,JIVO RICEBRAN OIL 5L 5.00 LTRS,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,54,6084.75,[],0,33
+Ambient,AHM DELHIVERY,AHMEDABAD,15685,Jivo Canola Cold Press Edible Oil 1.0 ltr,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,1,6037.5,[],0,4
+Ambient,HYD IM1,HYDERABAD,67229,EXTRA VIRGIN OLIVE OIL 1.00 LTR,Edible Oils and Ghee,Olive Oil,720,Cooking Essentials,24,12718.93,[],0,25
+Ambient,BLR IM1,BANGALORE,240878,Jivo Extra Virgin Olive Oil 250.0 ml,Edible Oils and Ghee,Olive Oil,730,Cooking Essentials,0,19246.5,"[MBIPO222661"",""MBIPO220772"",""MBIPO225691]",196,0
+Ambient,KOC IM1,KOCHI,15686,JIVO CANOLA COLD PRESS OIL INDIAN MEDICAL ASSOCIATION RECOMMENDED 5.00 L,Edible Oils and Ghee,Edible Oils,700,Cooking Essentials,365,0,[],0,0
+Ambient,HYD IM2,HYDERABAD,83633,Jivo Cold Pressed Chemical Free Sunflower Oil 1.0 L,Edible Oils and Ghee,Edible Oils,720,Cooking Essentials,0,16054.5,[],0,0
+Ambient,AMDTEMP,AHMEDABAD,390730,Jivo Cold Pressed oil Groundnut Oil 1.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,365,0,[],0,0
+Ambient,MUM IM1,MUMBAI,83633,Jivo Cold Pressed Chemical Free Sunflower Oil 1.0 L,Edible Oils and Ghee,Edible Oils,720,Cooking Essentials,365,0,[],0,0
+Ambient,LKO IM1,LUCKNOW,401502,Jivo Cold Pressed oil Groundnut Oil 5.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,0,17444,[],0,0
+Ambient,DLHY GGNFC5,GURGAON,968589,JIVO SO OLIVE OIL 1L 1.00 LTR,Edible Oils and Ghee,Olive Oil,730,Cooking Essentials,8,12967.5,"[FC5PO215588"",""FC5PO213365]",32,48
+Ambient,BLR ECOM2,BANGALORE,83633,Jivo Cold Pressed Chemical Free Sunflower Oil 1.0 L,Edible Oils and Ghee,Edible Oils,720,Cooking Essentials,10,53207,"[MBLPO254598"",""MBLPO249728"",""MBLPO253797"",""MBLPO256004]",259,304
+Ambient,CHN ECOM,CHENNAI,429981,Jivo Gold Refined Oil - Blend of Rice Bran oil & Sunflower oil 1.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,0,25877.25,"[JCNPO169326"",""JCNPO170927]",2800,10
+Ambient,DLHY GGNFC5,GURGAON,83633,Jivo Cold Pressed Chemical Free Sunflower Oil 1.0 L,Edible Oils and Ghee,Edible Oils,720,Cooking Essentials,3,23754.5,"[FC5PO213365"",""FC5PO215588]",288,41
+Ambient,HYD IM2,HYDERABAD,88218,Jivo Pomace Daily Cooking Olive Oil 2.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,2,26067.51,[],0,6
+Ambient,BLR ECOM2,BANGALORE,615911,Jivo Gold Refined Oil - Blend of Rice Bran oil & Sunflower oil 5.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,0,6321,[MBLPO249728],68,0
+Ambient,DLHY GGNFC9,DELHI,449236,Jivo Extra Light Olive Oil 2.0 L,Edible Oils and Ghee,Olive Oil,730,Cooking Essentials,15,54860.4,"[GGNPO202266"",""GGNPO203883"",""GGNPO204916]",50,44
+Ambient,HYD IM2,HYDERABAD,21709,Jivo Daily Cooking Pomace Olive Oil 1.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,3,24892.77,[],0,11
+Ambient,CHN ECOM,CHENNAI,570572,Jivo Desi Ghee 1KG 1.0 kg,Edible Oils and Ghee,Ghee,244,Cooking Essentials,7,5876.08,[],0,4
+Ambient,KOC IM1,KOCHI,615911,Jivo Gold Refined Oil - Blend of Rice Bran oil & Sunflower oil 5.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,0,1617,[],0,0
+Ambient,CHD ECOM,CHANDIGARH,15686,JIVO CANOLA COLD PRESS OIL INDIAN MEDICAL ASSOCIATION RECOMMENDED 5.00 L,Edible Oils and Ghee,Edible Oils,700,Cooking Essentials,14,33610.5,[PCHPO128212],6,43
+Ambient,MUM FC22,MUMBAI,67229,EXTRA VIRGIN OLIVE OIL 1.00 LTR,Edible Oils and Ghee,Olive Oil,720,Cooking Essentials,10,44831.08,[],0,37
+Ambient,KOLKATA ECOM,KOLKATA,60711,Jivo Cold Press Kachi Ghani Mustard Oil 1.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,0,66402,[],0,1
+Ambient,KOC IM1,KOCHI,60711,Jivo Cold Press Kachi Ghani Mustard Oil 1.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,0,5729.85,"[KOCPO31393"",""KOCPO32022"",""KOCPO30474]",80,0
+Ambient,HYD IM1,HYDERABAD,904426,JIVO COLD PRESSED MUSTARD OIL 5L 5.00 LTRS,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,9,9100,[CHMPO179458],16,10
+Ambient,KOL IM2,KOLKATA,958164,JIVO RICEBRAN OIL 1L 1.00 LTR,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,365,0,[KWBPO15921],64,0
+Ambient,AHM DELHIVERY,AHMEDABAD,95788,Jivo Extra Light Edible Olive Oil Ideal for Everyday Indian Cooking 5.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,7,17742.27,[],0,3
+Ambient,CBE ECOM,COIMBATORE,88218,Jivo Pomace Daily Cooking Olive Oil 2.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,0,3854.34,[],0,0
+Ambient,HYD IM1,HYDERABAD,333818,Jivo SO OLive Oil 5L 5.0 ltr,Edible Oils and Ghee,Olive Oil,730,Cooking Essentials,307,1478.75,[],0,40
+Ambient,CHD ECOM,CHANDIGARH,15687,Jivo Extra Light Daily Cooking Olive Oil 1.0 ltr,Edible Oils and Ghee,Olive Oil,730,Cooking Essentials,13,169357.02,"[PCHPO129030"",""PCHPO126390"",""PCHPO128212]",64,216
+Ambient,AHM DELHIVERY,AHMEDABAD,958164,JIVO RICEBRAN OIL 1L 1.00 LTR,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,0,4448.85,[CADPO134906],32,0
+Ambient,DLHY GGNFC9,DELHI,67229,EXTRA VIRGIN OLIVE OIL 1.00 LTR,Edible Oils and Ghee,Olive Oil,720,Cooking Essentials,0,31986.22,"[GGNPO204916"",""GGNPO202266]",72,0
+Ambient,HYD IM2,HYDERABAD,429981,Jivo Gold Refined Oil - Blend of Rice Bran oil & Sunflower oil 1.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,37,27515.25,[CHCPO206519],1420,658
+Ambient,DLHY GGNFC9,DELHI,615911,Jivo Gold Refined Oil - Blend of Rice Bran oil & Sunflower oil 5.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,0,35941.5,"[GGNPO204916"",""GGNPO203883]",100,1
+Ambient,HYD IM2,HYDERABAD,449236,Jivo Extra Light Olive Oil 2.0 L,Edible Oils and Ghee,Olive Oil,730,Cooking Essentials,0,27822.06,[],0,0
+Ambient,CBE ECOM,COIMBATORE,390730,Jivo Cold Pressed oil Groundnut Oil 1.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,0,25676,"[JCEPO119590"",""JCEPO119486"",""JCEPO118024"",""JCEPO117001]",176,0
+Ambient,PUN DELHIVERY,PUNE,401502,Jivo Cold Pressed oil Groundnut Oil 5.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,10,70560,[CPDPO168089],12,36
+Ambient,MUM FC22,MUMBAI,21709,Jivo Daily Cooking Pomace Olive Oil 1.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,16,129383.66,[],0,293
+Ambient,HYD IM2,HYDERABAD,904426,JIVO COLD PRESSED MUSTARD OIL 5L 5.00 LTRS,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,1,15575,"[CHCPO207726"",""CHCPO209307"",""CHCPO211738"",""CHCPO206519]",72,2
+Ambient,MUM FC22,MUMBAI,570572,Jivo Desi Ghee 1KG 1.0 kg,Edible Oils and Ghee,Ghee,244,Cooking Essentials,6,43441.02,[CMFPO201856],6,28
+Ambient,GOA IM1,CENTRAL GOA,15685,Jivo Canola Cold Press Edible Oil 1.0 ltr,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,1,2362.5,[GCAPO02864],20,1
+Ambient,CHD ECOM,CHANDIGARH,449236,Jivo Extra Light Olive Oil 2.0 L,Edible Oils and Ghee,Olive Oil,730,Cooking Essentials,17,8033.13,[],0,7
+Ambient,HYD IM1,HYDERABAD,15686,JIVO CANOLA COLD PRESS OIL INDIAN MEDICAL ASSOCIATION RECOMMENDED 5.00 L,Edible Oils and Ghee,Edible Oils,700,Cooking Essentials,5,1963.5,"[CHMPO174140"",""CHMPO177357]",66,1
+Ambient,PUN DELHIVERY,PUNE,968589,JIVO SO OLIVE OIL 1L 1.00 LTR,Edible Oils and Ghee,Olive Oil,730,Cooking Essentials,2,1797.25,[],0,2
+Ambient,BLR IM1,BANGALORE,15687,Jivo Extra Light Daily Cooking Olive Oil 1.0 ltr,Edible Oils and Ghee,Olive Oil,730,Cooking Essentials,0,126545.58,"[MBIPO228099"",""MBIPO222661"",""MBIPO226421"",""MBIPO225691"",""MBIPO223753]",240,1
+Ambient,CHD ECOM,CHANDIGARH,685793,Jivo Cold Pressed Chemical Free Sunflower Oil 5.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,1,9261,[],0,1
+Ambient,PUN DELHIVERY,PUNE,615911,Jivo Gold Refined Oil - Blend of Rice Bran oil & Sunflower oil 5.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,65,10878,[],0,97
+Ambient,CHN ECOM,CHENNAI,904426,JIVO COLD PRESSED MUSTARD OIL 5L 5.00 LTRS,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,1,7875,"[JCNPO173907"",""JCNPO172860]",28,1
+Ambient,KOL IM2,KOLKATA,67229,EXTRA VIRGIN OLIVE OIL 1.00 LTR,Edible Oils and Ghee,Olive Oil,720,Cooking Essentials,365,0,[],0,0
+Ambient,KOL IM2,KOLKATA,615911,Jivo Gold Refined Oil - Blend of Rice Bran oil & Sunflower oil 5.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,365,0,[],0,0
+Ambient,DLHY GGNFC9,DELHI,83633,Jivo Cold Pressed Chemical Free Sunflower Oil 1.0 L,Edible Oils and Ghee,Edible Oils,720,Cooking Essentials,0,36555.75,"[GGNPO203883"",""GGNPO204916]",134,4
+Ambient,DLHY GGNFC5,GURGAON,390730,Jivo Cold Pressed oil Groundnut Oil 1.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,24,43472.8,[],0,274
+Ambient,DLHY GGNFC5,GURGAON,429981,Jivo Gold Refined Oil - Blend of Rice Bran oil & Sunflower oil 1.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,8,90294.75,[],0,477
+Ambient,CBE ECOM,COIMBATORE,95788,Jivo Extra Light Edible Olive Oil Ideal for Everyday Indian Cooking 5.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,0,3639.44,[],0,0
+Ambient,PUNE IM2 TEMP,PUNE,904426,JIVO COLD PRESSED MUSTARD OIL 5L 5.00 LTRS,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,365,0,[],0,0
+Ambient,KOLKATA ECOM,KOLKATA,429981,Jivo Gold Refined Oil - Blend of Rice Bran oil & Sunflower oil 1.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,0,51817.5,[],0,0
+Ambient,GOA IM1,CENTRAL GOA,15687,Jivo Extra Light Daily Cooking Olive Oil 1.0 ltr,Edible Oils and Ghee,Olive Oil,730,Cooking Essentials,7,25288.13,"[GCAPO03235"",""GCAPO02864"",""GCAPO03848]",48,19
+Ambient,DLHY GGNFC5,GURGAON,958164,JIVO RICEBRAN OIL 1L 1.00 LTR,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,71,17256.75,[],0,615
+Ambient,BLR IM1,BANGALORE,333818,Jivo SO OLive Oil 5L 5.0 ltr,Edible Oils and Ghee,Olive Oil,730,Cooking Essentials,366,1706.25,[],0,55
+Ambient,BLR ECOM2,BANGALORE,15686,JIVO CANOLA COLD PRESS OIL INDIAN MEDICAL ASSOCIATION RECOMMENDED 5.00 L,Edible Oils and Ghee,Edible Oils,700,Non Food,0,1386,[],0,0
+Ambient,HYD IM1,HYDERABAD,615911,Jivo Gold Refined Oil - Blend of Rice Bran oil & Sunflower oil 5.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,43,8158.5,[],0,48
+Ambient,GOA IM1,CENTRAL GOA,21709,Jivo Daily Cooking Pomace Olive Oil 1.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,21,18871.51,"[GCAPO03235"",""GCAPO02864]",32,56
+Ambient,MUM IM3,MUMBAI,21709,Jivo Daily Cooking Pomace Olive Oil 1.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,365,0,[],0,0
+Ambient,HYD IM1,HYDERABAD,95788,Jivo Extra Light Edible Olive Oil Ideal for Everyday Indian Cooking 5.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,8,50497.23,[],0,9
+Ambient,DLHY GGNFC9,DELHI,15687,Jivo Extra Light Daily Cooking Olive Oil 1.0 ltr,Edible Oils and Ghee,Olive Oil,730,Cooking Essentials,1,343540.8,"[GGNPO202266"",""GGNPO204916"",""GGNPO203883]",336,65
+Ambient,PUNE IM2 TEMP,PUNE,401502,Jivo Cold Pressed oil Groundnut Oil 5.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,365,0,[],0,0
+Ambient,CHD ECOM,CHANDIGARH,15685,Jivo Canola Cold Press Edible Oil 1.0 ltr,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,4,47118.75,"[PCHPO125571"",""PCHPO126390"",""PCHPO129739"",""PCHPO129030"",""PCHPO128212]",160,76
+Ambient,KOC IM1,KOCHI,570572,Jivo Desi Ghee 1KG 1.0 kg,Edible Oils and Ghee,Ghee,244,Non Food,11,2833.11,"[KOCPO27729"",""KOCPO28625"",""KOCPO26020]",48,3
+Ambient,AHM DELHIVERY,AHMEDABAD,685793,Jivo Cold Pressed Chemical Free Sunflower Oil 5.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,2,17577,"[CADPO133583"",""CADPO135580"",""CADPO134369]",36,5
+Ambient,DLHY GGNFC5,GURGAON,95788,Jivo Extra Light Edible Olive Oil Ideal for Everyday Indian Cooking 5.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,7,48677.51,[FC5PO215969],8,8
+Ambient,BLR ECOM2,BANGALORE,15685,Jivo Canola Cold Press Edible Oil 1.0 ltr,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,5,31526.25,"[MBLPO254598"",""MBLPO251133"",""MBLPO256004"",""MBLPO253797"",""MBLPO252370]",200,67
+Ambient,KOC IM1,KOCHI,15687,Jivo Extra Light Daily Cooking Olive Oil 1.0 ltr,Edible Oils and Ghee,Olive Oil,730,Cooking Essentials,0,39348.75,"[KOCPO31614"",""KOCPO29553"",""KOCPO28625]",80,2
+Ambient,HYD IM1,HYDERABAD,449236,Jivo Extra Light Olive Oil 2.0 L,Edible Oils and Ghee,Olive Oil,730,Cooking Essentials,33,1175.58,[],0,2
+Ambient,AHM DELHIVERY,AHMEDABAD,79292,JIVO POMACE OLIVE OIL 5.00 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,0,4549.09,[],0,0
+Ambient,PUN DELHIVERY,PUNE,685793,Jivo Cold Pressed Chemical Free Sunflower Oil 5.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,1,49234.5,[CPDPO169126],4,7
+Ambient,DLHY GGNFC5,GURGAON,67229,EXTRA VIRGIN OLIVE OIL 1.00 LTR,Edible Oils and Ghee,Olive Oil,720,Cooking Essentials,0,14733.81,[],0,0
+Ambient,GOA IM1,CENTRAL GOA,401502,Jivo Cold Pressed oil Groundnut Oil 5.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,0,8036,[GCAPO02864],4,0
+Ambient,HYD IM2,HYDERABAD,60711,Jivo Cold Press Kachi Ghani Mustard Oil 1.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,0,10332,"[CHCPO207726"",""CHCPO213453"",""CHCPO211738]",120,1
+Ambient,CHD ECOM,CHANDIGARH,95788,Jivo Extra Light Edible Olive Oil Ideal for Everyday Indian Cooking 5.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,0,11828.18,[],0,0
+Ambient,KOL IM2,KOLKATA,79292,JIVO POMACE OLIVE OIL 5.00 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,365,0,[],0,150
+Ambient,CHD ECOM,CHANDIGARH,958164,JIVO RICEBRAN OIL 1L 1.00 LTR,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,61,2394,[],0,74
+Ambient,DLHY GGNFC9,DELHI,685793,Jivo Cold Pressed Chemical Free Sunflower Oil 5.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,0,22018.5,"[GGNPO203883"",""GGNPO204916]",28,0
+Ambient,BLR ECOM2,BANGALORE,79292,JIVO POMACE OLIVE OIL 5.00 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,0,6648.67,[],0,0
+Ambient,HYD IM1,HYDERABAD,79292,JIVO POMACE OLIVE OIL 5.00 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,200,1749.65,[CHMPO177357],4,10
+Ambient,LKO IM1,LUCKNOW,449236,Jivo Extra Light Olive Oil 2.0 L,Edible Oils and Ghee,Olive Oil,730,Cooking Essentials,0,7445.34,[LKOPO110336],10,0
+Ambient,DLHY GGNFC9,DELHI,88218,Jivo Pomace Daily Cooking Olive Oil 2.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,7,40572,"[GGNPO204916"",""GGNPO203883"",""GGNPO202266]",44,28
+Ambient,CHN ECOM,CHENNAI,240878,Jivo Extra Virgin Olive Oil 250.0 ml,Edible Oils and Ghee,Olive Oil,730,Cooking Essentials,0,6709.5,"[JCNPO170927"",""JCNPO173907"",""JCNPO172860"",""JCNPO171907]",200,0
+Ambient,MUM FC22,MUMBAI,60711,Jivo Cold Press Kachi Ghani Mustard Oil 1.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,5,10638.6,"[CMFPO199668"",""CMFPO201401]",40,33
+Ambient,LKO IM1,LUCKNOW,15687,Jivo Extra Light Daily Cooking Olive Oil 1.0 ltr,Edible Oils and Ghee,Olive Oil,730,Cooking Essentials,0,25812.78,"[LKOPO113787"",""LKOPO112883]",32,0
+Ambient,AMDTEMP,AHMEDABAD,21709,Jivo Daily Cooking Pomace Olive Oil 1.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,365,0,[],0,0
+Ambient,KOLKATA ECOM,KOLKATA,67229,EXTRA VIRGIN OLIVE OIL 1.00 LTR,Edible Oils and Ghee,Olive Oil,720,Cooking Essentials,0,4785.34,[],0,0
+Ambient,BLR ECOM2,BANGALORE,685793,Jivo Cold Pressed Chemical Free Sunflower Oil 5.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,0,57172.5,"[MBLPO254598"",""MBLPO256004"",""MBLPO252370"",""MBLPO253797]",128,1
+Ambient,LKO IM1,LUCKNOW,615911,Jivo Gold Refined Oil - Blend of Rice Bran oil & Sunflower oil 5.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,0,7350,[],0,0
+Ambient,KOL IM2,KOLKATA,15687,Jivo Extra Light Daily Cooking Olive Oil 1.0 ltr,Edible Oils and Ghee,Olive Oil,730,Cooking Essentials,365,0,[KWBPO15921],208,41
+Ambient,MUM FC22,MUMBAI,401502,Jivo Cold Pressed oil Groundnut Oil 5.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,1,261464,[CMFPO199668],8,26
+Ambient,HYD IM1,HYDERABAD,390730,Jivo Cold Pressed oil Groundnut Oil 1.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,5,49980,"[CHMPO178367"",""CHMPO179458"",""CHMPO175429"",""CHMPO178057]",176,75
+Ambient,MUM IM3,MUMBAI,401502,Jivo Cold Pressed oil Groundnut Oil 5.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,365,0,[],0,0
+Ambient,KOLKATA ECOM,KOLKATA,333818,Jivo SO OLive Oil 5L 5.0 ltr,Edible Oils and Ghee,Olive Oil,730,Cooking Essentials,0,775.6,[],0,0
+Ambient,DLHY GGNFC9,DELHI,766072,JIVO RICEBRAN OIL 5L 5.00 LTRS,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,72,5087.25,[],0,37
+Ambient,KOLKATA ECOM,KOLKATA,15687,Jivo Extra Light Daily Cooking Olive Oil 1.0 ltr,Edible Oils and Ghee,Olive Oil,730,Cooking Essentials,0,214057.2,[],0,0
+Ambient,BLR IM1,BANGALORE,449236,Jivo Extra Light Olive Oil 2.0 L,Edible Oils and Ghee,Olive Oil,730,Cooking Essentials,0,33895.89,"[MBIPO225691"",""MBIPO220772]",40,0
+Ambient,LKO IM1,LUCKNOW,21709,Jivo Daily Cooking Pomace Olive Oil 1.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,0,14759.43,[LKOPO111062],16,0
+Ambient,DLHY GGNFC5,GURGAON,766072,JIVO RICEBRAN OIL 5L 5.00 LTRS,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,13,7581,[FC5PO215588],16,10
+Ambient,KOLKATA ECOM,KOLKATA,95788,Jivo Extra Light Edible Olive Oil Ideal for Everyday Indian Cooking 5.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,0,13192.97,[],0,0
+Ambient,PUNE IM2 TEMP,PUNE,95788,Jivo Extra Light Edible Olive Oil Ideal for Everyday Indian Cooking 5.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,365,0,[],0,0
+Ambient,PUNE IM2 TEMP,PUNE,15687,Jivo Extra Light Daily Cooking Olive Oil 1.0 ltr,Edible Oils and Ghee,Olive Oil,730,Cooking Essentials,365,0,[],0,0
+Ambient,MUM FC22,MUMBAI,766072,JIVO RICEBRAN OIL 5L 5.00 LTRS,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,17,40498.5,[],0,70
+Ambient,CBE ECOM,COIMBATORE,15685,Jivo Canola Cold Press Edible Oil 1.0 ltr,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,0,2493.75,[],0,0
+Ambient,BLR IM1,BANGALORE,15686,JIVO CANOLA COLD PRESS OIL INDIAN MEDICAL ASSOCIATION RECOMMENDED 5.00 L,Edible Oils and Ghee,Edible Oils,700,Non Food,0,1617,[MBIPO220772],15,0
+Ambient,KOC IM1,KOCHI,766072,JIVO RICEBRAN OIL 5L 5.00 LTRS,Edible Oils and Ghee,Edible Oils,730,Non Food,365,0,[KOCPO26020],56,0
+Ambient,BLR ECOM2,BANGALORE,333818,Jivo SO OLive Oil 5L 5.0 ltr,Edible Oils and Ghee,Olive Oil,730,Cooking Essentials,0,1365,[],0,0
+Ambient,HYD IM1,HYDERABAD,958164,JIVO RICEBRAN OIL 1L 1.00 LTR,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,9,11431.35,"[CHMPO179458"",""CHMPO176144]",64,53
+Ambient,DLHY GGNFC5,GURGAON,615911,Jivo Gold Refined Oil - Blend of Rice Bran oil & Sunflower oil 5.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,22,16684.5,"[FC5PO213365"",""FC5PO215588]",48,52
+Ambient,CHD ECOM,CHANDIGARH,79292,JIVO POMACE OLIVE OIL 5.00 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,14,19246.15,[],0,8
+Ambient,KOC IM1,KOCHI,429981,Jivo Gold Refined Oil - Blend of Rice Bran oil & Sunflower oil 1.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,0,18679.5,"[KOCPO26020"",""KOCPO28625"",""KOCPO27332]",2340,2
+Ambient,CBE IM1 TEMP,COIMBATORE,401502,Jivo Cold Pressed oil Groundnut Oil 5.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,365,0,[],0,6
+Ambient,BLR IM1,BANGALORE,429981,Jivo Gold Refined Oil - Blend of Rice Bran oil & Sunflower oil 1.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,48,38351.25,[MBIPO220772],2900,1187
+Ambient,PUNE IM2 TEMP,PUNE,429981,Jivo Gold Refined Oil - Blend of Rice Bran oil & Sunflower oil 1.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,365,0,[],0,0
+Ambient,HYD IM2,HYDERABAD,95788,Jivo Extra Light Edible Olive Oil Ideal for Everyday Indian Cooking 5.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,1,95080.37,[],0,3
+Ambient,DLHY GGNFC5,GURGAON,449236,Jivo Extra Light Olive Oil 2.0 L,Edible Oils and Ghee,Olive Oil,730,Cooking Essentials,6,57407.49,"[FC5PO215588"",""FC5PO218305"",""FC5PO213365]",40,20
+Ambient,MUM IM1,MUMBAI,15686,JIVO CANOLA COLD PRESS OIL INDIAN MEDICAL ASSOCIATION RECOMMENDED 5.00 L,Edible Oils and Ghee,Edible Oils,700,Cooking Essentials,365,0,[],0,0
+Ambient,AMDTEMP,AHMEDABAD,429981,Jivo Gold Refined Oil - Blend of Rice Bran oil & Sunflower oil 1.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,365,0,[],0,0
+Ambient,PUN DELHIVERY,PUNE,67229,EXTRA VIRGIN OLIVE OIL 1.00 LTR,Edible Oils and Ghee,Olive Oil,720,Cooking Essentials,20,629.65,[],0,1
+Ambient,BLR ECOM2,BANGALORE,88218,Jivo Pomace Daily Cooking Olive Oil 2.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,5,39963.42,[],0,20
+Ambient,BLR IM1,BANGALORE,685793,Jivo Cold Pressed Chemical Free Sunflower Oil 5.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,0,34587,"[MBIPO220772"",""MBIPO226421"",""MBIPO222661]",80,0
+Ambient,BLR ECOM2,BANGALORE,401502,Jivo Cold Pressed oil Groundnut Oil 5.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,0,180908,"[MBLPO254598"",""MBLPO251133"",""MBLPO249728"",""MBLPO254071"",""MBLPO256004]",220,1
+Ambient,BLR IM1,BANGALORE,83633,Jivo Cold Pressed Chemical Free Sunflower Oil 1.0 L,Edible Oils and Ghee,Edible Oils,720,Cooking Essentials,5,34553.75,"[MBIPO223753"",""MBIPO228099"",""MBIPO225691"",""MBIPO222661"",""MBIPO226421]",248,99
+Ambient,PUN DELHIVERY,PUNE,21709,Jivo Daily Cooking Pomace Olive Oil 1.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,28,32896.64,[],0,126
+Ambient,KOLKATA ECOM,KOLKATA,15686,JIVO CANOLA COLD PRESS OIL INDIAN MEDICAL ASSOCIATION RECOMMENDED 5.00 L,Edible Oils and Ghee,Edible Oils,700,Cooking Essentials,85,808.5,[],0,6
+Ambient,KOC IM1,KOCHI,958164,JIVO RICEBRAN OIL 1L 1.00 LTR,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,0,24718.05,"[KOCPO32943"",""KOCPO32022"",""KOCPO29553"",""KOCPO26020]",288,1
+Ambient,AMDTEMP,AHMEDABAD,95788,Jivo Extra Light Edible Olive Oil Ideal for Everyday Indian Cooking 5.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,365,0,[],0,0
+Ambient,DLHY GGNFC5,GURGAON,88218,Jivo Pomace Daily Cooking Olive Oil 2.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,10,40673.43,"[FC5PO216567"",""FC5PO215969]",14,44
+Ambient,KOC IM1,KOCHI,449236,Jivo Extra Light Olive Oil 2.0 L,Edible Oils and Ghee,Olive Oil,730,Cooking Essentials,16,1175.58,[KOCPO26020],10,1
+Ambient,BLR ECOM2,BANGALORE,904426,JIVO COLD PRESSED MUSTARD OIL 5L 5.00 LTRS,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,2,20475,[],0,6
+Ambient,KOL IM2,KOLKATA,390730,Jivo Cold Pressed oil Groundnut Oil 1.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,365,0,[KWBPO15921],80,0
+Ambient,BLR ECOM2,BANGALORE,95788,Jivo Extra Light Edible Olive Oil Ideal for Everyday Indian Cooking 5.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,15,51407.09,[],0,18
+Ambient,LKO IM1,LUCKNOW,15686,JIVO CANOLA COLD PRESS OIL INDIAN MEDICAL ASSOCIATION RECOMMENDED 5.00 L,Edible Oils and Ghee,Edible Oils,700,Cooking Essentials,35,5890.5,[],0,18
+Ambient,GOA IM1,CENTRAL GOA,390730,Jivo Cold Pressed oil Groundnut Oil 1.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,0,9172.8,"[GCAPO03235"",""GCAPO02864"",""GCAPO03848]",48,2
+Ambient,CBE ECOM,COIMBATORE,21709,Jivo Daily Cooking Pomace Olive Oil 1.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,0,26214.51,"[JCEPO119486"",""JCEPO120292"",""JCEPO119590"",""JCEPO117001]",96,0
+Ambient,DLHY GGNFC5,GURGAON,15685,Jivo Canola Cold Press Edible Oil 1.0 ltr,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,13,43785,[FC5PO215969],140,221
+Ambient,PUN DELHIVERY,PUNE,958164,JIVO RICEBRAN OIL 1L 1.00 LTR,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,6500,19.95,[],0,65
+Ambient,KOC IM1,KOCHI,15685,Jivo Canola Cold Press Edible Oil 1.0 ltr,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,10,4935,"[KOCPO27729"",""KOCPO28625]",40,20
+Ambient,PUN DELHIVERY,PUNE,429981,Jivo Gold Refined Oil - Blend of Rice Bran oil & Sunflower oil 1.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,104,41926.5,[],0,2770
+Ambient,CHN ECOM,CHENNAI,615911,Jivo Gold Refined Oil - Blend of Rice Bran oil & Sunflower oil 5.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,17,12936,[],0,30
+Ambient,HYD IM2,HYDERABAD,968589,JIVO SO OLIVE OIL 1L 1.00 LTR,Edible Oils and Ghee,Olive Oil,730,Cooking Essentials,0,16789.5,"[CHCPO210391"",""CHCPO207726"",""CHCPO209307"",""CHCPO211738]",128,4
+Ambient,HYD IM1,HYDERABAD,685793,Jivo Cold Pressed Chemical Free Sunflower Oil 5.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,101,6993,[CHMPO177357],108,75
+Ambient,PUN DELHIVERY,PUNE,95788,Jivo Extra Light Edible Olive Oil Ideal for Everyday Indian Cooking 5.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,29,15467.62,[],0,10
+Ambient,CHD ECOM,CHANDIGARH,429981,Jivo Gold Refined Oil - Blend of Rice Bran oil & Sunflower oil 1.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,35,54463.5,[PCHPO125571],3960,1233
+Ambient,CHN ECOM,CHENNAI,83633,Jivo Cold Pressed Chemical Free Sunflower Oil 1.0 L,Edible Oils and Ghee,Edible Oils,720,Cooking Essentials,24,14168,[],0,179
+Ambient,GOA IM1,CENTRAL GOA,449236,Jivo Extra Light Olive Oil 2.0 L,Edible Oils and Ghee,Olive Oil,730,Cooking Essentials,365,0,[],0,8
+Ambient,CHN ECOM,CHENNAI,21709,Jivo Daily Cooking Pomace Olive Oil 1.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,1,45600.03,"[JCNPO173907"",""JCNPO171907"",""JCNPO176197"",""JCNPO174857]",112,8
+Ambient,BLR ECOM2,BANGALORE,570572,Jivo Desi Ghee 1KG 1.0 kg,Edible Oils and Ghee,Ghee,244,Cooking Essentials,68,11332.44,[],0,74
+Ambient,PUNE IM2 TEMP,PUNE,390730,Jivo Cold Pressed oil Groundnut Oil 1.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,365,0,[],0,0
+Ambient,MUM FC22,MUMBAI,15685,Jivo Canola Cold Press Edible Oil 1.0 ltr,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,4,48588.75,"[CMFPO201401"",""CMFPO199668]",60,80
+Ambient,DLHY GGNFC5,GURGAON,15686,JIVO CANOLA COLD PRESS OIL INDIAN MEDICAL ASSOCIATION RECOMMENDED 5.00 L,Edible Oils and Ghee,Edible Oils,700,Cooking Essentials,20,31069.5,"[FC5PO215588"",""FC5PO213365"",""FC5PO216567]",45,55
+Ambient,CHD ECOM,CHANDIGARH,615911,Jivo Gold Refined Oil - Blend of Rice Bran oil & Sunflower oil 5.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,29,14920.5,[],0,60
+Ambient,BLR ECOM2,BANGALORE,968589,JIVO SO OLIVE OIL 1L 1.00 LTR,Edible Oils and Ghee,Olive Oil,730,Cooking Essentials,17,12990.25,[MBLPO253797],48,101
+Ambient,CHN ECOM,CHENNAI,15686,JIVO CANOLA COLD PRESS OIL INDIAN MEDICAL ASSOCIATION RECOMMENDED 5.00 L,Edible Oils and Ghee,Edible Oils,700,Non Food,0,992.25,[],0,0
+Ambient,KOL IM2,KOLKATA,429981,Jivo Gold Refined Oil - Blend of Rice Bran oil & Sunflower oil 1.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,365,0,[],0,1316
+Ambient,DLHY GGNFC5,GURGAON,21709,Jivo Daily Cooking Pomace Olive Oil 1.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,17,116092.83,[FC5PO215969],64,272
+Ambient,PUN DELHIVERY,PUNE,83633,Jivo Cold Pressed Chemical Free Sunflower Oil 1.0 L,Edible Oils and Ghee,Edible Oils,720,Cooking Essentials,14,38827.25,"[CPDPO169126"",""CPDPO168089]",105,286
+Ambient,CHD ECOM,CHANDIGARH,60711,Jivo Cold Press Kachi Ghani Mustard Oil 1.0 L,Edible Oils and Ghee,Edible Oils,730,Cooking Essentials,2,301361.56,"[PCHPO128212"",""PCHPO129030"",""PCHPO125571"",""PCHPO126390]",2120,465

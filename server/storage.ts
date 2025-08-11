@@ -1585,6 +1585,18 @@ export class DatabaseStorage implements IStorage {
     return await db.insert(invAmazonJwRange).values(items).returning();
   }
 
+  // Swiggy Inventory JM Daily
+  async createInventorySwiggyJmDaily(items: any[]): Promise<any[]> {
+    const { invSwiggyJmDaily } = await import("@shared/schema");
+    return await db.insert(invSwiggyJmDaily).values(items).returning();
+  }
+
+  // Swiggy Inventory JM Range
+  async createInventorySwiggyJmRange(items: any[]): Promise<any[]> {
+    const { invSwiggyJmRange } = await import("@shared/schema");
+    return await db.insert(invSwiggyJmRange).values(items).returning();
+  }
+
   async updateInventory(id: number, header: any, items: any): Promise<any> {
     // This would need to be implemented based on specific requirements
     // For now, return a placeholder
