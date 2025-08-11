@@ -14,6 +14,15 @@ import { parseAmazonSecondarySales } from "./amazon-secondary-sales-parser";
 import { parseZeptoSecondaryData } from "./zepto-secondary-sales-parser";
 import { parseBlinkitSecondarySalesFile } from "./blinkit-secondary-sales-parser";
 import { parseSwiggySecondaryData } from "./swiggy-secondary-sales-parser";
+import { parseJioMartSaleSecondarySales } from "./jiomartsale-secondary-sales-parser";
+import { db } from "./db";
+import { 
+  scAmJwDaily, scAmJwRange, scAmJmDaily, scAmJmRange,
+  scZeptoJmDaily, scZeptoJmRange, 
+  scBlinkitJmDaily, scBlinkitJmRange,
+  scSwiggyJmDaily, scSwiggyJmRange,
+  scJioMartSaleJmDaily, scJioMartSaleJmRange
+} from "@shared/schema";
 
 import multer from 'multer';
 import crypto from "crypto";

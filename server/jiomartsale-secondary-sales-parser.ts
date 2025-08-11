@@ -27,6 +27,9 @@ interface ParseResult {
   platform: string;
   businessUnit: string;
   periodType: string;
+  reportDate?: Date;
+  periodStart?: Date;
+  periodEnd?: Date;
   totalItems: number;
   items: JioMartSaleData[];
   summary: {
@@ -140,10 +143,18 @@ export function parseJioMartSaleSecondarySales(
     ? `${startDate} to ${endDate}` 
     : startDate || 'Unknown';
 
+  // Set reportDate and period fields based on periodType
+  const reportDate = periodType === "daily" && startDate ? new Date(startDate) : undefined;
+  const periodStart = periodType === "date-range" && startDate ? new Date(startDate) : undefined;
+  const periodEnd = periodType === "date-range" && endDate ? new Date(endDate) : undefined;
+
   return {
     platform,
     businessUnit,
     periodType,
+    reportDate,
+    periodStart,
+    periodEnd,
     totalItems: items.length,
     items,
     summary: {
