@@ -163,7 +163,7 @@ export default function SecondarySales() {
       return BUSINESS_UNITS.filter(bu => bu.id === "jivo-wellness" || bu.id === "jivo-mart");
     }
     // New platforms only support Jivo Mart
-    if (["zepto", "blinkit", "swiggy", "jiomartsale"].includes(selectedPlatform)) {
+    if (["zepto", "blinkit", "swiggy", "jiomartsale", "jiomartcancel"].includes(selectedPlatform)) {
       return BUSINESS_UNITS.filter(bu => bu.id === "jivo-mart");
     }
     return BUSINESS_UNITS;
@@ -888,6 +888,21 @@ export default function SecondarySales() {
                                 <TableHead className="min-w-[120px] px-4 py-3 font-semibold">Payment Method</TableHead>
                               </>
                             )}
+
+                            {/* Jio Mart Cancel table headers */}
+                            {parsedData.platform === "jiomartcancel" && (
+                              <>
+                                <TableHead className="min-w-[150px] px-4 py-3 font-semibold">Shipment Number</TableHead>
+                                <TableHead className="min-w-[120px] px-4 py-3 font-semibold">EAN</TableHead>
+                                <TableHead className="min-w-[120px] px-4 py-3 font-semibold">SKU</TableHead>
+                                <TableHead className="min-w-[200px] px-4 py-3 font-semibold">Product</TableHead>
+                                <TableHead className="min-w-[120px] px-4 py-3 font-semibold">Status</TableHead>
+                                <TableHead className="min-w-[150px] px-4 py-3 font-semibold">Reason</TableHead>
+                                <TableHead className="text-right min-w-[80px] px-4 py-3 font-semibold">Quantity</TableHead>
+                                <TableHead className="text-right min-w-[100px] px-4 py-3 font-semibold">Amount</TableHead>
+                                <TableHead className="min-w-[120px] px-4 py-3 font-semibold">Payment Method</TableHead>
+                              </>
+                            )}
                           </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -1070,6 +1085,53 @@ export default function SecondarySales() {
                                   <TableCell className="px-4 py-3">
                                     <div className="truncate max-w-[120px]" title={item.payment_method_used || "N/A"}>
                                       {item.payment_method_used || "N/A"}
+                                    </div>
+                                  </TableCell>
+                                </>
+                              )}
+
+                              {/* Jio Mart Cancel table rows */}
+                              {parsedData.platform === "jiomartcancel" && (
+                                <>
+                                  <TableCell className="font-medium px-4 py-3">
+                                    <div className="truncate max-w-[150px]" title={item.shipment_number || "N/A"}>
+                                      {item.shipment_number || "N/A"}
+                                    </div>
+                                  </TableCell>
+                                  <TableCell className="px-4 py-3">
+                                    <div className="truncate max-w-[120px]" title={item.ean || "N/A"}>
+                                      {item.ean || "N/A"}
+                                    </div>
+                                  </TableCell>
+                                  <TableCell className="px-4 py-3">
+                                    <div className="truncate max-w-[120px]" title={item.sku || "N/A"}>
+                                      {item.sku || "N/A"}
+                                    </div>
+                                  </TableCell>
+                                  <TableCell className="px-4 py-3">
+                                    <div className="truncate max-w-[200px]" title={item.product || "N/A"}>
+                                      {item.product || "N/A"}
+                                    </div>
+                                  </TableCell>
+                                  <TableCell className="px-4 py-3">
+                                    <div className="truncate max-w-[120px]" title={item.status || "N/A"}>
+                                      {item.status || "N/A"}
+                                    </div>
+                                  </TableCell>
+                                  <TableCell className="px-4 py-3">
+                                    <div className="truncate max-w-[150px]" title={item.reason || "N/A"}>
+                                      {item.reason || "N/A"}
+                                    </div>
+                                  </TableCell>
+                                  <TableCell className="text-right px-4 py-3">
+                                    {item.quantity || 0}
+                                  </TableCell>
+                                  <TableCell className="text-right px-4 py-3">
+                                    ₹{parseFloat(item.amount || "0").toFixed(2)}
+                                  </TableCell>
+                                  <TableCell className="px-4 py-3">
+                                    <div className="truncate max-w-[120px]" title={item.payment_method || "N/A"}>
+                                      {item.payment_method || "N/A"}
                                     </div>
                                   </TableCell>
                                 </>

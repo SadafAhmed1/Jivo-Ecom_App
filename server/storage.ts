@@ -65,6 +65,8 @@ import {
   type InsertSwiggySecondarySalesItem,
   type JioMartSaleSecondarySalesItem,
   type InsertJioMartSaleSecondarySalesItem,
+  type JioMartCancelSecondarySalesItem,
+  type InsertJioMartCancelSecondarySalesItem,
 
   type DistributorMst,
   type InsertDistributorMst,
@@ -109,6 +111,8 @@ import {
   scSwiggyJmRange,
   scJioMartSaleJmDaily,
   scJioMartSaleJmRange,
+  scJioMartCancelJmDaily,
+  scJioMartCancelJmRange,
 
   distributorMst,
   distributorPo,
