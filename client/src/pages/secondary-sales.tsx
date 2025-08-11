@@ -807,22 +807,7 @@ export default function SecondarySales() {
                 </div>
               </div>
 
-              {/* Force Show Debug - Should Always Appear */}
-              <div className="mb-4 p-3 bg-red-100 border border-red-400 rounded-lg text-sm font-bold">
-                🔍 FORCE DEBUG: This should always show if preview renders
-              </div>
-              
-              {/* Debug Information - Always Show */}
-              <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg text-sm">
-                <strong>Debug Info:</strong><br/>
-                Platform: {parsedData.platform}<br/>
-                Items Check: {String(!!parsedData.items)}<br/>
-                Items Length Check: {String(!!(parsedData.items && parsedData.items.length > 0))}<br/>
-                Items Array: {parsedData.items ? `${parsedData.items.length} items` : 'null/undefined'}<br/>
-                Full Data Keys: {JSON.stringify(Object.keys(parsedData))}<br/>
-                Items Type: {Array.isArray(parsedData.items) ? 'Array' : typeof parsedData.items}<br/>
-                Raw Items Sample: {parsedData.items && parsedData.items[0] ? JSON.stringify(parsedData.items[0]).substring(0, 200) + '...' : 'No first item'}
-              </div>
+
 
               {/* Preview Table - Force Show for Debug */}
               {parsedData.items && Array.isArray(parsedData.items) && parsedData.items.length > 0 ? (
@@ -881,6 +866,20 @@ export default function SecondarySales() {
                                 <TableHead className="text-right min-w-[80px] px-4 py-3 font-semibold">Units</TableHead>
                                 <TableHead className="text-right min-w-[100px] px-4 py-3 font-semibold">GMV</TableHead>
                                 <TableHead className="text-right min-w-[100px] px-4 py-3 font-semibold">Base MRP</TableHead>
+                              </>
+                            )}
+
+                            {/* Jio Mart Sale table headers */}
+                            {parsedData.platform === "jiomartsale" && (
+                              <>
+                                <TableHead className="min-w-[150px] px-4 py-3 font-semibold">Shipment Number</TableHead>
+                                <TableHead className="min-w-[200px] px-4 py-3 font-semibold">Product Title</TableHead>
+                                <TableHead className="min-w-[120px] px-4 py-3 font-semibold">SKU</TableHead>
+                                <TableHead className="min-w-[120px] px-4 py-3 font-semibold">Shipment Status</TableHead>
+                                <TableHead className="text-right min-w-[80px] px-4 py-3 font-semibold">Qty</TableHead>
+                                <TableHead className="text-right min-w-[100px] px-4 py-3 font-semibold">MRP</TableHead>
+                                <TableHead className="text-right min-w-[100px] px-4 py-3 font-semibold">Item Total</TableHead>
+                                <TableHead className="min-w-[120px] px-4 py-3 font-semibold">Payment Method</TableHead>
                               </>
                             )}
                           </TableRow>
@@ -1029,6 +1028,46 @@ export default function SecondarySales() {
                                   </TableCell>
                                 </>
                               )}
+
+                              {/* Jio Mart Sale table rows */}
+                              {parsedData.platform === "jiomartsale" && (
+                                <>
+                                  <TableCell className="font-medium px-4 py-3">
+                                    <div className="truncate max-w-[150px]" title={item.shipment_number || "N/A"}>
+                                      {item.shipment_number || "N/A"}
+                                    </div>
+                                  </TableCell>
+                                  <TableCell className="px-4 py-3">
+                                    <div className="truncate max-w-[200px]" title={item.product_title || "N/A"}>
+                                      {item.product_title || "N/A"}
+                                    </div>
+                                  </TableCell>
+                                  <TableCell className="px-4 py-3">
+                                    <div className="truncate max-w-[120px]" title={item.sku || "N/A"}>
+                                      {item.sku || "N/A"}
+                                    </div>
+                                  </TableCell>
+                                  <TableCell className="px-4 py-3">
+                                    <div className="truncate max-w-[120px]" title={item.shipment_status || "N/A"}>
+                                      {item.shipment_status || "N/A"}
+                                    </div>
+                                  </TableCell>
+                                  <TableCell className="text-right px-4 py-3">
+                                    {item.qty || 0}
+                                  </TableCell>
+                                  <TableCell className="text-right px-4 py-3">
+                                    ₹{parseFloat(item.mrp || "0").toFixed(2)}
+                                  </TableCell>
+                                  <TableCell className="text-right px-4 py-3">
+                                    ₹{parseFloat(item.item_total || "0").toFixed(2)}
+                                  </TableCell>
+                                  <TableCell className="px-4 py-3">
+                                    <div className="truncate max-w-[120px]" title={item.payment_method_used || "N/A"}>
+                                      {item.payment_method_used || "N/A"}
+                                    </div>
+                                  </TableCell>
+                                </>
+                              )}
                             </TableRow>
                           ))}
                         </TableBody>
@@ -1041,12 +1080,8 @@ export default function SecondarySales() {
                   </div>
                 </div>
               ) : (
-                <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-sm">
-                  <strong>Table Not Showing Because:</strong><br/>
-                  parsedData.items exists: {String(!!parsedData.items)}<br/>
-                  parsedData.items is array: {String(Array.isArray(parsedData.items))}<br/>
-                  parsedData.items length: {parsedData.items ? parsedData.items.length : 'N/A'}<br/>
-                  Condition result: {String(parsedData.items && Array.isArray(parsedData.items) && parsedData.items.length > 0)}
+                <div className="mb-4 p-3 bg-gray-50 border border-gray-200 rounded-lg text-center">
+                  <p className="text-gray-600">No data available to display</p>
                 </div>
               )}
 
