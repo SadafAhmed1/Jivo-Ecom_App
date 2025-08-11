@@ -301,24 +301,26 @@ export default function SqlQuery() {
                   <CardDescription>Available tables in your database</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <ScrollArea className="h-[300px]">
-                    {tablesQuery.isLoading ? (
-                      <div className="text-sm text-gray-500">Loading tables...</div>
-                    ) : tablesQuery.data ? (
-                      <div className="space-y-2">
-                        {tablesQuery.data.map((table) => (
-                          <div
-                            key={table}
-                            className="p-2 rounded bg-gray-50 hover:bg-gray-100 cursor-pointer transition-colors"
-                            onClick={() => setQuery(`SELECT * FROM "${table}" LIMIT 10;`)}
-                          >
-                            <span className="font-mono text-sm">{table}</span>
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="text-sm text-gray-500">Failed to load tables</div>
-                    )}
+                  <ScrollArea className="h-[400px] w-full">
+                    <div className="pr-4">
+                      {tablesQuery.isLoading ? (
+                        <div className="text-sm text-gray-500">Loading tables...</div>
+                      ) : tablesQuery.data ? (
+                        <div className="space-y-2">
+                          {tablesQuery.data.map((table) => (
+                            <div
+                              key={table}
+                              className="p-3 rounded bg-gray-50 hover:bg-gray-100 cursor-pointer transition-colors border"
+                              onClick={() => setQuery(`SELECT * FROM "${table}" LIMIT 10;`)}
+                            >
+                              <span className="font-mono text-sm break-all">{table}</span>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="text-sm text-gray-500">Failed to load tables</div>
+                      )}
+                    </div>
                   </ScrollArea>
                 </CardContent>
               </Card>
@@ -331,8 +333,8 @@ export default function SqlQuery() {
                   <CardDescription>Common reporting queries</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <ScrollArea className="h-[300px]">
-                    <div className="space-y-3">
+                  <ScrollArea className="h-[400px] w-full">
+                    <div className="pr-4 space-y-3">
                       {sampleQueries.map((sample, index) => (
                         <div
                           key={index}
@@ -340,7 +342,7 @@ export default function SqlQuery() {
                           onClick={() => handleSampleQuery(sample.query)}
                         >
                           <h4 className="font-medium text-sm text-gray-900">{sample.title}</h4>
-                          <p className="text-xs text-gray-500 mt-1 font-mono">
+                          <p className="text-xs text-gray-500 mt-1 font-mono break-all">
                             {sample.query.split('\n')[0]}...
                           </p>
                         </div>
@@ -359,15 +361,15 @@ export default function SqlQuery() {
                 <CardTitle className="text-lg">Recent Queries</CardTitle>
               </CardHeader>
               <CardContent>
-                <ScrollArea className="h-[200px]">
-                  <div className="space-y-2">
+                <ScrollArea className="h-[300px] w-full">
+                  <div className="pr-4 space-y-2">
                     {queryHistory.map((item) => (
                       <div
                         key={item.id}
-                        className="p-2 rounded border cursor-pointer hover:bg-gray-50 transition-colors"
+                        className="p-3 rounded border cursor-pointer hover:bg-gray-50 transition-colors"
                         onClick={() => setQuery(item.query)}
                       >
-                        <div className="flex items-center justify-between mb-1">
+                        <div className="flex items-center justify-between mb-2">
                           <Badge
                             variant={item.status === 'success' ? 'default' : 'destructive'}
                             className="text-xs"
@@ -378,11 +380,11 @@ export default function SqlQuery() {
                             {new Date(item.timestamp).toLocaleTimeString()}
                           </span>
                         </div>
-                        <p className="text-xs font-mono text-gray-600 truncate">
+                        <p className="text-xs font-mono text-gray-600 break-all">
                           {item.query.replace(/\s+/g, ' ')}
                         </p>
                         {item.rowCount !== undefined && (
-                          <p className="text-xs text-gray-500 mt-1">
+                          <p className="text-xs text-gray-500 mt-2">
                             {item.rowCount} rows, {item.executionTime}ms
                           </p>
                         )}
