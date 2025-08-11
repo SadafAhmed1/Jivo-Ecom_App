@@ -44,6 +44,18 @@ export interface ParsedAmazonInventoryData {
   };
 }
 
+// Helper function to clean numeric values
+function cleanNumericValue(value: string | undefined): string {
+  if (!value || value === '' || value === undefined) return '0';
+  // Remove commas and other non-numeric characters except decimals
+  const cleaned = value.replace(/[^0-9.-]/g, '');
+  // If result is empty or just a dash, return '0'
+  if (!cleaned || cleaned === '-' || cleaned === '.') return '0';
+  // Parse as float and convert back to string to ensure it's a valid number
+  const parsed = parseFloat(cleaned);
+  return isNaN(parsed) ? '0' : parsed.toString();
+}
+
 export async function parseAmazonInventoryFile(
   fileBuffer: Buffer,
   filename: string,
@@ -105,6 +117,16 @@ export async function parseAmazonInventoryFile(
               console.log(`Record ${items.length + 1}:`, recordData);
             }
 
+            // Skip header rows - check if this is a header row
+            const isHeaderRow = recordData['Programme=[Retail]'] === 'ASIN' || 
+                               recordData['Distributor View=[Manufacturing]'] === 'Product Title' ||
+                               recordData['View By=[ASIN]'] === 'Brand';
+            
+            if (isHeaderRow) {
+              console.log('Skipping header row:', recordData);
+              continue;
+            }
+
             // Handle the specific Amazon sales report format
             const hasAsin = recordData['Programme=[Retail]'] || recordData.asin || recordData.ASIN || recordData['ASIN'] || recordData.item_id || recordData.Item_ID;
             const hasProductName = recordData['Distributor View=[Manufacturing]'] || recordData.product_name || recordData['Product Name'] || recordData.item_name || recordData.Item_Name || recordData['Item Name'];
@@ -118,6 +140,13 @@ export async function parseAmazonInventoryFile(
             if ((!recordData['Programme=[Retail]'] || recordData['Programme=[Retail]'].trim() === '') && 
                 (!recordData['Distributor View=[Manufacturing]'] || recordData['Distributor View=[Manufacturing]'].trim() === '')) {
               console.log('Skipping empty row:', recordData);
+              continue;
+            }
+
+            // Skip rows that still contain header-like data
+            if (recordData['Programme=[Retail]']?.includes('ASIN') || 
+                recordData['Distributor View=[Manufacturing]']?.includes('Product Title')) {
+              console.log('Skipping header-like row:', recordData);
               continue;
             }
 
@@ -135,14 +164,15 @@ export async function parseAmazonInventoryFile(
               condition: recordData.condition || recordData.Condition || recordData.item_condition || recordData['Item Condition'] || 'New',
               fulfillment_channel: 'Amazon FBA',
               // For Amazon sales report format, map available fields to inventory-like structure
-              units_available: recordData['Locale=[en_IN]'] || recordData['Currency=[INR]'] || '1', // Use available numeric field
+              // Clean numeric values by removing commas and converting to numbers
+              units_available: cleanNumericValue(recordData['Currency=[INR]']) || '1', // Net Received Units
               reserved_quantity: '0', // Not available in this report type
-              inbound_quantity: '0', // Not available in this report type  
+              inbound_quantity: cleanNumericValue(recordData['Reporting Range=[Custom]']) || '0', // Open Purchase Order Quantity
               researching_quantity: '0',
-              unfulfillable_quantity: '0',
-              supplier_name: recordData['Businesses=[JIVO WELLNESS PVT. LTD.]'] || 'Jivo Wellness',
-              cost_per_unit: recordData['Locale=[en_IN]'] || '0', // Use available numeric field
-              total_value: recordData['Currency=[INR]'] || recordData['Viewing Range=[01/08/25 - 09/08/25]'] || '0', // Use available value field
+              unfulfillable_quantity: cleanNumericValue(recordData['']) || '0', // Unsellable On-Hand Units
+              supplier_name: 'Jivo Wellness',
+              cost_per_unit: '0', // Not available in this report format
+              total_value: cleanNumericValue(recordData['Locale=[en_IN]']) || '0', // Net Received value
               last_updated_at: recordData.last_updated_at || recordData['Last Updated'] || recordData.updated_at || recordData['Updated At'] || '',
               attachment_path: filename
             };
