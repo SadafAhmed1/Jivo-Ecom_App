@@ -476,7 +476,7 @@ export default function Terminal() {
                     }
                   </p>
                   <p className="text-xs mt-4 text-gray-400">
-                    Use the terminal below to run commands like <code>npx claude-dev</code>
+                    Use the terminal below to run commands like <code className="text-yellow-500">npx @anthropic-ai/claude-code</code>
                   </p>
                   {!sidebarVisible && (
                     <Button
@@ -536,8 +536,11 @@ export default function Terminal() {
                 {commandHistory.length === 0 && (
                   <div className="text-green-400">
                     <div>Welcome to Terminal IDE!</div>
-                    <div className="text-gray-400 mt-1 text-xs">
-                      Try: ls, pwd, cat package.json, find . -name "*.ts", npx claude-dev
+                    <div className="text-gray-400 mt-1 text-xs space-y-1">
+                      <div>Basic commands: ls, pwd, cat package.json</div>
+                      <div>Find files: find . -name "*.ts" -o -name "*.tsx"</div>
+                      <div className="text-yellow-400">Claude Code AI: npx @anthropic-ai/claude-code</div>
+                      <div>Git status: git status, git log --oneline -10</div>
                     </div>
                   </div>
                 )}
