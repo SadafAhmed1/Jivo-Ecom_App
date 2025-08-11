@@ -434,7 +434,10 @@ export default function SecondarySales() {
                         ? "border-blue-500 bg-blue-50"
                         : "border-gray-200"
                     }`}
-                    onClick={() => setSelectedPlatform(platform.id)}
+                    onClick={() => {
+                      setSelectedPlatform(platform.id);
+                      setCurrentStep("business-unit");
+                    }}
                   >
                     <div className="flex items-center space-x-3">
                       <platform.icon className="w-8 h-8 text-gray-600" />
@@ -447,17 +450,7 @@ export default function SecondarySales() {
                 ))}
               </div>
               
-              {selectedPlatform && (
-                <div className="mt-6 flex justify-end">
-                  <Button
-                    onClick={() => setCurrentStep("business-unit")}
-                    className="flex items-center space-x-2"
-                  >
-                    <span>Continue</span>
-                    <ArrowRight className="w-4 h-4" />
-                  </Button>
-                </div>
-              )}
+
             </CardContent>
           </Card>
         )}
