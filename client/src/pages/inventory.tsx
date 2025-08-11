@@ -579,9 +579,9 @@ export default function InventoryPage() {
 
       {/* Step 6: Preview Data */}
       {currentStep === "preview" && parsedData && (
-        <div className="max-h-screen overflow-y-auto space-y-6 pb-20">
-          {/* Summary Cards */}
-          <Card>
+        <div className="flex flex-col h-[calc(100vh-200px)]">
+          {/* Summary Cards - Fixed at top */}
+          <Card className="mb-4">
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
                 <Eye className="w-5 h-5" />
@@ -617,42 +617,42 @@ export default function InventoryPage() {
             </CardContent>
           </Card>
 
-          {/* Data Table */}
-          <Card>
-            <CardHeader>
+          {/* Data Table - Scrollable */}
+          <Card className="flex-1 flex flex-col min-h-0">
+            <CardHeader className="flex-shrink-0">
               <CardTitle className="text-lg">Inventory Data Preview</CardTitle>
               <CardDescription>
                 All {parsedData.items?.length || 0} inventory records from your file
               </CardDescription>
             </CardHeader>
-            <CardContent className="p-0">
+            <CardContent className="flex-1 p-0 overflow-hidden">
               {parsedData.items && parsedData.items.length > 0 && (
-                <div className="border rounded-lg overflow-hidden">
-                  <div className="max-h-96 overflow-y-auto">
+                <div className="h-full border rounded-lg overflow-hidden">
+                  <div className="h-full overflow-y-auto">
                     <Table>
-                      <TableHeader className="sticky top-0 bg-white z-10">
+                      <TableHeader className="sticky top-0 bg-white z-10 border-b">
                         <TableRow>
-                          <TableHead className="w-32">RFC ID</TableHead>
-                          <TableHead className="w-40">SKU ID</TableHead>
-                          <TableHead className="min-w-[200px]">Title</TableHead>
-                          <TableHead className="w-32">Category</TableHead>
-                          <TableHead className="w-24">Status</TableHead>
-                          <TableHead className="text-right w-24">Sellable</TableHead>
-                          <TableHead className="text-right w-24">Unsellable</TableHead>
-                          <TableHead className="text-right w-24">In Transit</TableHead>
+                          <TableHead className="w-32 border-r">RFC ID</TableHead>
+                          <TableHead className="w-40 border-r">SKU ID</TableHead>
+                          <TableHead className="min-w-[250px] border-r">Title</TableHead>
+                          <TableHead className="w-32 border-r">Category</TableHead>
+                          <TableHead className="w-24 border-r">Status</TableHead>
+                          <TableHead className="text-right w-24 border-r">Sellable</TableHead>
+                          <TableHead className="text-right w-24 border-r">Unsellable</TableHead>
+                          <TableHead className="text-right w-24 border-r">In Transit</TableHead>
                           <TableHead className="text-right w-24">Orders</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
                         {parsedData.items.map((item, index) => (
                           <TableRow key={index} className="hover:bg-gray-50">
-                            <TableCell className="font-mono text-xs">{item.rfc_id}</TableCell>
-                            <TableCell className="font-mono text-xs">{item.sku_id}</TableCell>
-                            <TableCell className="max-w-[200px] truncate" title={item.title}>
-                              {item.title}
+                            <TableCell className="font-mono text-xs border-r">{item.rfc_id}</TableCell>
+                            <TableCell className="font-mono text-xs border-r">{item.sku_id}</TableCell>
+                            <TableCell className="border-r" title={item.title}>
+                              <div className="max-w-[250px] truncate text-sm">{item.title}</div>
                             </TableCell>
-                            <TableCell className="text-sm">{item.category}</TableCell>
-                            <TableCell>
+                            <TableCell className="text-sm border-r">{item.category}</TableCell>
+                            <TableCell className="border-r">
                               <span className={`px-2 py-1 text-xs rounded-full ${
                                 item.product_status === 'Active' 
                                   ? 'bg-green-100 text-green-800' 
@@ -661,13 +661,13 @@ export default function InventoryPage() {
                                 {item.product_status}
                               </span>
                             </TableCell>
-                            <TableCell className="text-right text-sm">
+                            <TableCell className="text-right text-sm border-r">
                               {parseInt(item.total_sellable_inv || '0').toLocaleString()}
                             </TableCell>
-                            <TableCell className="text-right text-sm">
+                            <TableCell className="text-right text-sm border-r">
                               {parseInt(item.total_unsellable_inv || '0').toLocaleString()}
                             </TableCell>
-                            <TableCell className="text-right text-sm">
+                            <TableCell className="text-right text-sm border-r">
                               {parseInt(item.mtd_fwd_intransit || '0').toLocaleString()}
                             </TableCell>
                             <TableCell className="text-right text-sm">
@@ -683,13 +683,13 @@ export default function InventoryPage() {
             </CardContent>
           </Card>
 
-          {/* Action Buttons */}
-          <div className="flex justify-between items-center pt-4">
+          {/* Action Buttons - Fixed at bottom */}
+          <div className="flex justify-between items-center pt-4 mt-4 border-t bg-white flex-shrink-0">
             <Button variant="outline" onClick={goBack} className="flex items-center space-x-2">
               <ArrowLeft className="w-4 h-4" />
               <span>Back</span>
             </Button>
-            <div className="flex space-x-2">
+            <div className="flex space-x-3">
               <Button variant="outline" onClick={resetToStart} className="flex items-center space-x-2">
                 <RotateCcw className="w-4 h-4" />
                 <span>Start Over</span>
@@ -697,12 +697,13 @@ export default function InventoryPage() {
               <Button
                 onClick={() => importMutation.mutate()}
                 disabled={importMutation.isPending || !parsedData.items?.length}
-                className="bg-green-600 hover:bg-green-700 text-white flex items-center space-x-2"
+                className="bg-green-600 hover:bg-green-700 text-white flex items-center space-x-2 px-6 py-2"
+                size="lg"
               >
                 {importMutation.isPending ? (
                   <>
                     <div className="w-4 h-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                    <span>Importing...</span>
+                    <span>Importing to Database...</span>
                   </>
                 ) : (
                   <>
