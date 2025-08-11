@@ -8,18 +8,35 @@ The Enhanced Terminal IDE provides complete system access through WebSocket conn
 
 ✅ **Full System Terminal Access** - Real shell with all commands available
 ✅ **WebSocket Connection** - Real-time terminal communication  
+✅ **Internet Access** - Full network connectivity (curl, wget, ping, etc.)
 ✅ **File Explorer Integration** - VS Code-like file tree with clickable files
 ✅ **Tabbed Editor** - Open and view multiple files simultaneously
+✅ **White Theme Interface** - Clean design matching the application style
+✅ **Resizable Terminal** - Drag the top border to adjust terminal height
 ✅ **Connection Status** - Visual indicators for terminal connectivity
-✅ **Complete Command Support** - All system commands, network tools, interpreters
 
 ## How It Works
 
 Unlike the previous Claude Code approach, this system:
 - Connects to your actual system terminal through WebSocket
-- Runs commands directly on the host system (not sandboxed)
+- Runs commands directly on the host system (not sandboxed)  
+- Provides full internet access and network connectivity
+- Features a clean white interface matching your application design
+- Allows terminal height adjustment by dragging the resize handle
 - Provides full access to file system, network, and system resources
 - Maintains persistent terminal sessions
+
+## Interface Features
+
+**Clean Design**: White background with proper syntax highlighting for different message types:
+- Input commands: Blue and bold
+- System messages: Orange and italic
+- Error messages: Red text
+- Output: Standard gray text
+
+**Resizable Terminal**: Drag the gray bar at the top of the terminal to adjust height (200-600px range)
+
+**Connection Status**: Real-time status indicators showing terminal connectivity
 
 ### Common Commands & Use Cases
 

@@ -17,7 +17,7 @@ export function setupTerminalWebSocket(server: Server) {
     const shell = process.platform === 'win32' ? 'cmd.exe' : '/bin/bash';
     const shellArgs = process.platform === 'win32' ? [] : ['-i']; // Interactive shell
     
-    // Set up enhanced environment with full access
+    // Set up enhanced environment with full internet access
     const terminalProcess = spawn(shell, shellArgs, {
       cwd: process.cwd(),
       env: {
@@ -26,11 +26,17 @@ export function setupTerminalWebSocket(server: Server) {
         COLORTERM: 'truecolor',
         SHELL: shell,
         HOME: os.homedir(),
-        USER: process.env.USER || 'user',
-        PATH: process.env.PATH || '',
-        // Add project-specific paths
+        USER: process.env.USER || process.env.USERNAME || 'user',
+        PATH: process.env.PATH || '/usr/local/bin:/usr/bin:/bin',
+        // Network configuration
+        HTTP_PROXY: process.env.HTTP_PROXY || '',
+        HTTPS_PROXY: process.env.HTTPS_PROXY || '',
+        NO_PROXY: process.env.NO_PROXY || '',
+        // Project-specific paths
         PROJECT_ROOT: process.cwd(),
         DATABASE_URL: process.env.DATABASE_URL || '',
+        // Enable internet access
+        DNS_NAMESERVERS: '8.8.8.8,8.8.4.4',
       },
       stdio: ['pipe', 'pipe', 'pipe'],
       detached: false
@@ -104,23 +110,28 @@ export function setupTerminalWebSocket(server: Server) {
     });
 
     // Send welcome message with system info
-    const welcomeMsg = `
-╭─ Enhanced Terminal Connected ─╮
-│ Platform: ${process.platform}     
-│ Shell: ${shell}
-│ CWD: ${process.cwd()}
+    const welcomeMsg = `╭─ Enhanced Terminal Connected ─╮
+│ Platform: ${process.platform}
+│ Shell: ${shell}  
+│ Directory: ${process.cwd()}
+│ Internet: Available
 │ Full system access enabled
 ╰─────────────────────────────────╯
 
-Type 'help' or try these commands:
-• ls -la (list files)
-• pwd (current directory)  
+Test network connectivity:
+• curl ifconfig.me (get public IP)
+• ping google.com (test connectivity)  
+• wget --version (download tool)
+
+Development commands:
+• git status (repository status)
+• npm run dev (start development)
+• node --version (Node.js version)
+
+System commands:
+• ls -la (list files with details)
 • ps aux (running processes)
 • df -h (disk usage)
-• git status (git commands)
-• npm run dev (run scripts)
-• curl, wget (network tools)
-• python, node (interpreters)
 
 Ready for commands...
 `;

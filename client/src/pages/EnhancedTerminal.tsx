@@ -402,23 +402,52 @@ export default function EnhancedTerminal() {
 
           {/* Enhanced Terminal Panel */}
           <div 
-            className="border-t bg-black text-white flex flex-col"
+            className="border-t bg-white text-gray-800 flex flex-col relative"
             style={{ height: terminalMinimized ? '32px' : `${terminalHeight}px` }}
           >
-            <div className="flex items-center justify-between p-2 bg-gray-800 text-xs cursor-pointer" onClick={() => setTerminalMinimized(!terminalMinimized)}>
+            {/* Resize Handle */}
+            {!terminalMinimized && (
+              <div
+                className="absolute top-0 left-0 right-0 h-1 bg-gray-200 hover:bg-gray-300 cursor-row-resize"
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  const startY = e.clientY;
+                  const startHeight = terminalHeight;
+                  
+                  const handleMouseMove = (e: MouseEvent) => {
+                    const deltaY = startY - e.clientY;
+                    const newHeight = Math.max(200, Math.min(600, startHeight + deltaY));
+                    setTerminalHeight(newHeight);
+                  };
+                  
+                  const handleMouseUp = () => {
+                    document.removeEventListener('mousemove', handleMouseMove);
+                    document.removeEventListener('mouseup', handleMouseUp);
+                  };
+                  
+                  document.addEventListener('mousemove', handleMouseMove);
+                  document.addEventListener('mouseup', handleMouseUp);
+                }}
+              />
+            )}
+            
+            <div className="flex items-center justify-between p-2 bg-gray-100 border-b text-xs cursor-pointer" onClick={() => setTerminalMinimized(!terminalMinimized)}>
               <div className="flex items-center gap-2">
                 <TerminalIcon size={14} />
-                <span>Enhanced Terminal</span>
+                <span className="font-medium">Enhanced Terminal</span>
                 <div className={cn(
                   "w-2 h-2 rounded-full",
-                  isConnected ? "bg-green-400" : "bg-red-400"
+                  isConnected ? "bg-green-500" : "bg-red-500"
                 )} />
+                <span className="text-gray-600">
+                  {isConnected ? "Connected" : "Disconnected"}
+                </span>
               </div>
               <div className="flex gap-1">
                 <Button
                   size="sm"
                   variant="ghost"
-                  className="h-6 w-6 p-0 text-white hover:bg-gray-600"
+                  className="h-6 w-6 p-0 text-gray-600 hover:bg-gray-200"
                   onClick={(e) => {
                     e.stopPropagation();
                     clearTerminal();
@@ -429,7 +458,7 @@ export default function EnhancedTerminal() {
                 <Button
                   size="sm"
                   variant="ghost"
-                  className="h-6 w-6 p-0 text-white hover:bg-gray-600"
+                  className="h-6 w-6 p-0 text-gray-600 hover:bg-gray-200"
                   onClick={(e) => {
                     e.stopPropagation();
                     setTerminalMinimized(!terminalMinimized);
@@ -443,27 +472,32 @@ export default function EnhancedTerminal() {
             {!terminalMinimized && (
               <>
                 {/* Terminal Output */}
-                <ScrollArea className="flex-1" ref={terminalRef}>
+                <ScrollArea className="flex-1 bg-gray-50" ref={terminalRef}>
                   <div className="p-3 font-mono text-sm space-y-1">
                     {messages.length === 0 && (
-                      <div className="text-green-400">
-                        <div>Enhanced Terminal Ready!</div>
-                        <div className="text-gray-400 mt-1 text-xs space-y-1">
-                          <div>Full system access enabled - All commands available</div>
-                          <div>Try: ls -la, pwd, git status, npm run dev, python --version</div>
-                          <div>Network tools: curl, wget, ping</div>
-                          <div>System info: ps aux, df -h, top</div>
+                      <div className="text-green-600">
+                        <div className="font-semibold">Enhanced Terminal Ready!</div>
+                        <div className="text-gray-600 mt-2 text-xs space-y-1 leading-relaxed">
+                          <div className="flex items-center gap-2">
+                            <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                            Full system access enabled - All commands available
+                          </div>
+                          <div>• Basic: ls -la, pwd, cat, find</div>
+                          <div>• Development: git status, npm run dev, python --version</div>
+                          <div>• Network: curl ifconfig.me, wget, ping google.com</div>
+                          <div>• System: ps aux, df -h, top, htop</div>
+                          <div>• Test: bash scripts/test-system-access.sh</div>
                         </div>
                       </div>
                     )}
                     
                     {messages.map((message) => (
                       <div key={message.id} className={cn(
-                        "whitespace-pre-wrap",
-                        message.type === 'input' && "text-cyan-400",
-                        message.type === 'error' && "text-red-400",
-                        message.type === 'system' && "text-yellow-400",
-                        message.type === 'output' && "text-gray-100"
+                        "whitespace-pre-wrap font-mono",
+                        message.type === 'input' && "text-blue-600 font-semibold",
+                        message.type === 'error' && "text-red-600",
+                        message.type === 'system' && "text-orange-600 italic",
+                        message.type === 'output' && "text-gray-800"
                       )}>
                         {message.content}
                       </div>
@@ -472,21 +506,21 @@ export default function EnhancedTerminal() {
                 </ScrollArea>
 
                 {/* Command Input */}
-                <div className="border-t border-gray-700 p-2 flex items-center gap-2">
-                  <span className="text-cyan-400 text-sm">$</span>
+                <div className="border-t p-3 bg-white flex items-center gap-2">
+                  <span className="text-blue-600 text-sm font-mono font-bold">$</span>
                   <Input
                     ref={inputRef}
                     value={currentInput}
                     onChange={(e) => setCurrentInput(e.target.value)}
                     onKeyPress={handleKeyPress}
-                    className="flex-1 bg-transparent border-none text-white placeholder-gray-400 focus:ring-0 focus:outline-none"
-                    placeholder={isConnected ? "Enter command..." : "Connect to terminal first"}
+                    className="flex-1 font-mono text-sm border-gray-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                    placeholder={isConnected ? "Enter command... (try: curl ifconfig.me)" : "Connect to terminal first"}
                     disabled={!isConnected}
                   />
                   <Button
                     size="sm"
-                    variant="ghost"
-                    className="h-8 w-8 p-0 text-white hover:bg-gray-600"
+                    variant="outline"
+                    className="h-8 w-8 p-0 border-blue-200 hover:bg-blue-50"
                     onClick={() => sendCommand(currentInput)}
                     disabled={!isConnected || !currentInput.trim()}
                   >

@@ -16,6 +16,13 @@ echo ""
 echo "🌐 Network Connectivity:"
 echo "Testing internet connection..."
 ping -c 3 google.com > /dev/null 2>&1 && echo "✅ Internet: Connected" || echo "❌ Internet: Disconnected"
+
+echo "Getting public IP address..."
+PUBLIC_IP=$(curl -s ifconfig.me 2>/dev/null || echo "Unable to fetch")
+echo "Public IP: $PUBLIC_IP"
+
+echo "Testing DNS resolution..."
+nslookup google.com > /dev/null 2>&1 && echo "✅ DNS: Working" || echo "❌ DNS: Failed"
 echo ""
 
 echo "📊 System Resources:"
