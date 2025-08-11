@@ -853,11 +853,10 @@ export default function SecondarySales() {
                               <>
                                 <TableHead className="min-w-[150px] px-4 py-3 font-semibold">Item Name</TableHead>
                                 <TableHead className="min-w-[120px] px-4 py-3 font-semibold">Category</TableHead>
-                                <TableHead className="min-w-[100px] px-4 py-3 font-semibold">Brand</TableHead>
+                                <TableHead className="min-w-[150px] px-4 py-3 font-semibold">Manufacturer</TableHead>
                                 <TableHead className="min-w-[100px] px-4 py-3 font-semibold">City</TableHead>
                                 <TableHead className="text-right min-w-[80px] px-4 py-3 font-semibold">Qty Sold</TableHead>
-                                <TableHead className="text-right min-w-[100px] px-4 py-3 font-semibold">MRP</TableHead>
-                                <TableHead className="text-right min-w-[100px] px-4 py-3 font-semibold">Selling Price</TableHead>
+                                <TableHead className="text-right min-w-[100px] px-4 py-3 font-semibold">Total Value</TableHead>
                               </>
                             )}
                             
@@ -953,28 +952,23 @@ export default function SecondarySales() {
                               {parsedData.platform === "blinkit" && (
                                 <>
                                   <TableCell className="font-medium px-4 py-3">
-                                    <div className="truncate max-w-[100px]" title={item.item_id || "N/A"}>
-                                      {item.item_id || "N/A"}
-                                    </div>
-                                  </TableCell>
-                                  <TableCell className="px-4 py-3">
                                     <div className="truncate max-w-[150px]" title={item.item_name || "N/A"}>
                                       {item.item_name || "N/A"}
                                     </div>
                                   </TableCell>
                                   <TableCell className="px-4 py-3">
-                                    <div className="truncate max-w-[120px]" title={item.manufacturer_name || "N/A"}>
+                                    <div className="truncate max-w-[120px]" title={item.category || "N/A"}>
+                                      {item.category || "N/A"}
+                                    </div>
+                                  </TableCell>
+                                  <TableCell className="px-4 py-3">
+                                    <div className="truncate max-w-[150px]" title={item.manufacturer_name || "N/A"}>
                                       {item.manufacturer_name || "N/A"}
                                     </div>
                                   </TableCell>
                                   <TableCell className="px-4 py-3">
                                     <div className="truncate max-w-[100px]" title={item.city_name || "N/A"}>
                                       {item.city_name || "N/A"}
-                                    </div>
-                                  </TableCell>
-                                  <TableCell className="px-4 py-3">
-                                    <div className="truncate max-w-[120px]" title={item.category || "N/A"}>
-                                      {item.category || "N/A"}
                                     </div>
                                   </TableCell>
                                   <TableCell className="text-right px-4 py-3">

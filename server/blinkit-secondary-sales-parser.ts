@@ -112,9 +112,10 @@ export function parseBlinkitSecondarySalesFile(
     console.log(`Successfully parsed ${items.length} Blinkit items`);
 
     // Calculate summary
+    // Note: In Blinkit CSV, the 'mrp' field contains the total selling price (qty * unit_price), not unit price
     const summary = {
       totalQtySold: items.reduce((sum, item) => sum + item.qty_sold, 0),
-      totalSalesValue: items.reduce((sum, item) => sum + (item.qty_sold * item.mrp), 0),
+      totalSalesValue: items.reduce((sum, item) => sum + item.mrp, 0), // MRP is already total value
       uniqueProducts: new Set(items.map(item => item.item_id)).size
     };
 
