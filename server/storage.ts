@@ -246,6 +246,8 @@ export interface IStorage {
   createScSwiggyJmRange(items: InsertSwiggySecondarySalesItem[]): Promise<SwiggySecondarySalesItem[]>;
   createScJioMartSaleJmDaily(items: InsertJioMartSaleSecondarySalesItem[]): Promise<JioMartSaleSecondarySalesItem[]>;
   createScJioMartSaleJmRange(items: InsertJioMartSaleSecondarySalesItem[]): Promise<JioMartSaleSecondarySalesItem[]>;
+  createScJioMartCancelJmDaily(items: InsertJioMartCancelSecondarySalesItem[]): Promise<JioMartCancelSecondarySalesItem[]>;
+  createScJioMartCancelJmRange(items: InsertJioMartCancelSecondarySalesItem[]): Promise<JioMartCancelSecondarySalesItem[]>;
   getScAmJwDaily(dateStart?: string, dateEnd?: string): Promise<ScAmJwDaily[]>;
   getScAmJwRange(dateStart?: string, dateEnd?: string): Promise<ScAmJwRange[]>;
   getScAmJmDaily(dateStart?: string, dateEnd?: string): Promise<ScAmJmDaily[]>;
@@ -1477,6 +1479,14 @@ export class DatabaseStorage implements IStorage {
 
   async createScJioMartSaleJmRange(items: InsertJioMartSaleSecondarySalesItem[]): Promise<JioMartSaleSecondarySalesItem[]> {
     return await db.insert(scJioMartSaleJmRange).values(items).returning();
+  }
+
+  async createScJioMartCancelJmDaily(items: InsertJioMartCancelSecondarySalesItem[]): Promise<JioMartCancelSecondarySalesItem[]> {
+    return await db.insert(scJioMartCancelJmDaily).values(items).returning();
+  }
+
+  async createScJioMartCancelJmRange(items: InsertJioMartCancelSecondarySalesItem[]): Promise<JioMartCancelSecondarySalesItem[]> {
+    return await db.insert(scJioMartCancelJmRange).values(items).returning();
   }
 
 

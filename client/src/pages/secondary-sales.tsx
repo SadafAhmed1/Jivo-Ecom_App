@@ -96,6 +96,12 @@ const PLATFORMS = [
     description: "Upload Jio Mart Sale secondary sales data",
     icon: ShoppingCart,
   },
+  {
+    id: "jiomartcancel",
+    name: "Jio Mart Cancel",
+    description: "Upload Jio Mart Cancel secondary sales data",
+    icon: ShoppingCart,
+  },
 ];
 
 const BUSINESS_UNITS = [

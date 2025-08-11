@@ -15,13 +15,15 @@ import { parseZeptoSecondaryData } from "./zepto-secondary-sales-parser";
 import { parseBlinkitSecondarySalesFile } from "./blinkit-secondary-sales-parser";
 import { parseSwiggySecondaryData } from "./swiggy-secondary-sales-parser";
 import { parseJioMartSaleSecondarySales } from "./jiomartsale-secondary-sales-parser";
+import { parseJioMartCancelSecondarySales } from "./jiomartcancel-secondary-sales-parser";
 import { db } from "./db";
 import { 
   scAmJwDaily, scAmJwRange, scAmJmDaily, scAmJmRange,
   scZeptoJmDaily, scZeptoJmRange, 
   scBlinkitJmDaily, scBlinkitJmRange,
   scSwiggyJmDaily, scSwiggyJmRange,
-  scJioMartSaleJmDaily, scJioMartSaleJmRange
+  scJioMartSaleJmDaily, scJioMartSaleJmRange,
+  scJioMartCancelJmDaily, scJioMartCancelJmRange
 } from "@shared/schema";
 
 import multer from 'multer';
@@ -1527,8 +1529,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Platform, business unit, and period type are required" });
       }
 
-      if (!["amazon", "zepto", "blinkit", "swiggy", "jiomartsale"].includes(platform)) {
-        return res.status(400).json({ error: "Supported platforms: amazon, zepto, blinkit, swiggy, jiomartsale" });
+      if (!["amazon", "zepto", "blinkit", "swiggy", "jiomartsale", "jiomartcancel"].includes(platform)) {
+        return res.status(400).json({ error: "Supported platforms: amazon, zepto, blinkit, swiggy, jiomartsale, jiomartcancel" });
       }
 
       if (!["jivo-wellness", "jivo-mart"].includes(businessUnit)) {
@@ -1657,6 +1659,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
             startDate,
             endDate
           );
+        } else if (platform === "jiomartcancel") {
+          const { parseJioMartCancelSecondarySales } = await import("./jiomartcancel-secondary-sales-parser");
+          
+          parsedData = parseJioMartCancelSecondarySales(
+            req.file.buffer,
+            platform,
+            businessUnit,
+            periodType,
+            startDate,
+            endDate
+          );
         }
 
         if (!parsedData) {
@@ -1713,7 +1726,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         scZeptoJmDaily, scZeptoJmRange,
         scBlinkitJmDaily, scBlinkitJmRange,
         scSwiggyJmDaily, scSwiggyJmRange,
-        scJioMartSaleJmDaily, scJioMartSaleJmRange
+        scJioMartSaleJmDaily, scJioMartSaleJmRange,
+        scJioMartCancelJmDaily, scJioMartCancelJmRange
       } = await import("@shared/schema");
       
       // Select the appropriate table based on platform and period type
@@ -1754,6 +1768,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         case "SC_JioMartSale_JM_Range":
           table = scJioMartSaleJmRange;
           break;
+        case "SC_JioMartCancel_JM_Daily":
+          table = scJioMartCancelJmDaily;
+          break;
+        case "SC_JioMartCancel_JM_Range":
+          table = scJioMartCancelJmRange;
+          break;
         default:
           return false;
       }
@@ -1781,7 +1801,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       "zepto": "Zepto", 
       "blinkit": "Blinkit",
       "swiggy": "Swiggy",
-      "jiomartsale": "JioMartSale"
+      "jiomartsale": "JioMartSale",
+      "jiomartcancel": "JioMartCancel"
     };
     
     const businessUnitMap: Record<string, string> = {
@@ -1811,8 +1832,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Platform, business unit, and period type are required" });
       }
 
-      if (!["amazon", "zepto", "blinkit", "swiggy", "jiomartsale"].includes(platform)) {
-        return res.status(400).json({ error: "Supported platforms: amazon, zepto, blinkit, swiggy, jiomartsale" });
+      if (!["amazon", "zepto", "blinkit", "swiggy", "jiomartsale", "jiomartcancel"].includes(platform)) {
+        return res.status(400).json({ error: "Supported platforms: amazon, zepto, blinkit, swiggy, jiomartsale, jiomartcancel" });
       }
 
       if (!["jivo-wellness", "jivo-mart"].includes(businessUnit)) {
@@ -1994,6 +2015,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const { parseJioMartSaleSecondarySales } = await import("./jiomartsale-secondary-sales-parser");
           
           const parsedResult = parseJioMartSaleSecondarySales(
+            req.file.buffer,
+            platform,
+            businessUnit,
+            periodType,
+            startDate,
+            endDate
+          );
+          
+          // Add attachment path to all items
+          const itemsWithAttachment = parsedResult.items.map(item => ({
+            ...item,
+            attachment_path: attachmentPath
+          }));
+          
+          parsedData = {
+            ...parsedResult,
+            items: itemsWithAttachment
+          };
+        } else if (platform === "jiomartcancel") {
+          const { parseJioMartCancelSecondarySales } = await import("./jiomartcancel-secondary-sales-parser");
+          
+          const parsedResult = parseJioMartCancelSecondarySales(
             req.file.buffer,
             platform,
             businessUnit,
@@ -2267,6 +2310,56 @@ export async function registerRoutes(app: Express): Promise<Server> {
             });
             insertedItems = await storage.createScJioMartSaleJmRange(jioMartSaleItemsWithPeriod as any);
             tableName = "SC_JioMartSale_JM_Range";
+          }
+        } else if (platform === "jiomartcancel") {
+          // Process JioMartCancel data with proper date handling
+          const jioMartCancelItemsWithDates = (parsedData as any).items.map((item: any) => {
+            // Parse report date safely
+            let reportDate = new Date();
+            if ((parsedData as any).reportDate) {
+              const parsedReportDate = new Date((parsedData as any).reportDate);
+              if (!isNaN(parsedReportDate.getTime())) {
+                reportDate = parsedReportDate;
+              }
+            }
+
+            return {
+              ...item,
+              report_date: reportDate
+            };
+          });
+
+          if (businessUnit === "jivo-mart" && periodType === "daily") {
+            insertedItems = await storage.createScJioMartCancelJmDaily(jioMartCancelItemsWithDates as any);
+            tableName = "SC_JioMartCancel_JM_Daily";
+          } else if (businessUnit === "jivo-mart" && periodType === "date-range") {
+            // For date-range, also add period fields
+            const jioMartCancelItemsWithPeriod = jioMartCancelItemsWithDates.map(item => {
+              let periodStart = new Date();
+              let periodEnd = new Date();
+              
+              if ((parsedData as any).periodStart) {
+                const parsedPeriodStart = new Date((parsedData as any).periodStart);
+                if (!isNaN(parsedPeriodStart.getTime())) {
+                  periodStart = parsedPeriodStart;
+                }
+              }
+              
+              if ((parsedData as any).periodEnd) {
+                const parsedPeriodEnd = new Date((parsedData as any).periodEnd);
+                if (!isNaN(parsedPeriodEnd.getTime())) {
+                  periodEnd = parsedPeriodEnd;
+                }
+              }
+              
+              return {
+                ...item,
+                period_start: periodStart,
+                period_end: periodEnd
+              };
+            });
+            insertedItems = await storage.createScJioMartCancelJmRange(jioMartCancelItemsWithPeriod as any);
+            tableName = "SC_JioMartCancel_JM_Range";
           }
         }
 

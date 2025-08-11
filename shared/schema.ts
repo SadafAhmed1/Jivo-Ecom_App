@@ -1305,4 +1305,57 @@ export const insertJioMartSaleSecondarySalesItemSchema = createInsertSchema(scJi
 export type JioMartSaleSecondarySalesItem = typeof scJioMartSaleJmDaily.$inferSelect;
 export type InsertJioMartSaleSecondarySalesItem = z.infer<typeof insertJioMartSaleSecondarySalesItemSchema>;
 
+// Jio Mart Cancel Secondary Sales Tables
+export const scJioMartCancelJmDaily = pgTable("SC_JioMartCancel_JM_Daily", {
+  id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
+  report_date: timestamp("report_date").notNull(),
+  shipment_number: text("shipment_number"),
+  ean: text("ean"),
+  sku: text("sku"),
+  product: text("product"),
+  invoice_id: text("invoice_id"),
+  invoice_amount: decimal("invoice_amount", { precision: 10, scale: 2 }),
+  quantity: integer("quantity"),
+  amount: decimal("amount", { precision: 10, scale: 2 }),
+  status: text("status"),
+  reason: text("reason"),
+  payment_method: text("payment_method"),
+  fulfiller_name: text("fulfiller_name"),
+  attachment_path: text("attachment_path"),
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow()
+});
+
+export const scJioMartCancelJmRange = pgTable("SC_JioMartCancel_JM_Range", {
+  id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
+  period_start: timestamp("period_start").notNull(),
+  period_end: timestamp("period_end").notNull(),
+  shipment_number: text("shipment_number"),
+  ean: text("ean"),
+  sku: text("sku"),
+  product: text("product"),
+  invoice_id: text("invoice_id"),
+  invoice_amount: decimal("invoice_amount", { precision: 10, scale: 2 }),
+  quantity: integer("quantity"),
+  amount: decimal("amount", { precision: 10, scale: 2 }),
+  status: text("status"),
+  reason: text("reason"),
+  payment_method: text("payment_method"),
+  fulfiller_name: text("fulfiller_name"),
+  attachment_path: text("attachment_path"),
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow()
+});
+
+// Insert schemas for Jio Mart Cancel
+export const insertJioMartCancelSecondarySalesItemSchema = createInsertSchema(scJioMartCancelJmDaily).omit({
+  id: true,
+  created_at: true,
+  updated_at: true
+});
+
+// Types for Jio Mart Cancel
+export type JioMartCancelSecondarySalesItem = typeof scJioMartCancelJmDaily.$inferSelect;
+export type InsertJioMartCancelSecondarySalesItem = z.infer<typeof insertJioMartCancelSecondarySalesItemSchema>;
+
 
