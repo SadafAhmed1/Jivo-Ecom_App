@@ -19,6 +19,7 @@ import { parseJioMartCancelSecondarySales } from "./jiomartcancel-secondary-sale
 import { parseBigBasketSecondarySales } from "./bigbasket-secondary-sales-parser";
 import { parseJioMartInventoryCsv } from "./jiomart-inventory-parser";
 import { parseBlinkitInventoryCsv } from "./blinkit-inventory-parser";
+import { parseAmazonInventoryFile } from "./amazon-inventory-parser";
 import { db } from "./db";
 import { 
   scAmJwDaily, scAmJwRange, scAmJmDaily, scAmJmRange,
@@ -2548,12 +2549,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Platform, business unit, and period type are required" });
       }
 
-      if (!["jiomart", "blinkit"].includes(platform)) {
-        return res.status(400).json({ error: "Currently only Jio Mart and Blinkit inventory are supported" });
+      if (!["jiomart", "blinkit", "amazon"].includes(platform)) {
+        return res.status(400).json({ error: "Currently only Jio Mart, Blinkit, and Amazon inventory are supported" });
       }
 
-      if (businessUnit !== "jm") {
-        return res.status(400).json({ error: "Business unit must be jm (Jivo Mart)" });
+      if (platform === "amazon") {
+        if (!["jm", "jw"].includes(businessUnit)) {
+          return res.status(400).json({ error: "Business unit must be jm (Jivo Mart) or jw (Jivo Wellness) for Amazon" });
+        }
+      } else {
+        if (businessUnit !== "jm") {
+          return res.status(400).json({ error: "Business unit must be jm (Jivo Mart)" });
+        }
       }
 
       if (!["daily", "range"].includes(periodType)) {
@@ -2589,6 +2596,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
         } else if (platform === "blinkit") {
           parsedData = await parseBlinkitInventoryCsv(
             req.file.buffer.toString('utf8'),
+            businessUnit,
+            periodType,
+            reportDate ? new Date(reportDate) : new Date(),
+            periodStart ? new Date(periodStart) : null,
+            periodEnd ? new Date(periodEnd) : null
+          );
+          
+          // Add attachment path to all items
+          const itemsWithAttachment = parsedData.items.map(item => ({
+            ...item,
+            attachment_path: attachmentPath
+          }));
+          
+          parsedData = {
+            ...parsedData,
+            items: itemsWithAttachment
+          };
+        } else if (platform === "amazon") {
+          parsedData = await parseAmazonInventoryFile(
+            req.file.buffer,
+            req.file.originalname,
             businessUnit,
             periodType,
             reportDate ? new Date(reportDate) : new Date(),
@@ -2676,6 +2704,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
             periodStart,
             periodEnd
           );
+        } else if (platform === "amazon") {
+          parsedData = await parseAmazonInventoryFile(
+            req.file.buffer,
+            req.file.originalname,
+            businessUnit,
+            periodType,
+            reportDate,
+            periodStart,
+            periodEnd
+          );
         }
 
         if (!parsedData) {
@@ -2722,6 +2760,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         } else if (platform === "blinkit" && businessUnit === "jm" && periodType === "range") {
           insertedItems = await storage.createInventoryBlinkitJmRange(inventoryItemsWithDates as any);
           tableName = "INV_Blinkit_JM_Range";
+        } else if (platform === "amazon" && businessUnit === "jm" && periodType === "daily") {
+          insertedItems = await storage.createInventoryAmazonJmDaily(inventoryItemsWithDates as any);
+          tableName = "INV_Amazon_JM_Daily";
+        } else if (platform === "amazon" && businessUnit === "jm" && periodType === "range") {
+          insertedItems = await storage.createInventoryAmazonJmRange(inventoryItemsWithDates as any);
+          tableName = "INV_Amazon_JM_Range";
+        } else if (platform === "amazon" && businessUnit === "jw" && periodType === "daily") {
+          insertedItems = await storage.createInventoryAmazonJwDaily(inventoryItemsWithDates as any);
+          tableName = "INV_Amazon_JW_Daily";
+        } else if (platform === "amazon" && businessUnit === "jw" && periodType === "range") {
+          insertedItems = await storage.createInventoryAmazonJwRange(inventoryItemsWithDates as any);
+          tableName = "INV_Amazon_JW_Range";
         }
 
         if (!insertedItems) {

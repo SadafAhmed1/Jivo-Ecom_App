@@ -1530,8 +1530,131 @@ export const invBlinkitJmRange = pgTable("INV_Blinkit_JM_Range", {
   updated_at: timestamp("updated_at").defaultNow()
 });
 
+// Amazon Inventory Tables - JM (Jivo Mart)
+export const invAmazonJmDaily = pgTable("INV_Amazon_JM_Daily", {
+  id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
+  report_date: timestamp("report_date").notNull(),
+  asin: text("asin").notNull(),
+  product_name: text("product_name"),
+  sku: text("sku"),
+  fnsku: text("fnsku"),
+  category: text("category"),
+  brand: text("brand"),
+  size: text("size"),
+  unit: text("unit"),
+  warehouse_location: text("warehouse_location"),
+  condition: text("condition"),
+  fulfillment_channel: text("fulfillment_channel"),
+  units_available: integer("units_available"),
+  reserved_quantity: integer("reserved_quantity"),
+  inbound_quantity: integer("inbound_quantity"),
+  researching_quantity: integer("researching_quantity"),
+  unfulfillable_quantity: integer("unfulfillable_quantity"),
+  supplier_name: text("supplier_name"),
+  cost_per_unit: decimal("cost_per_unit", { precision: 10, scale: 2 }),
+  total_value: decimal("total_value", { precision: 10, scale: 2 }),
+  last_updated_at: timestamp("last_updated_at"),
+  attachment_path: text("attachment_path"),
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow()
+});
+
+export const invAmazonJmRange = pgTable("INV_Amazon_JM_Range", {
+  id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
+  period_start: timestamp("period_start").notNull(),
+  period_end: timestamp("period_end").notNull(),
+  asin: text("asin").notNull(),
+  product_name: text("product_name"),
+  sku: text("sku"),
+  fnsku: text("fnsku"),
+  category: text("category"),
+  brand: text("brand"),
+  size: text("size"),
+  unit: text("unit"),
+  warehouse_location: text("warehouse_location"),
+  condition: text("condition"),
+  fulfillment_channel: text("fulfillment_channel"),
+  units_available: integer("units_available"),
+  reserved_quantity: integer("reserved_quantity"),
+  inbound_quantity: integer("inbound_quantity"),
+  researching_quantity: integer("researching_quantity"),
+  unfulfillable_quantity: integer("unfulfillable_quantity"),
+  supplier_name: text("supplier_name"),
+  cost_per_unit: decimal("cost_per_unit", { precision: 10, scale: 2 }),
+  total_value: decimal("total_value", { precision: 10, scale: 2 }),
+  last_updated_at: timestamp("last_updated_at"),
+  attachment_path: text("attachment_path"),
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow()
+});
+
+// Amazon Inventory Tables - JW (Jivo Wellness)
+export const invAmazonJwDaily = pgTable("INV_Amazon_JW_Daily", {
+  id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
+  report_date: timestamp("report_date").notNull(),
+  asin: text("asin").notNull(),
+  product_name: text("product_name"),
+  sku: text("sku"),
+  fnsku: text("fnsku"),
+  category: text("category"),
+  brand: text("brand"),
+  size: text("size"),
+  unit: text("unit"),
+  warehouse_location: text("warehouse_location"),
+  condition: text("condition"),
+  fulfillment_channel: text("fulfillment_channel"),
+  units_available: integer("units_available"),
+  reserved_quantity: integer("reserved_quantity"),
+  inbound_quantity: integer("inbound_quantity"),
+  researching_quantity: integer("researching_quantity"),
+  unfulfillable_quantity: integer("unfulfillable_quantity"),
+  supplier_name: text("supplier_name"),
+  cost_per_unit: decimal("cost_per_unit", { precision: 10, scale: 2 }),
+  total_value: decimal("total_value", { precision: 10, scale: 2 }),
+  last_updated_at: timestamp("last_updated_at"),
+  attachment_path: text("attachment_path"),
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow()
+});
+
+export const invAmazonJwRange = pgTable("INV_Amazon_JW_Range", {
+  id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
+  period_start: timestamp("period_start").notNull(),
+  period_end: timestamp("period_end").notNull(),
+  asin: text("asin").notNull(),
+  product_name: text("product_name"),
+  sku: text("sku"),
+  fnsku: text("fnsku"),
+  category: text("category"),
+  brand: text("brand"),
+  size: text("size"),
+  unit: text("unit"),
+  warehouse_location: text("warehouse_location"),
+  condition: text("condition"),
+  fulfillment_channel: text("fulfillment_channel"),
+  units_available: integer("units_available"),
+  reserved_quantity: integer("reserved_quantity"),
+  inbound_quantity: integer("inbound_quantity"),
+  researching_quantity: integer("researching_quantity"),
+  unfulfillable_quantity: integer("unfulfillable_quantity"),
+  supplier_name: text("supplier_name"),
+  cost_per_unit: decimal("cost_per_unit", { precision: 10, scale: 2 }),
+  total_value: decimal("total_value", { precision: 10, scale: 2 }),
+  last_updated_at: timestamp("last_updated_at"),
+  attachment_path: text("attachment_path"),
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow()
+});
+
 // Insert schemas for Blinkit Inventory
 export const insertBlinkitInventoryItemSchema = createInsertSchema(invBlinkitJmDaily).omit({
+  id: true,
+  created_at: true,
+  updated_at: true
+});
+
+// Insert schemas for Amazon Inventory
+export const insertAmazonInventoryItemSchema = createInsertSchema(invAmazonJmDaily).omit({
   id: true,
   created_at: true,
   updated_at: true
@@ -1540,5 +1663,9 @@ export const insertBlinkitInventoryItemSchema = createInsertSchema(invBlinkitJmD
 // Types for Blinkit Inventory
 export type BlinkitInventoryItem = typeof invBlinkitJmDaily.$inferSelect;
 export type InsertBlinkitInventoryItem = z.infer<typeof insertBlinkitInventoryItemSchema>;
+
+// Types for Amazon Inventory
+export type AmazonInventoryItem = typeof invAmazonJmDaily.$inferSelect;
+export type InsertAmazonInventoryItem = z.infer<typeof insertAmazonInventoryItemSchema>;
 
 

@@ -47,6 +47,11 @@ interface ParsedInventoryData {
     totalReservedQuantity?: number;
     totalDamagedQuantity?: number;
     totalExpiredQuantity?: number;
+    // Amazon specific fields
+    totalUnitsAvailable?: number;
+    totalInboundQuantity?: number;
+    totalUnfulfillableQuantity?: number;
+    totalValue?: number;
   };
 }
 
@@ -63,6 +68,12 @@ const PLATFORMS = [
     description: "Upload Blinkit inventory data",
     icon: Package,
   },
+  {
+    id: "amazon",
+    name: "Amazon",
+    description: "Upload Amazon inventory data (XLSX/CSV)",
+    icon: Package,
+  },
 ];
 
 const BUSINESS_UNITS = [
@@ -70,6 +81,11 @@ const BUSINESS_UNITS = [
     id: "jm",
     name: "Jivo Mart", 
     description: "Jivo Mart products inventory data",
+  },
+  {
+    id: "jw",
+    name: "Jivo Wellness", 
+    description: "Jivo Wellness products inventory data",
   },
 ];
 
@@ -104,6 +120,15 @@ export default function InventoryPage() {
 
   const selectedPlatformData = PLATFORMS.find((p) => p.id === selectedPlatform);
   const selectedBusinessUnitData = BUSINESS_UNITS.find((bu) => bu.id === selectedBusinessUnit);
+
+  // Filter business units based on selected platform
+  const getAvailableBusinessUnits = () => {
+    if (selectedPlatform === "amazon") {
+      return BUSINESS_UNITS; // Amazon supports both JM and JW
+    } else {
+      return BUSINESS_UNITS.filter(unit => unit.id === "jm"); // Other platforms only support JM
+    }
+  };
 
   const previewMutation = useMutation({
     mutationFn: async (file: File) => {
@@ -388,7 +413,7 @@ export default function InventoryPage() {
           </CardHeader>
           <CardContent>
             <div className="grid gap-4">
-              {BUSINESS_UNITS.map((unit) => (
+              {getAvailableBusinessUnits().map((unit) => (
                 <Card
                   key={unit.id}
                   className={`cursor-pointer transition-all hover:shadow-md ${
@@ -560,11 +585,13 @@ export default function InventoryPage() {
                 <Upload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                 <div className="space-y-2">
                   <p className="text-lg font-medium">Choose file to upload</p>
-                  <p className="text-sm text-gray-600">CSV files supported</p>
+                  <p className="text-sm text-gray-600">
+                    {selectedPlatform === 'amazon' ? 'CSV and XLSX files supported' : 'CSV files supported'}
+                  </p>
                   <div className="relative">
                     <input
                       type="file"
-                      accept=".csv"
+                      accept={selectedPlatform === 'amazon' ? '.csv,.xlsx' : '.csv'}
                       onChange={handleInputChange}
                       className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                       disabled={previewMutation.isPending}
@@ -604,7 +631,10 @@ export default function InventoryPage() {
                 Review the inventory data before importing to {selectedPlatformData?.name} - {selectedBusinessUnitData?.name}
                 <br />
                 <span className="font-medium text-blue-600">
-                  Target Table: INV_{selectedPlatform === 'jiomart' ? 'JioMart' : 'Blinkit'}_JM_{selectedPeriodType === 'daily' ? 'Daily' : 'Range'}
+                  Target Table: INV_{
+                    selectedPlatform === 'jiomart' ? 'JioMart' : 
+                    selectedPlatform === 'amazon' ? 'Amazon' : 'Blinkit'
+                  }_{selectedBusinessUnit.toUpperCase()}_{selectedPeriodType === 'daily' ? 'Daily' : 'Range'}
                 </span>
               </CardDescription>
             </CardHeader>
@@ -627,6 +657,21 @@ export default function InventoryPage() {
                     <div className="p-4 bg-yellow-50 rounded-lg">
                       <div className="text-2xl font-bold text-yellow-600">{parsedData.summary?.totalIntransit || 0}</div>
                       <div className="text-sm text-yellow-600">In Transit</div>
+                    </div>
+                  </>
+                ) : selectedPlatform === 'amazon' ? (
+                  <>
+                    <div className="p-4 bg-green-50 rounded-lg">
+                      <div className="text-2xl font-bold text-green-600">{parsedData.summary?.totalUnitsAvailable || 0}</div>
+                      <div className="text-sm text-green-600">Units Available</div>
+                    </div>
+                    <div className="p-4 bg-blue-50 rounded-lg">
+                      <div className="text-2xl font-bold text-blue-600">{parsedData.summary?.totalInboundQuantity || 0}</div>
+                      <div className="text-sm text-blue-600">Inbound</div>
+                    </div>
+                    <div className="p-4 bg-purple-50 rounded-lg">
+                      <div className="text-2xl font-bold text-purple-600">₹{(parsedData.summary?.totalValue || 0).toLocaleString()}</div>
+                      <div className="text-sm text-purple-600">Total Value</div>
                     </div>
                   </>
                 ) : (
@@ -666,16 +711,32 @@ export default function InventoryPage() {
                         <TableRow>
                           {selectedPlatform === 'jiomart' && <TableHead className="w-32 border-r">RFC ID</TableHead>}
                           <TableHead className="w-40 border-r">SKU ID</TableHead>
-                          <TableHead className="min-w-[250px] border-r">{selectedPlatform === 'jiomart' ? 'Title' : 'Product Name'}</TableHead>
-                          <TableHead className="w-32 border-r">Category</TableHead>
+                          <TableHead className="min-w-[250px] border-r">
+                            {selectedPlatform === 'jiomart' ? 'Title' : 
+                             selectedPlatform === 'amazon' ? 'Product Title' : 'Product Name'}
+                          </TableHead>
+                          <TableHead className="w-32 border-r">
+                            {selectedPlatform === 'amazon' ? 'Product Group' : 'Category'}
+                          </TableHead>
                           {selectedPlatform === 'blinkit' && <TableHead className="w-32 border-r">Brand</TableHead>}
-                          <TableHead className="w-24 border-r">{selectedPlatform === 'jiomart' ? 'Status' : 'Size'}</TableHead>
+                          {selectedPlatform === 'amazon' && <TableHead className="w-32 border-r">Condition</TableHead>}
+                          <TableHead className="w-24 border-r">
+                            {selectedPlatform === 'jiomart' ? 'Status' : 
+                             selectedPlatform === 'amazon' ? 'Available' : 'Size'}
+                          </TableHead>
                           {selectedPlatform === 'jiomart' ? (
                             <>
                               <TableHead className="text-right w-24 border-r">Sellable</TableHead>
                               <TableHead className="text-right w-24 border-r">Unsellable</TableHead>
                               <TableHead className="text-right w-24 border-r">In Transit</TableHead>
                               <TableHead className="text-right w-24">Orders</TableHead>
+                            </>
+                          ) : selectedPlatform === 'amazon' ? (
+                            <>
+                              <TableHead className="text-right w-24 border-r">Inbound</TableHead>
+                              <TableHead className="text-right w-24 border-r">Reserved</TableHead>
+                              <TableHead className="text-right w-24 border-r">Unfulfillable</TableHead>
+                              <TableHead className="text-right w-24">Total Value</TableHead>
                             </>
                           ) : (
                             <>
@@ -693,15 +754,24 @@ export default function InventoryPage() {
                             {selectedPlatform === 'jiomart' && (
                               <TableCell className="font-mono text-xs border-r">{item.rfc_id}</TableCell>
                             )}
-                            <TableCell className="font-mono text-xs border-r">{item.sku_id}</TableCell>
-                            <TableCell className="border-r" title={selectedPlatform === 'jiomart' ? item.title : item.product_name}>
+                            <TableCell className="font-mono text-xs border-r">{item.sku_id || item.fnsku}</TableCell>
+                            <TableCell className="border-r" title={
+                              selectedPlatform === 'jiomart' ? item.title : 
+                              selectedPlatform === 'amazon' ? item.product_title : item.product_name
+                            }>
                               <div className="max-w-[250px] truncate text-sm">
-                                {selectedPlatform === 'jiomart' ? item.title : item.product_name}
+                                {selectedPlatform === 'jiomart' ? item.title : 
+                                 selectedPlatform === 'amazon' ? item.product_title : item.product_name}
                               </div>
                             </TableCell>
-                            <TableCell className="text-sm border-r">{item.category}</TableCell>
+                            <TableCell className="text-sm border-r">
+                              {selectedPlatform === 'amazon' ? item.product_group : item.category}
+                            </TableCell>
                             {selectedPlatform === 'blinkit' && (
                               <TableCell className="text-sm border-r">{item.brand}</TableCell>
+                            )}
+                            {selectedPlatform === 'amazon' && (
+                              <TableCell className="text-sm border-r">{item.condition}</TableCell>
                             )}
                             <TableCell className="border-r">
                               {selectedPlatform === 'jiomart' ? (
@@ -712,6 +782,8 @@ export default function InventoryPage() {
                                 }`}>
                                   {item.product_status}
                                 </span>
+                              ) : selectedPlatform === 'amazon' ? (
+                                <span className="text-sm font-mono">{parseInt(item.available || '0').toLocaleString()}</span>
                               ) : (
                                 <span className="text-sm">{item.size}</span>
                               )}
@@ -729,6 +801,21 @@ export default function InventoryPage() {
                                 </TableCell>
                                 <TableCell className="text-right text-sm">
                                   {parseInt(item.mtd_order_count || '0').toLocaleString()}
+                                </TableCell>
+                              </>
+                            ) : selectedPlatform === 'amazon' ? (
+                              <>
+                                <TableCell className="text-right text-sm border-r">
+                                  {parseInt(item.inbound || '0').toLocaleString()}
+                                </TableCell>
+                                <TableCell className="text-right text-sm border-r">
+                                  {parseInt(item.reserved || '0').toLocaleString()}
+                                </TableCell>
+                                <TableCell className="text-right text-sm border-r">
+                                  {parseInt(item.unfulfillable || '0').toLocaleString()}
+                                </TableCell>
+                                <TableCell className="text-right text-sm">
+                                  {item.total_value ? `₹${parseFloat(item.total_value).toLocaleString()}` : '₹0'}
                                 </TableCell>
                               </>
                             ) : (

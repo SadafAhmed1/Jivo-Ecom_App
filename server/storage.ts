@@ -129,6 +129,10 @@ import {
   invJioMartJmRange,
   invBlinkitJmDaily,
   invBlinkitJmRange,
+  invAmazonJmDaily,
+  invAmazonJmRange,
+  invAmazonJwDaily,
+  invAmazonJwRange,
 
   distributorMst,
   distributorPo,
@@ -1562,6 +1566,23 @@ export class DatabaseStorage implements IStorage {
 
   async createInventoryBlinkitJmRange(items: InsertBlinkitInventoryItem[]): Promise<BlinkitInventoryItem[]> {
     return await db.insert(invBlinkitJmRange).values(items).returning();
+  }
+
+  // Amazon Inventory methods
+  async createInventoryAmazonJmDaily(items: any[]): Promise<any[]> {
+    return await db.insert(invAmazonJmDaily).values(items).returning();
+  }
+
+  async createInventoryAmazonJmRange(items: any[]): Promise<any[]> {
+    return await db.insert(invAmazonJmRange).values(items).returning();
+  }
+
+  async createInventoryAmazonJwDaily(items: any[]): Promise<any[]> {
+    return await db.insert(invAmazonJwDaily).values(items).returning();
+  }
+
+  async createInventoryAmazonJwRange(items: any[]): Promise<any[]> {
+    return await db.insert(invAmazonJwRange).values(items).returning();
   }
 
   async updateInventory(id: number, header: any, items: any): Promise<any> {
