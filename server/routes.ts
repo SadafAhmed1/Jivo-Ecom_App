@@ -3652,6 +3652,61 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Claude Code API endpoints
+  app.post('/api/claude-code/query', async (req, res) => {
+    try {
+      const { claudeCodeWrapper } = await import('./claude-code-wrapper');
+      const { prompt, workingDirectory, timeout, allowedTools, model } = req.body;
+
+      if (!prompt || typeof prompt !== 'string') {
+        return res.status(400).json({ error: 'Prompt is required and must be a string' });
+      }
+
+      const result = await claudeCodeWrapper.executeQuery(prompt, {
+        workingDirectory,
+        timeout: timeout || 30000,
+        allowedTools,
+        model
+      });
+
+      res.json(result);
+    } catch (error: any) {
+      console.error('Claude Code query error:', error);
+      res.status(500).json({ 
+        error: 'Failed to execute Claude Code query',
+        details: error.message 
+      });
+    }
+  });
+
+  app.get('/api/claude-code/status', async (req, res) => {
+    try {
+      const { claudeCodeWrapper } = await import('./claude-code-wrapper');
+      const status = await claudeCodeWrapper.getAuthStatus();
+      res.json({ status });
+    } catch (error: any) {
+      console.error('Claude Code status error:', error);
+      res.status(500).json({ 
+        error: 'Failed to check Claude Code status',
+        details: error.message 
+      });
+    }
+  });
+
+  app.get('/api/claude-code/setup', async (req, res) => {
+    try {
+      const { claudeCodeWrapper } = await import('./claude-code-wrapper');
+      const instructions = claudeCodeWrapper.getSetupInstructions();
+      res.json({ instructions });
+    } catch (error: any) {
+      console.error('Claude Code setup error:', error);
+      res.status(500).json({ 
+        error: 'Failed to get setup instructions',
+        details: error.message 
+      });
+    }
+  });
+
   const httpServer = createServer(app);
   
   // Setup enhanced WebSocket terminal with full system access

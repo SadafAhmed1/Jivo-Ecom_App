@@ -1,146 +1,140 @@
-# Enhanced Terminal IDE - Full System Access Guide
+# Claude Code Integration Guide
 
 ## Overview
 
-The Enhanced Terminal IDE provides complete system access through WebSocket connections, giving you a real terminal experience directly in the web interface. This replaces the limited Claude Code approach with a more powerful solution.
+Claude Code CLI has been integrated into your terminal for AI-powered coding assistance using your Claude subscription. This setup bypasses API costs by using subscription-based authentication.
 
-## Key Features
+## Setup Instructions
 
-✅ **Full System Terminal Access** - Real shell with all commands available
-✅ **WebSocket Connection** - Real-time terminal communication  
-✅ **Internet Access** - Full network connectivity (curl, wget, ping, etc.)
-✅ **File Explorer Integration** - VS Code-like file tree with clickable files
-✅ **Tabbed Editor** - Open and view multiple files simultaneously
-✅ **White Theme Interface** - Clean design matching the application style
-✅ **Resizable Terminal** - Drag the top border to adjust terminal height
-✅ **Connection Status** - Visual indicators for terminal connectivity
-
-## How It Works
-
-Unlike the previous Claude Code approach, this system:
-- Connects to your actual system terminal through WebSocket
-- Runs commands directly on the host system (not sandboxed)  
-- Provides full internet access and network connectivity
-- Features a clean white interface matching your application design
-- Allows terminal height adjustment by dragging the resize handle
-- Provides full access to file system, network, and system resources
-- Maintains persistent terminal sessions
-
-## Interface Features
-
-**Clean Design**: White background with proper syntax highlighting for different message types:
-- Input commands: Blue and bold
-- System messages: Orange and italic
-- Error messages: Red text
-- Output: Standard gray text
-
-**Resizable Terminal**: Drag the gray bar at the top of the terminal to adjust height (200-600px range)
-
-**Connection Status**: Real-time status indicators showing terminal connectivity
-
-### Common Commands & Use Cases
-
-#### Project Analysis
+### 1. Check Current Status
 ```bash
-# Start Claude Code and ask questions about your codebase
-npx @anthropic-ai/claude-code
-
-# Example prompts once Claude Code is running:
-"Explain the architecture of this e-commerce system"
-"Show me how the database schemas are organized"
-"Find all the API endpoints in the server folder"
-"Analyze the React components structure"
+claude config ls
 ```
 
-#### Code Improvements
+### 2. Authentication Setup
+
+If not authenticated, you'll need to set up Claude Code with your subscription:
+
+#### Option A: Interactive Setup (if supported)
 ```bash
-# Ask Claude Code to make improvements
-"Optimize the database queries in the PO upload system"
-"Add error handling to the secondary sales parser"
-"Refactor the terminal component for better performance"
-"Add TypeScript types to improve type safety"
+claude login
+```
+Follow the prompts to authenticate with your Claude subscription.
+
+#### Option B: Manual Token Setup
+If you have an authentication token:
+```bash
+claude config set -g auth.token "your-token-here"
 ```
 
-#### Bug Fixes & Debugging
+### 3. Test the Integration
+Once authenticated, test Claude Code in the terminal:
 ```bash
-# Get help with issues
-"Why is the Blinkit inventory upload failing?"
-"Debug the SQL query execution timeout issues"
-"Fix the terminal scroll behavior"
-"Resolve TypeScript errors in the schema file"
+claude "hello world"
 ```
 
-#### Feature Development
-```bash
-# Build new features
-"Add a new platform parser for Amazon Fresh"
-"Create a dashboard showing sales analytics"
-"Build an export feature for inventory data"
-"Add user authentication to the system"
-```
+## Using Claude Code in the Terminal
 
-### Your E-commerce System Overview
-
-Claude Code will have full access to your comprehensive system including:
-
-#### **Platform Management**
-- 5 PO platforms: Flipkart Grocery, Zepto, City Mall, Blinkit, Swiggy Instamart
-- 4 Secondary sales platforms: Amazon, Zepto, Blinkit, Swiggy  
-- 2 Inventory platforms: Jio Mart, Blinkit
-
-#### **Database Structure**
-- 56+ database tables with comprehensive PO, sales, and inventory tracking
-- PostgreSQL with Drizzle ORM
-- SAP B1 Hanna ERP integration for item master data
-
-#### **Key Modules**
-- Unified PO upload system with platform-specific parsers
-- Secondary sales data processing with business unit filtering
-- Inventory management with daily/range tracking
-- SQL Query module with terminal access
-- Terminal IDE with VS Code-like interface
-
-### Best Practices
-
-1. **Be Specific**: Ask clear, specific questions about your code
-2. **Context Matters**: Claude Code can see your entire codebase
-3. **Incremental Changes**: Make small, testable changes
-4. **Review Changes**: Always review Claude Code's suggestions before implementing
-5. **Use Git**: Commit frequently when working with Claude Code
-
-### Troubleshooting
-
-If Claude Code isn't working:
-
-1. **Check Installation**: `npm list @anthropic-ai/claude-code`
-2. **Try Full Path**: `npx @anthropic-ai/claude-code`
-3. **Check Internet**: Claude Code requires internet connectivity
-4. **Verify Billing**: Ensure your Anthropic account has active billing
-
-### Example Session
+### Basic Usage
+You can use Claude Code directly in the terminal with these commands:
 
 ```bash
-$ npx @anthropic-ai/claude-code
-Claude Code v1.0.72
+# Basic AI query
+claude "analyze this project structure"
 
-? How can I help you today?
+# Code analysis
+claude "review this function for bugs"
 
-> Analyze the database schema for the PO management system and suggest optimizations
+# Project help
+claude "explain the database schema"
 
-[Claude Code will analyze your schema files and provide detailed recommendations]
-
-> Add proper indexing to the pf_po and pf_order_items tables for better query performance
-
-[Claude Code will examine the tables and suggest/implement index improvements]
+# Development assistance
+claude "suggest improvements for this API"
 ```
 
-### Integration with Your Terminal IDE
+### Available Options
+```bash
+# Use specific model
+claude --model sonnet "your prompt"
 
-Your VS Code-like Terminal IDE now includes:
-- ✅ File explorer with collapsible folders
-- ✅ Tabbed editor for viewing multiple files
-- ✅ Minimizable terminal with Claude Code support
-- ✅ Complete source code access for analysis
-- ✅ Database schema visibility for AI assistance
+# Allow specific tools
+claude --allowedTools "Bash,Edit" "your prompt"
 
-Start exploring your codebase with Claude Code's help!
+# Set timeout
+claude --timeout 60 "complex analysis task"
+```
+
+## Integration Features
+
+### Terminal Interface
+- **Command**: `claude [your prompt]`
+- **Status Display**: Shows authentication status in the terminal welcome message
+- **Response Formatting**: Claude responses are highlighted with special formatting
+- **Execution Time**: Shows response time for each query
+
+### Technical Details
+- Uses Claude Code's non-interactive mode (`--print` flag) to bypass terminal limitations
+- Integrates with your existing project context and working directory
+- Supports all Claude Code features except interactive mode
+- Automatically uses your subscription authentication
+
+## Troubleshooting
+
+### Common Issues
+
+1. **"Raw mode not supported" error**
+   - This is expected in Replit environment
+   - Use the integrated terminal commands instead of direct `claude` interactive mode
+
+2. **Authentication errors**
+   - Run `claude config ls` to check status
+   - Re-authenticate if needed with `claude login`
+
+3. **Command not found**
+   - Claude Code CLI is pre-installed globally
+   - Check with `which claude`
+
+4. **Permission issues**
+   - Ensure you have a valid Claude subscription
+   - Contact Anthropic support if authentication continues to fail
+
+### Status Checking
+- **Green status**: ✅ Authenticated and ready
+- **Red status**: ❌ Authentication required
+- **Unknown status**: ⚠️ Check terminal for details
+
+## Example Workflows
+
+### Code Review
+```bash
+claude "review the database schema in shared/schema.ts"
+claude "analyze the API routes for security issues"
+```
+
+### Development Help
+```bash
+claude "help me optimize this SQL query"
+claude "suggest better error handling for this function"
+```
+
+### Project Analysis
+```bash
+claude "explain the overall architecture of this e-commerce system"
+claude "identify potential performance bottlenecks"
+```
+
+## Benefits
+
+- **Cost Effective**: Uses your Claude subscription instead of API charges
+- **Integrated**: Works seamlessly within your existing development environment
+- **Context Aware**: Understands your project structure and current working directory
+- **Full Featured**: Access to all Claude Code capabilities except interactive mode
+
+## Need Help?
+
+If you continue to have authentication issues:
+1. Verify your Claude subscription is active
+2. Try the authentication setup steps again
+3. Contact Anthropic support for subscription-related issues
+
+The integration is designed to work around Replit's terminal limitations while providing full Claude Code functionality through your subscription.

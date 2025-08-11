@@ -25,6 +25,7 @@ import {
 } from 'lucide-react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { cn } from '@/lib/utils';
+import { apiRequest } from '@/lib/queryClient';
 
 interface TerminalCommand {
   id: string;
@@ -66,6 +67,7 @@ export default function Terminal() {
   const terminalRef = useRef<HTMLDivElement>(null);
   const terminalInputRef = useRef<HTMLInputElement>(null);
   const queryClient = useQueryClient();
+  const [claudeCodeStatus, setClaudeCodeStatus] = useState<string>('Unknown');
 
   // Auto scroll to bottom of terminal and focus input
   useEffect(() => {
@@ -184,6 +186,54 @@ export default function Terminal() {
     }
   });
 
+  // Check Claude Code status
+  const claudeCodeStatusQuery = useQuery({
+    queryKey: ['/api/claude-code/status'],
+    queryFn: async () => {
+      const response = await fetch('/api/claude-code/status');
+      if (!response.ok) throw new Error('Failed to check Claude Code status');
+      const data = await response.json();
+      return data.status;
+    },
+    refetchInterval: false
+  });
+
+  // Claude Code query mutation
+  const claudeCodeQuery = useMutation({
+    mutationFn: async (prompt: string) => {
+      const response = await apiRequest('/api/claude-code/query', {
+        method: 'POST',
+        body: JSON.stringify({ 
+          prompt,
+          workingDirectory: currentDirectory,
+          timeout: 30000 
+        })
+      });
+      return response;
+    },
+    onSuccess: (data, prompt) => {
+      const newCommand: TerminalCommand = {
+        id: Date.now().toString(),
+        command: `claude: ${prompt}`,
+        output: data.success ? data.output : `Error: ${data.error}`,
+        timestamp: new Date().toISOString(),
+        status: data.success ? 'success' : 'error',
+        executionTime: data.executionTime
+      };
+      setCommandHistory(prev => [...prev, newCommand]);
+    },
+    onError: (error: any, prompt) => {
+      const newCommand: TerminalCommand = {
+        id: Date.now().toString(),
+        command: `claude: ${prompt}`,
+        output: error instanceof Error ? error.message : 'Claude Code query failed',
+        timestamp: new Date().toISOString(),
+        status: 'error'
+      };
+      setCommandHistory(prev => [...prev, newCommand]);
+    }
+  });
+
   // Read file content and open in tab
   const openFile = useMutation({
     mutationFn: async (filePath: string) => {
@@ -224,7 +274,20 @@ export default function Terminal() {
     if (e.key === 'Enter') {
       e.preventDefault();
       if (currentCommand.trim()) {
-        executeCommand.mutate(currentCommand.trim());
+        const command = currentCommand.trim();
+        
+        // Check if it's a Claude Code command
+        if (command.startsWith('claude ') || command.startsWith('claude-ai ')) {
+          const prompt = command.replace(/^claude(-ai)?\s+/, '');
+          if (prompt) {
+            claudeCodeQuery.mutate(prompt);
+            setCurrentCommand('');
+            return;
+          }
+        }
+        
+        // Regular terminal command
+        executeCommand.mutate(command);
       }
     }
   };
@@ -539,8 +602,16 @@ export default function Terminal() {
                     <div className="text-gray-400 mt-1 text-xs space-y-1">
                       <div>Basic commands: ls, pwd, cat package.json</div>
                       <div>Find files: find . -name "*.ts" -o -name "*.tsx"</div>
-                      <div className="text-yellow-400">Claude Code AI (subscription): claude</div>
-                      <div className="text-yellow-500 text-[10px]">Setup once: claude → /login → select subscription</div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-yellow-400">Claude AI: claude [your prompt]</span>
+                        <span className={cn(
+                          "text-[10px] px-1 rounded",
+                          claudeCodeStatusQuery.data?.includes('Authenticated') ? 'bg-green-600 text-white' : 'bg-red-600 text-white'
+                        )}>
+                          {claudeCodeStatusQuery.data?.split(' ')[0] || 'Unknown'}
+                        </span>
+                      </div>
+                      <div className="text-yellow-500 text-[10px]">Examples: claude "analyze this project" | claude "fix this bug"</div>
                       <div>Git status: git status, git log --oneline -10</div>
                     </div>
                   </div>
@@ -549,16 +620,22 @@ export default function Terminal() {
                 {commandHistory.map((cmd) => (
                   <div key={cmd.id} className="space-y-1">
                     <div className="flex items-center gap-2 text-green-400">
-                      <span>$</span>
-                      <span>{cmd.command}</span>
+                      <span>{cmd.command.startsWith('claude:') ? '🤖' : '$'}</span>
+                      <span className={cmd.command.startsWith('claude:') ? 'text-yellow-400' : ''}>{cmd.command}</span>
                       <Badge
                         variant={cmd.status === 'success' ? 'default' : 'destructive'}
                         className="text-xs ml-auto"
                       >
                         {cmd.status}
+                        {cmd.executionTime && ` (${cmd.executionTime}ms)`}
                       </Badge>
                     </div>
-                    <pre className="text-gray-200 text-xs whitespace-pre-wrap pl-3">
+                    <pre className={cn(
+                      "text-xs whitespace-pre-wrap pl-3",
+                      cmd.command.startsWith('claude:') && cmd.status === 'success' 
+                        ? "text-blue-200 bg-blue-900/20 p-2 rounded border-l-2 border-blue-400" 
+                        : "text-gray-200"
+                    )}>
                       {cmd.output}
                     </pre>
                   </div>

@@ -83,7 +83,8 @@ Preferred communication style: Simple, everyday language.
 - **Vite**: Fast build tool
 - **TypeScript**: Static typing
 - **Replit Integration**: Development environment with cartographer plugin
-- **Claude Code CLI**: Integrated for AI coding assistance (subscription-based authentication)
+- **Claude Code CLI**: Integrated AI coding assistance using subscription authentication (bypasses API costs)
+- **Terminal IDE**: Enhanced terminal with Claude Code integration, system access, and developer tools
 
 ### State Management
 - **TanStack React Query**: Server state management
@@ -91,4 +92,5 @@ Preferred communication style: Simple, everyday language.
 - **Zod**: Runtime type validation
 
 ### Integrations
-- **SQL Server**: For SAP item master synchronization.
+- **SQL Server**: For SAP item master synchronization
+- **Claude Code**: AI coding assistant using subscription authentication, integrated into terminal with command `claude [prompt]`
