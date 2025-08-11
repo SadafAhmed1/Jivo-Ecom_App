@@ -136,6 +136,16 @@ export function setupTerminalWebSocket(server: Server) {
 • docker ps (container management)
 • python, node, php (interpreters)
 
+🤖 CLAUDE CODE AI (Subscription-based):
+• claude (start Claude Code with subscription auth)
+• claude --version (check version)
+• claude auth status (check authentication status)
+• FIRST TIME SETUP: Run 'claude' then use '/login' inside
+• SELECT: "Claude app (requires Pro/Max subscription)"
+• USAGE: claude "analyze this project structure"
+• USAGE: claude "help me fix this bug"
+• USAGE: claude "create a new component"
+
 💻 SYSTEM COMMANDS:
 • sudo apt install (install system packages)
 • ps aux | grep process (process management)

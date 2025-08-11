@@ -476,7 +476,7 @@ export default function Terminal() {
                     }
                   </p>
                   <p className="text-xs mt-4 text-gray-400">
-                    Use the terminal below to run commands like <code className="text-yellow-500">npx @anthropic-ai/claude-code</code>
+                    Use the terminal below for development commands and <code className="text-yellow-500">claude</code> AI assistant
                   </p>
                   {!sidebarVisible && (
                     <Button
@@ -539,7 +539,8 @@ export default function Terminal() {
                     <div className="text-gray-400 mt-1 text-xs space-y-1">
                       <div>Basic commands: ls, pwd, cat package.json</div>
                       <div>Find files: find . -name "*.ts" -o -name "*.tsx"</div>
-                      <div className="text-yellow-400">Claude Code AI: npx @anthropic-ai/claude-code</div>
+                      <div className="text-yellow-400">Claude Code AI (subscription): claude</div>
+                      <div className="text-yellow-500 text-[10px]">Setup once: claude → /login → select subscription</div>
                       <div>Git status: git status, git log --oneline -10</div>
                     </div>
                   </div>
