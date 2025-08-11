@@ -1891,19 +1891,53 @@ export async function registerRoutes(app: Express): Promise<Server> {
         } else if (platform === "blinkit") {
           // Convert date strings to Date objects for database insertion and add report_date
           const blinkitItemsWithDates = parsedData.items.map((item: any) => {
-            // Parse the date more safely
+            // Parse the date more safely with multiple fallbacks
             let itemDate = new Date();
             if (item.date) {
-              const parsedDate = new Date(item.date);
+              // Try multiple date parsing approaches
+              let parsedDate = new Date(item.date);
+              if (isNaN(parsedDate.getTime())) {
+                // Try ISO format
+                parsedDate = new Date(item.date + 'T00:00:00.000Z');
+              }
+              if (isNaN(parsedDate.getTime())) {
+                // Try replacing dashes with slashes
+                parsedDate = new Date(item.date.replace(/-/g, '/'));
+              }
               if (!isNaN(parsedDate.getTime())) {
                 itemDate = parsedDate;
               }
             }
             
+            // Parse report date safely
+            let reportDate = new Date();
+            if ((parsedData as any).reportDate) {
+              const parsedReportDate = new Date((parsedData as any).reportDate);
+              if (!isNaN(parsedReportDate.getTime())) {
+                reportDate = parsedReportDate;
+              }
+            }
+            
+            console.log('Processing item:', {
+              originalDate: item.date,
+              parsedDate: itemDate,
+              reportDate: reportDate,
+              itemId: item.item_id
+            });
+            
             return {
-              ...item,
+              item_id: item.item_id || null,
+              item_name: item.item_name || null,
+              manufacturer_id: item.manufacturer_id || null,
+              manufacturer_name: item.manufacturer_name || null,
+              city_id: item.city_id || null,
+              city_name: item.city_name || null,
+              category: item.category || null,
               date: itemDate,
-              report_date: (parsedData as any).reportDate || new Date() // Add the required report_date field
+              qty_sold: item.qty_sold ? parseFloat(item.qty_sold).toString() : null,
+              mrp: item.mrp ? parseFloat(item.mrp).toString() : null,
+              report_date: reportDate,
+              attachment_path: null
             };
           });
           
@@ -1912,11 +1946,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
             tableName = "SC_Blinkit_JM_Daily";
           } else if (businessUnit === "jivo-mart" && periodType === "date-range") {
             // For date-range, also add period_start and period_end
-            const blinkitItemsWithPeriod = blinkitItemsWithDates.map(item => ({
-              ...item,
-              period_start: (parsedData as any).periodStart || new Date(),
-              period_end: (parsedData as any).periodEnd || new Date()
-            }));
+            const blinkitItemsWithPeriod = blinkitItemsWithDates.map(item => {
+              // Parse period dates safely
+              let periodStart = new Date();
+              let periodEnd = new Date();
+              
+              if ((parsedData as any).periodStart) {
+                const parsedPeriodStart = new Date((parsedData as any).periodStart);
+                if (!isNaN(parsedPeriodStart.getTime())) {
+                  periodStart = parsedPeriodStart;
+                }
+              }
+              
+              if ((parsedData as any).periodEnd) {
+                const parsedPeriodEnd = new Date((parsedData as any).periodEnd);
+                if (!isNaN(parsedPeriodEnd.getTime())) {
+                  periodEnd = parsedPeriodEnd;
+                }
+              }
+              
+              return {
+                ...item,
+                period_start: periodStart,
+                period_end: periodEnd
+              };
+            });
             insertedItems = await storage.createScBlinkitJmRange(blinkitItemsWithPeriod as any);
             tableName = "SC_Blinkit_JM_Range";
           }
