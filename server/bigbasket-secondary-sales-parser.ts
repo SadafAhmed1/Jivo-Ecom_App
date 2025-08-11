@@ -42,6 +42,24 @@ function parseNumber(value: string | number): number {
   return isNaN(parsed) ? 0 : parsed;
 }
 
+function extractDateFromRange(dateRange: string): Date {
+  // Extract date from BigBasket date range format: "20250801 - 20250810"
+  if (!dateRange || dateRange.trim() === '') {
+    return new Date(); // Return current date as fallback
+  }
+  
+  const match = dateRange.match(/(\d{8})/);
+  if (match) {
+    const dateStr = match[1]; // First date in the range
+    const year = dateStr.substring(0, 4);
+    const month = dateStr.substring(4, 6);
+    const day = dateStr.substring(6, 8);
+    return new Date(`${year}-${month}-${day}`);
+  }
+  
+  return new Date(); // Return current date as fallback
+}
+
 export function parseBigBasketSecondarySales(
   fileBuffer: Buffer,
   platform: string,
@@ -109,10 +127,25 @@ export function parseBigBasketSecondarySales(
     ? `${startDate} to ${endDate}` 
     : startDate || 'Unknown';
 
-  // Set reportDate and period fields based on periodType
-  const reportDate = periodType === "daily" && startDate ? new Date(startDate) : undefined;
-  const periodStart = periodType === "date-range" && startDate ? new Date(startDate) : undefined;
-  const periodEnd = periodType === "date-range" && endDate ? new Date(endDate) : undefined;
+  // Extract report date from the data itself (BigBasket uses date_range field)
+  let reportDate: Date | undefined;
+  let periodStart: Date | undefined;
+  let periodEnd: Date | undefined;
+  
+  if (items.length > 0 && items[0].date_range) {
+    // Extract date from BigBasket's date_range field
+    reportDate = extractDateFromRange(items[0].date_range);
+    
+    if (periodType === "date-range") {
+      periodStart = startDate ? new Date(startDate) : reportDate;
+      periodEnd = endDate ? new Date(endDate) : reportDate;
+    }
+  } else {
+    // Fallback to provided dates
+    reportDate = periodType === "daily" && startDate ? new Date(startDate) : new Date();
+    periodStart = periodType === "date-range" && startDate ? new Date(startDate) : undefined;
+    periodEnd = periodType === "date-range" && endDate ? new Date(endDate) : undefined;
+  }
 
   return {
     platform,

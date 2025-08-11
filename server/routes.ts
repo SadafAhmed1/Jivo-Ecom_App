@@ -2402,10 +2402,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
         } else if (platform === "bigbasket") {
           if (businessUnit === "jivo-mart" && periodType === "daily") {
-            insertedItems = await storage.createScBigBasketJmDaily(parsedData.items as any);
+            // Add report_date to each BigBasket item
+            const bigBasketItemsWithDates = parsedData.items.map((item: any) => ({
+              ...item,
+              report_date: parsedData.reportDate || new Date()
+            }));
+            insertedItems = await storage.createScBigBasketJmDaily(bigBasketItemsWithDates as any);
             tableName = "SC_BigBasket_JM_Daily";
           } else if (businessUnit === "jivo-mart" && periodType === "date-range") {
-            insertedItems = await storage.createScBigBasketJmRange(parsedData.items as any);
+            // Add report_date and period fields for date-range
+            const bigBasketItemsWithDates = parsedData.items.map((item: any) => {
+              let periodStart = new Date();
+              let periodEnd = new Date();
+              
+              if ((parsedData as any).periodStart) {
+                const parsedPeriodStart = new Date((parsedData as any).periodStart);
+                if (!isNaN(parsedPeriodStart.getTime())) {
+                  periodStart = parsedPeriodStart;
+                }
+              }
+              
+              if ((parsedData as any).periodEnd) {
+                const parsedPeriodEnd = new Date((parsedData as any).periodEnd);
+                if (!isNaN(parsedPeriodEnd.getTime())) {
+                  periodEnd = parsedPeriodEnd;
+                }
+              }
+              
+              return {
+                ...item,
+                report_date: parsedData.reportDate || new Date(),
+                period_start: periodStart,
+                period_end: periodEnd
+              };
+            });
+            insertedItems = await storage.createScBigBasketJmRange(bigBasketItemsWithDates as any);
             tableName = "SC_BigBasket_JM_Range";
           }
         }
