@@ -1890,11 +1890,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
         } else if (platform === "blinkit") {
           // Convert date strings to Date objects for database insertion and add report_date
-          const blinkitItemsWithDates = parsedData.items.map(item => ({
-            ...item,
-            date: item.date ? new Date(item.date) : new Date(),
-            report_date: parsedData.reportDate || new Date() // Add the required report_date field
-          }));
+          const blinkitItemsWithDates = parsedData.items.map((item: any) => {
+            // Parse the date more safely
+            let itemDate = new Date();
+            if (item.date) {
+              const parsedDate = new Date(item.date);
+              if (!isNaN(parsedDate.getTime())) {
+                itemDate = parsedDate;
+              }
+            }
+            
+            return {
+              ...item,
+              date: itemDate,
+              report_date: (parsedData as any).reportDate || new Date() // Add the required report_date field
+            };
+          });
           
           if (businessUnit === "jivo-mart" && periodType === "daily") {
             insertedItems = await storage.createScBlinkitJmDaily(blinkitItemsWithDates as any);
@@ -1903,8 +1914,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             // For date-range, also add period_start and period_end
             const blinkitItemsWithPeriod = blinkitItemsWithDates.map(item => ({
               ...item,
-              period_start: parsedData.periodStart || new Date(),
-              period_end: parsedData.periodEnd || new Date()
+              period_start: (parsedData as any).periodStart || new Date(),
+              period_end: (parsedData as any).periodEnd || new Date()
             }));
             insertedItems = await storage.createScBlinkitJmRange(blinkitItemsWithPeriod as any);
             tableName = "SC_Blinkit_JM_Range";
