@@ -48,24 +48,26 @@ export function parseFlipkartSecondaryData(buffer: Buffer, periodType: string, b
     const headers = jsonData[0] as string[];
     const dataRows = jsonData.slice(1) as any[][];
     
-    // Find column indices for static fields
+    // Find column indices for static fields based on actual Flipkart headers
     const tenantIdIndex = headers.findIndex(h => h && h.toLowerCase().includes('tenant'));
-    const retailerNameIndex = headers.findIndex(h => h && (h.toLowerCase().includes('retailer name') || h.toLowerCase().includes('retailer_name')));
-    const retailerCodeIndex = headers.findIndex(h => h && (h.toLowerCase().includes('retailer code') || h.toLowerCase().includes('retailer_code')));
+    const retailerIdIndex = headers.findIndex(h => h && h.toLowerCase().includes('retailer id'));
+    const retailerNameIndex = headers.findIndex(h => h && h.toLowerCase().includes('retailer name'));
     const fsnIndex = headers.findIndex(h => h && h.toLowerCase().includes('fsn'));
-    const productNameIndex = headers.findIndex(h => h && (h.toLowerCase().includes('product name') || h.toLowerCase().includes('product_name')));
+    const productNameIndex = headers.findIndex(h => h && h.toLowerCase().includes('product title')); // Changed from 'product name'
     const categoryIndex = headers.findIndex(h => h && h.toLowerCase().includes('category') && !h.toLowerCase().includes('sub'));
-    const subCategoryIndex = headers.findIndex(h => h && h.toLowerCase().includes('sub') && h.toLowerCase().includes('category'));
+    const verticalIndex = headers.findIndex(h => h && h.toLowerCase().includes('vertical'));
     const brandIndex = headers.findIndex(h => h && h.toLowerCase().includes('brand'));
-    const mrpIndex = headers.findIndex(h => h && h.toLowerCase().includes('mrp'));
-    const sellingPriceIndex = headers.findIndex(h => h && (h.toLowerCase().includes('selling price') || h.toLowerCase().includes('selling_price')));
+    const eanIndex = headers.findIndex(h => h && h.toLowerCase().includes('ean'));
+    const hsnIndex = headers.findIndex(h => h && h.toLowerCase().includes('hsn'));
+    const styleCodeIndex = headers.findIndex(h => h && h.toLowerCase().includes('style code'));
+    const lastCalculatedAtIndex = headers.findIndex(h => h && h.toLowerCase().includes('lastcalculatedat'));
     
-    // Find date columns (typically starting from column index after basic fields)
+    // Find date columns (Flipkart uses YYYY-MM-DD format starting from index 7)
     const dateColumns: Array<{ index: number; date: string }> = [];
-    const dateRegex = /^\d{1,2}\/\d{1,2}\/\d{4}$|^\d{4}-\d{2}-\d{2}$/;
+    const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
     
     headers.forEach((header, index) => {
-      if (header && (dateRegex.test(header.toString()) || header.toString().includes('/'))) {
+      if (header && dateRegex.test(header.toString())) {
         dateColumns.push({
           index,
           date: header.toString()
@@ -103,17 +105,22 @@ export function parseFlipkartSecondaryData(buffer: Buffer, periodType: string, b
     for (const row of dataRows) {
       if (!row || row.length === 0) continue;
       
-      // Extract basic product information
+      // Extract basic product information based on actual Flipkart file structure
       const tenantId = row[tenantIdIndex]?.toString() || '';
+      const retailerId = row[retailerIdIndex]?.toString() || '';
       const retailerName = row[retailerNameIndex]?.toString() || '';
-      const retailerCode = row[retailerCodeIndex]?.toString() || '';
       const fsn = row[fsnIndex]?.toString() || '';
-      const productName = row[productNameIndex]?.toString() || '';
+      const productName = row[productNameIndex]?.toString() || ''; // This will now get "Product Title"
       const category = row[categoryIndex]?.toString() || '';
-      const subCategory = row[subCategoryIndex]?.toString() || '';
+      const vertical = row[verticalIndex]?.toString() || '';
       const brand = row[brandIndex]?.toString() || '';
-      const mrp = parseFloat(row[mrpIndex]?.toString() || '0') || 0;
-      const sellingPrice = parseFloat(row[sellingPriceIndex]?.toString() || '0') || 0;
+      const ean = row[eanIndex]?.toString() || '';
+      const hsn = row[hsnIndex]?.toString() || '';
+      const styleCode = row[styleCodeIndex]?.toString() || '';
+      
+      // Flipkart doesn't have MRP and selling price in their file structure
+      const mrp = 0; // Not available in Flipkart files
+      const sellingPrice = 0; // Not available in Flipkart files
       
       // Extract sales data from date columns
       const salesData: Array<{ date: string; qty: number }> = [];
@@ -136,11 +143,11 @@ export function parseFlipkartSecondaryData(buffer: Buffer, periodType: string, b
         parsedData.push({
           tenantId,
           retailerName,
-          retailerCode,
+          retailerCode: retailerId, // Using retailerId as retailerCode
           fsn,
           productName,
           category,
-          subCategory,
+          subCategory: vertical, // Using vertical as subCategory
           brand,
           mrp,
           sellingPrice,
