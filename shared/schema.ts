@@ -1358,4 +1358,57 @@ export const insertJioMartCancelSecondarySalesItemSchema = createInsertSchema(sc
 export type JioMartCancelSecondarySalesItem = typeof scJioMartCancelJmDaily.$inferSelect;
 export type InsertJioMartCancelSecondarySalesItem = z.infer<typeof insertJioMartCancelSecondarySalesItemSchema>;
 
+// BigBasket Secondary Sales Tables
+export const scBigBasketJmDaily = pgTable("SC_BigBasket_JM_Daily", {
+  id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
+  report_date: timestamp("report_date").notNull(),
+  date_range: text("date_range"),
+  source_city_name: text("source_city_name"),
+  brand_name: text("brand_name"),
+  top_slug: text("top_slug"),
+  mid_slug: text("mid_slug"),
+  leaf_slug: text("leaf_slug"),
+  source_sku_id: text("source_sku_id"),
+  sku_description: text("sku_description"),
+  sku_weight: text("sku_weight"),
+  total_quantity: decimal("total_quantity", { precision: 10, scale: 2 }),
+  total_mrp: decimal("total_mrp", { precision: 10, scale: 2 }),
+  total_sales: decimal("total_sales", { precision: 10, scale: 2 }),
+  attachment_path: text("attachment_path"),
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow()
+});
+
+export const scBigBasketJmRange = pgTable("SC_BigBasket_JM_Range", {
+  id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
+  period_start: timestamp("period_start").notNull(),
+  period_end: timestamp("period_end").notNull(),
+  date_range: text("date_range"),
+  source_city_name: text("source_city_name"),
+  brand_name: text("brand_name"),
+  top_slug: text("top_slug"),
+  mid_slug: text("mid_slug"),
+  leaf_slug: text("leaf_slug"),
+  source_sku_id: text("source_sku_id"),
+  sku_description: text("sku_description"),
+  sku_weight: text("sku_weight"),
+  total_quantity: decimal("total_quantity", { precision: 10, scale: 2 }),
+  total_mrp: decimal("total_mrp", { precision: 10, scale: 2 }),
+  total_sales: decimal("total_sales", { precision: 10, scale: 2 }),
+  attachment_path: text("attachment_path"),
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow()
+});
+
+// Insert schemas for BigBasket
+export const insertBigBasketSecondarySalesItemSchema = createInsertSchema(scBigBasketJmDaily).omit({
+  id: true,
+  created_at: true,
+  updated_at: true
+});
+
+// Types for BigBasket
+export type BigBasketSecondarySalesItem = typeof scBigBasketJmDaily.$inferSelect;
+export type InsertBigBasketSecondarySalesItem = z.infer<typeof insertBigBasketSecondarySalesItemSchema>;
+
 

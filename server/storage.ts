@@ -67,6 +67,8 @@ import {
   type InsertJioMartSaleSecondarySalesItem,
   type JioMartCancelSecondarySalesItem,
   type InsertJioMartCancelSecondarySalesItem,
+  type BigBasketSecondarySalesItem,
+  type InsertBigBasketSecondarySalesItem,
 
   type DistributorMst,
   type InsertDistributorMst,
@@ -113,6 +115,8 @@ import {
   scJioMartSaleJmRange,
   scJioMartCancelJmDaily,
   scJioMartCancelJmRange,
+  scBigBasketJmDaily,
+  scBigBasketJmRange,
 
   distributorMst,
   distributorPo,
@@ -252,6 +256,8 @@ export interface IStorage {
   createScJioMartSaleJmRange(items: InsertJioMartSaleSecondarySalesItem[]): Promise<JioMartSaleSecondarySalesItem[]>;
   createScJioMartCancelJmDaily(items: InsertJioMartCancelSecondarySalesItem[]): Promise<JioMartCancelSecondarySalesItem[]>;
   createScJioMartCancelJmRange(items: InsertJioMartCancelSecondarySalesItem[]): Promise<JioMartCancelSecondarySalesItem[]>;
+  createScBigBasketJmDaily(items: InsertBigBasketSecondarySalesItem[]): Promise<BigBasketSecondarySalesItem[]>;
+  createScBigBasketJmRange(items: InsertBigBasketSecondarySalesItem[]): Promise<BigBasketSecondarySalesItem[]>;
   getScAmJwDaily(dateStart?: string, dateEnd?: string): Promise<ScAmJwDaily[]>;
   getScAmJwRange(dateStart?: string, dateEnd?: string): Promise<ScAmJwRange[]>;
   getScAmJmDaily(dateStart?: string, dateEnd?: string): Promise<ScAmJmDaily[]>;
@@ -1491,6 +1497,14 @@ export class DatabaseStorage implements IStorage {
 
   async createScJioMartCancelJmRange(items: InsertJioMartCancelSecondarySalesItem[]): Promise<JioMartCancelSecondarySalesItem[]> {
     return await db.insert(scJioMartCancelJmRange).values(items).returning();
+  }
+
+  async createScBigBasketJmDaily(items: InsertBigBasketSecondarySalesItem[]): Promise<BigBasketSecondarySalesItem[]> {
+    return await db.insert(scBigBasketJmDaily).values(items).returning();
+  }
+
+  async createScBigBasketJmRange(items: InsertBigBasketSecondarySalesItem[]): Promise<BigBasketSecondarySalesItem[]> {
+    return await db.insert(scBigBasketJmRange).values(items).returning();
   }
 
 

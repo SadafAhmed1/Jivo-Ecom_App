@@ -102,6 +102,12 @@ const PLATFORMS = [
     description: "Upload Jio Mart Cancel secondary sales data",
     icon: ShoppingCart,
   },
+  {
+    id: "bigbasket",
+    name: "BigBasket",
+    description: "Upload BigBasket secondary sales data",
+    icon: ShoppingCart,
+  },
 ];
 
 const BUSINESS_UNITS = [
@@ -163,7 +169,7 @@ export default function SecondarySales() {
       return BUSINESS_UNITS.filter(bu => bu.id === "jivo-wellness" || bu.id === "jivo-mart");
     }
     // New platforms only support Jivo Mart
-    if (["zepto", "blinkit", "swiggy", "jiomartsale", "jiomartcancel"].includes(selectedPlatform)) {
+    if (["zepto", "blinkit", "swiggy", "jiomartsale", "jiomartcancel", "bigbasket"].includes(selectedPlatform)) {
       return BUSINESS_UNITS.filter(bu => bu.id === "jivo-mart");
     }
     return BUSINESS_UNITS;
@@ -760,7 +766,7 @@ export default function SecondarySales() {
                 )}
                 
                 {/* New platforms summary cards */}
-                {["zepto", "blinkit", "swiggy"].includes(parsedData.platform || "") && (
+                {["zepto", "blinkit", "swiggy", "jiomartsale", "jiomartcancel", "bigbasket"].includes(parsedData.platform || "") && (
                   <>
                     <div className="p-4 bg-green-50 rounded-lg">
                       <div className="text-2xl font-bold text-green-600">
@@ -894,6 +900,20 @@ export default function SecondarySales() {
                                 <TableHead className="text-right min-w-[80px] px-4 py-3 font-semibold">Quantity</TableHead>
                                 <TableHead className="text-right min-w-[100px] px-4 py-3 font-semibold">Amount</TableHead>
                                 <TableHead className="min-w-[120px] px-4 py-3 font-semibold">Payment Method</TableHead>
+                              </>
+                            )}
+
+                            {/* BigBasket table headers */}
+                            {parsedData.platform === "bigbasket" && (
+                              <>
+                                <TableHead className="min-w-[120px] px-4 py-3 font-semibold">Brand</TableHead>
+                                <TableHead className="min-w-[200px] px-4 py-3 font-semibold">SKU Description</TableHead>
+                                <TableHead className="min-w-[120px] px-4 py-3 font-semibold">Category</TableHead>
+                                <TableHead className="min-w-[100px] px-4 py-3 font-semibold">City</TableHead>
+                                <TableHead className="min-w-[100px] px-4 py-3 font-semibold">SKU Weight</TableHead>
+                                <TableHead className="text-right min-w-[80px] px-4 py-3 font-semibold">Quantity</TableHead>
+                                <TableHead className="text-right min-w-[100px] px-4 py-3 font-semibold">Total MRP</TableHead>
+                                <TableHead className="text-right min-w-[100px] px-4 py-3 font-semibold">Total Sales</TableHead>
                               </>
                             )}
                           </TableRow>
@@ -1126,6 +1146,46 @@ export default function SecondarySales() {
                                     <div className="truncate max-w-[120px]" title={item.payment_method || "N/A"}>
                                       {item.payment_method || "N/A"}
                                     </div>
+                                  </TableCell>
+                                </>
+                              )}
+
+                              {/* BigBasket table rows */}
+                              {parsedData.platform === "bigbasket" && (
+                                <>
+                                  <TableCell className="font-medium px-4 py-3">
+                                    <div className="truncate max-w-[120px]" title={item.brand_name || "N/A"}>
+                                      {item.brand_name || "N/A"}
+                                    </div>
+                                  </TableCell>
+                                  <TableCell className="px-4 py-3">
+                                    <div className="truncate max-w-[200px]" title={item.sku_description || "N/A"}>
+                                      {item.sku_description || "N/A"}
+                                    </div>
+                                  </TableCell>
+                                  <TableCell className="px-4 py-3">
+                                    <div className="truncate max-w-[120px]" title={item.leaf_slug || "N/A"}>
+                                      {item.leaf_slug || "N/A"}
+                                    </div>
+                                  </TableCell>
+                                  <TableCell className="px-4 py-3">
+                                    <div className="truncate max-w-[100px]" title={item.source_city_name || "N/A"}>
+                                      {item.source_city_name || "N/A"}
+                                    </div>
+                                  </TableCell>
+                                  <TableCell className="px-4 py-3">
+                                    <div className="truncate max-w-[100px]" title={item.sku_weight || "N/A"}>
+                                      {item.sku_weight || "N/A"}
+                                    </div>
+                                  </TableCell>
+                                  <TableCell className="text-right px-4 py-3">
+                                    {item.total_quantity || 0}
+                                  </TableCell>
+                                  <TableCell className="text-right px-4 py-3">
+                                    ₹{parseFloat(item.total_mrp || "0").toFixed(2)}
+                                  </TableCell>
+                                  <TableCell className="text-right px-4 py-3">
+                                    ₹{parseFloat(item.total_sales || "0").toFixed(2)}
                                   </TableCell>
                                 </>
                               )}
