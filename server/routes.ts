@@ -1541,15 +1541,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Platform, business unit, and period type are required" });
       }
 
-      if (!["amazon", "zepto", "blinkit", "swiggy", "jiomartsale", "jiomartcancel", "bigbasket"].includes(platform)) {
-        return res.status(400).json({ error: "Supported platforms: amazon, zepto, blinkit, swiggy, jiomartsale, jiomartcancel, bigbasket" });
+      if (!["amazon", "zepto", "blinkit", "swiggy", "jiomartsale", "jiomartcancel", "bigbasket", "flipkart-grocery"].includes(platform)) {
+        return res.status(400).json({ error: "Supported platforms: amazon, zepto, blinkit, swiggy, jiomartsale, jiomartcancel, bigbasket, flipkart-grocery" });
       }
 
-      if (!["jivo-wellness", "jivo-mart"].includes(businessUnit)) {
+      // Update business unit validation for Flipkart
+      if (platform === "flipkart-grocery") {
+        if (!["jivo-mart", "chirag"].includes(businessUnit)) {
+          return res.status(400).json({ error: "Business unit for Flipkart Grocery must be either jivo-mart or chirag" });
+        }
+      } else if (!["jivo-wellness", "jivo-mart"].includes(businessUnit)) {
         return res.status(400).json({ error: "Business unit must be either jivo-wellness or jivo-mart" });
       }
 
-      if (!["daily", "date-range"].includes(periodType)) {
+      // Update period type validation for Flipkart
+      if (platform === "flipkart-grocery") {
+        if (!["2-month"].includes(periodType)) {
+          return res.status(400).json({ error: "Period type for Flipkart Grocery must be 2-month" });
+        }
+      } else if (!["daily", "date-range"].includes(periodType)) {
         return res.status(400).json({ error: "Period type must be either daily or date-range" });
       }
 
@@ -1699,7 +1709,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(400).json({ error: "Unsupported platform" });
         }
 
-        if (!parsedData.items || parsedData.items.length === 0) {
+        // Handle different data structures for different platforms
+        const dataItems = platform === "flipkart-grocery" ? parsedData.data : parsedData.items;
+        if (!dataItems || dataItems.length === 0) {
           return res.status(400).json({ error: "No valid sales data found in file" });
         }
 
@@ -1712,7 +1724,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           periodEnd: parsedData.periodEnd,
           totalItems: parsedData.totalItems,
           summary: parsedData.summary,
-          items: parsedData.items // Send all items for preview
+          items: platform === "flipkart-grocery" ? parsedData.data : parsedData.items // Send all items for preview
         });
 
       } catch (parseError: any) {

@@ -1491,6 +1491,8 @@ export const insertBigBasketSecondarySalesItemSchema = createInsertSchema(scBigB
 export type BigBasketSecondarySalesItem = typeof scBigBasketJmDaily.$inferSelect;
 export type InsertBigBasketSecondarySalesItem = z.infer<typeof insertBigBasketSecondarySalesItemSchema>;
 
+
+
 // Jio Mart Inventory Tables
 export const invJioMartJmDaily = pgTable("INV_JioMart_JM_Daily", {
   id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
