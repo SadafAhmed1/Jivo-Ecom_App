@@ -3,7 +3,7 @@ import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { Sidebar } from "@/components/layout/sidebar";
+import { ResponsiveLayout } from "@/components/layout/responsive-layout";
 import Dashboard from "@/pages/dashboard";
 import PlatformPO from "@/pages/platform-po";
 import PODetails from "@/pages/po-details";
@@ -34,10 +34,8 @@ import NotFound from "@/pages/not-found";
 
 function Router() {
   return (
-    <div className="flex h-screen overflow-hidden">
-      <Sidebar />
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <Switch>
+    <ResponsiveLayout>
+      <Switch>
           <Route path="/" component={Dashboard} />
           <Route path="/platform-po" component={PlatformPO} />
           <Route path="/po-details/:id" component={PODetails} />
@@ -73,8 +71,7 @@ function Router() {
 
           <Route component={NotFound} />
         </Switch>
-      </div>
-    </div>
+    </ResponsiveLayout>
   );
 }
 
