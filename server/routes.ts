@@ -43,6 +43,19 @@ import {
 import multer from 'multer';
 import crypto from "crypto";
 
+// Utility function to create dates without timezone conversion issues
+function createDateFromYMDString(dateString: string): Date {
+  if (!dateString) return new Date();
+  // For HTML date inputs that return YYYY-MM-DD, create date in UTC to avoid timezone shifts
+  return new Date(dateString + 'T00:00:00.000Z');
+}
+
+function createEndDateFromYMDString(dateString: string): Date {
+  if (!dateString) return new Date();
+  // For end dates, set to end of day in UTC
+  return new Date(dateString + 'T23:59:59.999Z');
+}
+
 const createPoSchema = z.object({
   po: insertPfPoSchema.extend({
     order_date: z.string().transform(str => new Date(str)),
@@ -2741,8 +2754,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             businessUnit,
             periodType,
             reportDate ? new Date(reportDate) : new Date(),
-            periodStart ? new Date(periodStart) : null,
-            periodEnd ? new Date(periodEnd) : null
+            periodStart ? new Date(periodStart + 'T00:00:00.000Z') : null,
+            periodEnd ? new Date(periodEnd + 'T23:59:59.999Z') : null
           );
           
           // Add attachment path to all items
@@ -2762,8 +2775,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             businessUnit,
             periodType,
             reportDate ? new Date(reportDate) : new Date(),
-            periodStart ? new Date(periodStart) : null,
-            periodEnd ? new Date(periodEnd) : null
+            periodStart ? new Date(periodStart + 'T00:00:00.000Z') : null,
+            periodEnd ? new Date(periodEnd + 'T23:59:59.999Z') : null
           );
           
           // Add attachment path to all items
@@ -2784,8 +2797,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             businessUnit,
             periodType,
             reportDate ? new Date(reportDate) : undefined,
-            periodStart ? new Date(periodStart) : undefined,
-            periodEnd ? new Date(periodEnd) : undefined
+            periodStart ? new Date(periodStart + 'T00:00:00.000Z') : undefined,
+            periodEnd ? new Date(periodEnd + 'T23:59:59.999Z') : undefined
           );
           
           // Add attachment path to all items
@@ -2938,8 +2951,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       let parsedData;
       const reportDate = new Date();
-      const periodStart = startDate ? new Date(startDate) : null;
-      const periodEnd = endDate ? new Date(endDate) : null;
+      // Fix timezone issue: Create dates without timezone conversion
+      const periodStart = startDate ? createDateFromYMDString(startDate) : null;
+      const periodEnd = endDate ? createEndDateFromYMDString(endDate) : null;
 
       try {
         if (platform === "jiomart") {
