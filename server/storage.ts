@@ -78,6 +78,10 @@ import {
   type InsertBlinkitInventoryItem,
   type SwiggyInventoryItem,
   type InsertSwiggyInventoryItem,
+  type FlipkartInventoryDaily,
+  type InsertFlipkartInventoryDaily,
+  type FlipkartInventoryRange,
+  type InsertFlipkartInventoryRange,
 
   type DistributorMst,
   type InsertDistributorMst,
@@ -137,6 +141,8 @@ import {
   invAmazonJwRange,
   invSwiggyJmDaily,
   invSwiggyJmRange,
+  invFlipkartJmDaily,
+  invFlipkartJmRange,
 
   distributorMst,
   distributorPo,
@@ -1597,6 +1603,16 @@ export class DatabaseStorage implements IStorage {
   // Swiggy Inventory JM Range
   async createInventorySwiggyJmRange(items: any[]): Promise<SwiggyInventoryItem[]> {
     return await db.insert(invSwiggyJmRange).values(items).returning();
+  }
+
+  // FlipKart Inventory JM Daily
+  async createInventoryFlipkartJmDaily(items: InsertFlipkartInventoryDaily[]): Promise<FlipkartInventoryDaily[]> {
+    return await db.insert(invFlipkartJmDaily).values(items).returning();
+  }
+
+  // FlipKart Inventory JM Range  
+  async createInventoryFlipkartJmRange(items: InsertFlipkartInventoryRange[]): Promise<FlipkartInventoryRange[]> {
+    return await db.insert(invFlipkartJmRange).values(items).returning();
   }
 
   async updateInventory(id: number, header: any, items: any): Promise<any> {

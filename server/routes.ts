@@ -22,6 +22,7 @@ import { parseFlipkartSecondaryData } from "./flipkart-parser";
 import { parseJioMartInventoryCsv } from "./jiomart-inventory-parser";
 import { parseBlinkitInventoryCsv } from "./blinkit-inventory-parser";
 import { parseAmazonInventoryFile } from "./amazon-inventory-parser";
+import { parseFlipkartInventoryCSV } from "./flipkart-inventory-parser";
 import { db } from "./db";
 import { sql } from "drizzle-orm";
 import { 
@@ -34,7 +35,8 @@ import {
   scBigBasketJmDaily, scBigBasketJmRange,
   scFlipkartJm2Month, scFlipkartChirag2Month,
   invJioMartJmDaily, invJioMartJmRange,
-  invBlinkitJmDaily, invBlinkitJmRange
+  invBlinkitJmDaily, invBlinkitJmRange,
+  invFlipkartJmDaily, invFlipkartJmRange
 } from "@shared/schema";
 
 import multer from 'multer';
@@ -2692,9 +2694,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Platform, business unit, and period type are required" });
       }
 
-      if (!["jiomart", "blinkit", "amazon", "swiggy"].includes(platform)) {
-        console.log("DEBUG: Platform not supported:", platform, "- supported platforms:", ["jiomart", "blinkit", "amazon", "swiggy"]);
-        return res.status(400).json({ error: "Currently only Jio Mart, Blinkit, Amazon, and Swiggy inventory are supported" });
+      if (!["jiomart", "blinkit", "amazon", "swiggy", "flipkart"].includes(platform)) {
+        console.log("DEBUG: Platform not supported:", platform, "- supported platforms:", ["jiomart", "blinkit", "amazon", "swiggy", "flipkart"]);
+        return res.status(400).json({ error: "Currently only Jio Mart, Blinkit, Amazon, Swiggy, and FlipKart inventory are supported" });
       }
 
       if (platform === "amazon") {
@@ -2818,6 +2820,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
             ...parsedData,
             items: itemsWithAttachment
           };
+        } else if (platform === "flipkart") {
+          console.log("Processing FlipKart inventory preview...");
+          const flipkartItems = parseFlipkartInventoryCSV(
+            req.file.buffer.toString('utf8'),
+            attachmentPath,
+            reportDate ? new Date(reportDate) : new Date()
+          );
+
+          parsedData = {
+            platform: "FlipKart",
+            businessUnit: businessUnit.toUpperCase(),
+            periodType: periodType,
+            reportDate: reportDate ? new Date(reportDate) : new Date(),
+            totalItems: flipkartItems.length,
+            items: flipkartItems,
+            summary: {
+              totalWarehouses: [...new Set(flipkartItems.map(item => item.warehouseId).filter(Boolean))].length,
+              totalBrands: [...new Set(flipkartItems.map(item => item.brand).filter(Boolean))].length,
+              totalLiveProducts: flipkartItems.filter(item => item.liveOnWebsite && item.liveOnWebsite > 0).length,
+              totalSalesValue: flipkartItems.reduce((sum, item) => sum + (parseFloat(item.flipkartSellingPrice?.toString() || '0') * (item.sales30D || 0)), 0)
+            }
+          };
+          
+          console.log(`Successfully parsed ${flipkartItems.length} FlipKart inventory records`);
         }
 
         if (!parsedData) {
@@ -2928,6 +2954,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
             periodEnd
           );
           console.log("Swiggy parsing completed, data:", parsedData ? 'Success' : 'Failed');
+        } else if (platform === "flipkart") {
+          console.log("Processing FlipKart inventory file...");
+          const flipkartItems = parseFlipkartInventoryCSV(
+            req.file.buffer.toString('utf8'),
+            attachmentPath,
+            reportDate
+          );
+
+          parsedData = {
+            platform: "FlipKart",
+            businessUnit: businessUnit.toUpperCase(),
+            periodType: periodType,
+            reportDate: reportDate,
+            totalItems: flipkartItems.length,
+            items: flipkartItems
+          };
+          console.log("FlipKart parsing completed, data:", parsedData ? 'Success' : 'Failed');
         }
 
         if (!parsedData) {
@@ -2992,6 +3035,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         } else if (platform === "swiggy" && businessUnit === "jm" && periodType === "range") {
           insertedItems = await storage.createInventorySwiggyJmRange(inventoryItemsWithDates as any);
           tableName = "INV_Swiggy_JM_Range";
+        } else if (platform === "flipkart" && businessUnit === "jm" && periodType === "daily") {
+          insertedItems = await storage.createInventoryFlipkartJmDaily(inventoryItemsWithDates as any);
+          tableName = "INV_FlipKart_JM_Daily";
+        } else if (platform === "flipkart" && businessUnit === "jm" && periodType === "range") {
+          insertedItems = await storage.createInventoryFlipkartJmRange(inventoryItemsWithDates as any);
+          tableName = "INV_FlipKart_JM_Range";
         }
 
         if (!insertedItems) {

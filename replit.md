@@ -2,7 +2,7 @@
 
 ## Overview
 
-This is a comprehensive e-commerce purchase order management web application for suppliers distributing products across multiple Indian cities. The system streamlines purchase order management, replacing manual data entry with an automated, API-driven solution. It currently focuses on Platform PO management, with plans for expansion into distributor POs, secondary sales, and inventory management. Key capabilities include a unified PO upload system supporting five major platforms (Flipkart Grocery, Zepto, City Mall, Blinkit, and Swiggy Instamart), specialized inventory management, and a comprehensive secondary sales system for Amazon, Zepto, Blinkit, and Swiggy. The system also features a SQL query module for custom reporting and analytics with integrated terminal access for advanced data analysis.
+This is a comprehensive e-commerce purchase order management web application for suppliers distributing products across multiple Indian cities. The system streamlines purchase order management, replacing manual data entry with an automated, API-driven solution. It currently focuses on Platform PO management, with plans for expansion into distributor POs, secondary sales, and inventory management. Key capabilities include a unified PO upload system supporting five major platforms (Flipkart Grocery, Zepto, City Mall, Blinkit, and Swiggy Instamart), specialized inventory management for six major platforms (JioMart, Blinkit, Amazon, Swiggy, FlipKart, and more), and a comprehensive secondary sales system for Amazon, Zepto, Blinkit, and Swiggy. The system also features a SQL query module for custom reporting and analytics with integrated terminal access for advanced data analysis.
 
 ## User Preferences
 
@@ -38,6 +38,8 @@ Preferred communication style: Simple, everyday language.
 3. **pf_item_mst**: Platform-specific item mappings with SAP references
 4. **pf_po**: Purchase order headers
 5. **pf_order_items**: Line-item details for purchase orders
+6. **INV_FlipKart_JM_Daily**: FlipKart daily inventory tracking with comprehensive metrics
+7. **INV_FlipKart_JM_Range**: FlipKart range-based inventory reporting
 
 ### Authentication & Security
 - Session-based authentication
@@ -54,6 +56,7 @@ Preferred communication style: Simple, everyday language.
 - **Item Management**: SAP item synchronization and platform mapping
 - **PO Management**: Full lifecycle PO creation, editing, and status tracking
 - **Unified PO Upload**: Single endpoint for any vendor PO with platform selection and preview capabilities
+- **FlipKart Inventory Management**: Complete integration with daily and range-based inventory tracking including sales metrics, warehouse management, and product dimensions
 - **Search & Filtering**: Dynamic item search
 
 ### File Organization

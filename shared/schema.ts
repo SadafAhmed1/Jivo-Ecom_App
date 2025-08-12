@@ -1612,6 +1612,96 @@ export const invBlinkitJmRange = pgTable("INV_Blinkit_JM_Range", {
   updated_at: timestamp("updated_at").defaultNow()
 });
 
+// FlipKart Inventory Tables
+export const invFlipkartJmDaily = pgTable("INV_FlipKart_JM_Daily", {
+  id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
+  report_date: timestamp("report_date").notNull(),
+  warehouseId: varchar("warehouseId", { length: 100 }),
+  sku: varchar("sku", { length: 200 }),
+  title: text("title"),
+  listingId: varchar("listingId", { length: 100 }),
+  fsn: varchar("fsn", { length: 100 }),
+  brand: varchar("brand", { length: 100 }),
+  flipkartSellingPrice: decimal("flipkartSellingPrice", { precision: 10, scale: 2 }),
+  liveOnWebsite: integer("liveOnWebsite"),
+  sales7D: integer("sales7D"),
+  sales14D: integer("sales14D"),
+  sales30D: integer("sales30D"),
+  sales60D: integer("sales60D"),
+  sales90D: integer("sales90D"),
+  b2bScheduled: integer("b2bScheduled"),
+  transfersScheduled: integer("transfersScheduled"),
+  b2bShipped: integer("b2bShipped"),
+  transfersShipped: integer("transfersShipped"),
+  b2bReceiving: integer("b2bReceiving"),
+  transfersReceiving: integer("transfersReceiving"),
+  reservedForOrdersAndRecalls: integer("reservedForOrdersAndRecalls"),
+  reservedForInternalProcessing: integer("reservedForInternalProcessing"),
+  returnsProcessing: integer("returnsProcessing"),
+  ordersToDispatch: integer("ordersToDispatch"),
+  recallsToDispatch: integer("recallsToDispatch"),
+  damaged: integer("damaged"),
+  qcReject: integer("qcReject"),
+  catalogReject: integer("catalogReject"),
+  returnsReject: integer("returnsReject"),
+  sellerReturnReject: integer("sellerReturnReject"),
+  miscellaneous: integer("miscellaneous"),
+  lengthCm: decimal("lengthCm", { precision: 8, scale: 6 }),
+  breadthCm: decimal("breadthCm", { precision: 8, scale: 6 }),
+  heightCm: decimal("heightCm", { precision: 8, scale: 6 }),
+  weightKg: decimal("weightKg", { precision: 8, scale: 3 }),
+  fulfilmentType: text("fulfilmentType"),
+  fAssuredBadge: varchar("fAssuredBadge", { length: 10 }),
+  attachment_path: text("attachment_path"),
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow()
+});
+
+export const invFlipkartJmRange = pgTable("INV_FlipKart_JM_Range", {
+  id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
+  period_start: timestamp("period_start").notNull(),
+  period_end: timestamp("period_end").notNull(),
+  warehouseId: varchar("warehouseId", { length: 100 }),
+  sku: varchar("sku", { length: 200 }),
+  title: text("title"),
+  listingId: varchar("listingId", { length: 100 }),
+  fsn: varchar("fsn", { length: 100 }),
+  brand: varchar("brand", { length: 100 }),
+  flipkartSellingPrice: decimal("flipkartSellingPrice", { precision: 10, scale: 2 }),
+  liveOnWebsite: integer("liveOnWebsite"),
+  sales7D: integer("sales7D"),
+  sales14D: integer("sales14D"),
+  sales30D: integer("sales30D"),
+  sales60D: integer("sales60D"),
+  sales90D: integer("sales90D"),
+  b2bScheduled: integer("b2bScheduled"),
+  transfersScheduled: integer("transfersScheduled"),
+  b2bShipped: integer("b2bShipped"),
+  transfersShipped: integer("transfersShipped"),
+  b2bReceiving: integer("b2bReceiving"),
+  transfersReceiving: integer("transfersReceiving"),
+  reservedForOrdersAndRecalls: integer("reservedForOrdersAndRecalls"),
+  reservedForInternalProcessing: integer("reservedForInternalProcessing"),
+  returnsProcessing: integer("returnsProcessing"),
+  ordersToDispatch: integer("ordersToDispatch"),
+  recallsToDispatch: integer("recallsToDispatch"),
+  damaged: integer("damaged"),
+  qcReject: integer("qcReject"),
+  catalogReject: integer("catalogReject"),
+  returnsReject: integer("returnsReject"),
+  sellerReturnReject: integer("sellerReturnReject"),
+  miscellaneous: integer("miscellaneous"),
+  lengthCm: decimal("lengthCm", { precision: 8, scale: 6 }),
+  breadthCm: decimal("breadthCm", { precision: 8, scale: 6 }),
+  heightCm: decimal("heightCm", { precision: 8, scale: 6 }),
+  weightKg: decimal("weightKg", { precision: 8, scale: 3 }),
+  fulfilmentType: text("fulfilmentType"),
+  fAssuredBadge: varchar("fAssuredBadge", { length: 10 }),
+  attachment_path: text("attachment_path"),
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow()
+});
+
 // Amazon Inventory Tables - JM (Jivo Mart)
 export const invAmazonJmDaily = pgTable("INV_Amazon_JM_Daily", {
   id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
@@ -1809,5 +1899,24 @@ export const insertSwiggyInventoryItemSchema = createInsertSchema(invSwiggyJmDai
 // Types for Swiggy Inventory
 export type SwiggyInventoryItem = typeof invSwiggyJmDaily.$inferSelect;
 export type InsertSwiggyInventoryItem = z.infer<typeof insertSwiggyInventoryItemSchema>;
+
+// Insert schemas for FlipKart Inventory
+export const insertFlipkartInventoryDailySchema = createInsertSchema(invFlipkartJmDaily).omit({
+  id: true,
+  created_at: true,
+  updated_at: true
+});
+
+export const insertFlipkartInventoryRangeSchema = createInsertSchema(invFlipkartJmRange).omit({
+  id: true,
+  created_at: true,
+  updated_at: true
+});
+
+// Types for FlipKart Inventory
+export type FlipkartInventoryDaily = typeof invFlipkartJmDaily.$inferSelect;
+export type InsertFlipkartInventoryDaily = z.infer<typeof insertFlipkartInventoryDailySchema>;
+export type FlipkartInventoryRange = typeof invFlipkartJmRange.$inferSelect;
+export type InsertFlipkartInventoryRange = z.infer<typeof insertFlipkartInventoryRangeSchema>;
 
 
