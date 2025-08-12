@@ -7,7 +7,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Play, Download, Database, Clock, AlertTriangle, CheckCircle, Terminal as TerminalIcon, Send } from 'lucide-react';
+import { Play, Download, Database, Clock, AlertTriangle, CheckCircle } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 
@@ -27,13 +27,7 @@ interface QueryHistory {
   executionTime?: number;
 }
 
-interface TerminalCommand {
-  id: string;
-  command: string;
-  output: string;
-  timestamp: string;
-  status: 'success' | 'error';
-}
+
 
 const sampleQueries = [
   {
@@ -94,9 +88,7 @@ ORDER BY total_available DESC;`
 export default function SqlQuery() {
   const [query, setQuery] = useState('');
   const [queryHistory, setQueryHistory] = useState<QueryHistory[]>([]);
-  const [currentCommand, setCurrentCommand] = useState('');
-  const [commandHistory, setCommandHistory] = useState<TerminalCommand[]>([]);
-  const [currentDirectory, setCurrentDirectory] = useState('.');
+
   const queryClient = useQueryClient();
 
   const executeQueryMutation = useMutation({
@@ -156,54 +148,7 @@ export default function SqlQuery() {
     setQuery(sampleQuery);
   };
 
-  const executeTerminalCommand = useMutation({
-    mutationFn: async (command: string) => {
-      const response = await fetch('/api/terminal/execute', {
-        method: 'POST',
-        body: JSON.stringify({ command, cwd: currentDirectory }),
-        headers: { 'Content-Type': 'application/json' }
-      });
-      
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Command execution failed');
-      }
-      
-      return response.json() as Promise<{ output: string; cwd: string; exitCode: number }>;
-    },
-    onSuccess: (data, variables) => {
-      const newCommand: TerminalCommand = {
-        id: Date.now().toString(),
-        command: variables,
-        output: data.output,
-        timestamp: new Date().toISOString(),
-        status: data.exitCode === 0 ? 'success' : 'error'
-      };
-      setCommandHistory(prev => [newCommand, ...prev.slice(0, 49)]);
-      setCurrentDirectory(data.cwd);
-      setCurrentCommand('');
-    },
-    onError: (error: any, variables) => {
-      const newCommand: TerminalCommand = {
-        id: Date.now().toString(),
-        command: variables,
-        output: error instanceof Error ? error.message : 'Command execution failed',
-        timestamp: new Date().toISOString(),
-        status: 'error'
-      };
-      setCommandHistory(prev => [newCommand, ...prev.slice(0, 49)]);
-      setCurrentCommand('');
-    }
-  });
 
-  const handleTerminalSubmit = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      if (currentCommand.trim()) {
-        executeTerminalCommand.mutate(currentCommand.trim());
-      }
-    }
-  };
 
   const downloadResults = () => {
     if (!executeQueryMutation.data) return;
@@ -349,10 +294,9 @@ export default function SqlQuery() {
         {/* Sidebar */}
         <div className="space-y-4">
           <Tabs defaultValue="tables" className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
+            <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="tables">Tables</TabsTrigger>
               <TabsTrigger value="samples">Samples</TabsTrigger>
-              <TabsTrigger value="terminal">Terminal</TabsTrigger>
             </TabsList>
             
             <TabsContent value="tables" className="space-y-4">
@@ -414,79 +358,7 @@ export default function SqlQuery() {
               </Card>
             </TabsContent>
 
-            <TabsContent value="terminal" className="space-y-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg flex items-center gap-2">
-                    <TerminalIcon size={20} />
-                    Terminal
-                  </CardTitle>
-                  <CardDescription>Execute commands with access to source code</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {/* Command Input */}
-                  <div className="space-y-2">
-                    <div className="text-sm text-gray-600 font-mono">
-                      {currentDirectory}$
-                    </div>
-                    <div className="flex gap-2">
-                      <Textarea
-                        placeholder="ls -la"
-                        value={currentCommand}
-                        onChange={(e) => setCurrentCommand(e.target.value)}
-                        onKeyDown={handleTerminalSubmit}
-                        className="font-mono text-sm resize-none"
-                        rows={1}
-                      />
-                      <Button
-                        onClick={() => currentCommand.trim() && executeTerminalCommand.mutate(currentCommand.trim())}
-                        disabled={!currentCommand.trim() || executeTerminalCommand.isPending}
-                        size="sm"
-                        className="flex items-center gap-1"
-                      >
-                        <Send size={16} />
-                      </Button>
-                    </div>
-                  </div>
 
-                  {/* Command History */}
-                  <ScrollArea className="h-[300px] w-full">
-                    <div className="pr-4 space-y-3">
-                      {commandHistory.map((cmd) => (
-                        <div key={cmd.id} className="border rounded-lg p-3">
-                          <div className="flex items-center justify-between mb-2">
-                            <div className="font-mono text-sm text-gray-700">
-                              $ {cmd.command}
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <Badge
-                                variant={cmd.status === 'success' ? 'default' : 'destructive'}
-                                className="text-xs"
-                              >
-                                {cmd.status}
-                              </Badge>
-                              <span className="text-xs text-gray-500">
-                                {new Date(cmd.timestamp).toLocaleTimeString()}
-                              </span>
-                            </div>
-                          </div>
-                          <pre className="text-xs bg-gray-50 p-2 rounded overflow-x-auto whitespace-pre-wrap">
-                            {cmd.output}
-                          </pre>
-                        </div>
-                      ))}
-                      {commandHistory.length === 0 && (
-                        <div className="text-center text-gray-500 py-8">
-                          <TerminalIcon size={48} className="mx-auto mb-4 opacity-50" />
-                          <p>No commands executed yet</p>
-                          <p className="text-sm mt-2">Try commands like: <code>ls</code>, <code>cat package.json</code>, <code>find . -name "*.ts"</code></p>
-                        </div>
-                      )}
-                    </div>
-                  </ScrollArea>
-                </CardContent>
-              </Card>
-            </TabsContent>
           </Tabs>
 
           {/* Query History */}

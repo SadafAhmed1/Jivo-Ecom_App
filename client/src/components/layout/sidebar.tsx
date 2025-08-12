@@ -7,9 +7,7 @@ import {
   Package, 
   Store, 
   User,
-  Database,
-  Terminal,
-  Code
+  Database
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -71,13 +69,7 @@ const navigation: NavigationItem[] = [
     active: true,
     description: "Execute custom SQL queries and generate reports"
   },
-  {
-    name: "Terminal IDE",
-    href: "/enhanced-terminal",
-    icon: Code,
-    active: true,
-    description: "Full system terminal with WebSocket connection & file explorer"
-  }
+
 ];
 
 export function Sidebar() {
