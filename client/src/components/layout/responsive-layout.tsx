@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { MobileHeader } from "./mobile-header";
 
 type NavigationItem = {
   name: string;
@@ -235,22 +236,8 @@ export function ResponsiveLayout({ children }: ResponsiveLayoutProps) {
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col lg:ml-64 min-w-0">
         {/* Mobile Header */}
-        <div className="lg:hidden bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between">
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            onClick={toggleMobileMenu}
-            className="h-10 w-10 p-0 hover:bg-gray-100"
-          >
-            <Menu size={20} />
-          </Button>
-          <div className="flex items-center space-x-2">
-            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-              <Store className="text-white" size={16} />
-            </div>
-            <h1 className="text-lg font-semibold text-gray-900">POJivo E-Com</h1>
-          </div>
-          <div className="w-10" /> {/* Spacer for centering */}
+        <div className="lg:hidden">
+          <MobileHeader onMenuClick={toggleMobileMenu} />
         </div>
 
         {/* Page Content */}

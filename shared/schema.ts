@@ -255,20 +255,58 @@ export type InsertDistributorPo = z.infer<typeof insertDistributorPoSchema>;
 export type DistributorOrderItems = typeof distributorOrderItems.$inferSelect;
 export type InsertDistributorOrderItems = z.infer<typeof insertDistributorOrderItemsSchema>;
 
-// Legacy user table (keeping for compatibility)
+// Enhanced user table with profile management
 export const users = pgTable("users", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: serial("id").primaryKey(),
   username: text("username").notNull().unique(),
+  email: text("email").notNull().unique(),
   password: text("password").notNull(),
+  full_name: text("full_name"),
+  phone: varchar("phone", { length: 20 }),
+  role: varchar("role", { length: 20 }).default("user"),
+  department: varchar("department", { length: 100 }),
+  is_active: boolean("is_active").default(true),
+  last_login: timestamp("last_login"),
+  password_changed_at: timestamp("password_changed_at"),
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow()
 });
 
-export const insertUserSchema = createInsertSchema(users).pick({
+export const insertUserSchema = createInsertSchema(users).omit({
+  id: true,
+  created_at: true,
+  updated_at: true,
+  last_login: true,
+  password_changed_at: true
+});
+
+export const loginUserSchema = z.object({
+  username: z.string().min(3, "Username must be at least 3 characters"),
+  password: z.string().min(6, "Password must be at least 6 characters")
+});
+
+export const updateUserSchema = createInsertSchema(users).partial().omit({
+  id: true,
   username: true,
   password: true,
+  created_at: true,
+  updated_at: true
+});
+
+export const changePasswordSchema = z.object({
+  currentPassword: z.string().min(1, "Current password is required"),
+  newPassword: z.string().min(6, "New password must be at least 6 characters"),
+  confirmPassword: z.string().min(6, "Confirm password must be at least 6 characters")
+}).refine((data) => data.newPassword === data.confirmPassword, {
+  message: "New password and confirm password don't match",
+  path: ["confirmPassword"],
 });
 
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
+export type LoginUser = z.infer<typeof loginUserSchema>;
+export type UpdateUser = z.infer<typeof updateUserSchema>;
+export type ChangePassword = z.infer<typeof changePasswordSchema>;
 
 // Flipkart Grocery PO Header Table
 export const flipkartGroceryPoHeader = pgTable("flipkart_grocery_po_header", {

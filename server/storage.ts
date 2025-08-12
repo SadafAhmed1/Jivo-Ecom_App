@@ -1,6 +1,7 @@
 import { 
   type User, 
   type InsertUser,
+  type UpdateUser,
   type PfMst,
   type InsertPfMst,
   type SapItemMst,
@@ -164,10 +165,14 @@ import { db } from "./db";
 import { eq, desc, and, ilike, gte, lte } from "drizzle-orm";
 
 export interface IStorage {
-  // User methods (legacy)
-  getUser(id: string): Promise<User | undefined>;
+  // Enhanced user methods
+  getUser(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
+  getUserByEmail(email: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
+  updateUser(id: number, user: UpdateUser): Promise<User>;
+  updateLastLogin(id: number): Promise<void>;
+  changePassword(id: number, hashedPassword: string): Promise<void>;
   
   // Platform methods
   getAllPlatforms(): Promise<PfMst[]>;
@@ -309,11 +314,27 @@ export interface IStorage {
   updateInventory(id: number, header: any, items: any): Promise<any>;
   deleteInventory(id: number): Promise<void>;
 
+  
+  sessionStore: session.SessionStore;
 }
 
+import connectPgSimple from "connect-pg-simple";
+import session from "express-session";
+import { pool } from "./db";
+
+const PostgresSessionStore = connectPgSimple(session);
+
 export class DatabaseStorage implements IStorage {
-  // User methods (legacy)
-  async getUser(id: string): Promise<User | undefined> {
+  sessionStore: session.SessionStore;
+  
+  constructor() {
+    this.sessionStore = new PostgresSessionStore({
+      pool: pool as any,
+      createTableIfMissing: true,
+    });
+  }
+  // Enhanced user methods with session store
+  async getUser(id: number): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.id, id));
     return user || undefined;
   }
@@ -323,12 +344,44 @@ export class DatabaseStorage implements IStorage {
     return user || undefined;
   }
 
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.email, email));
+    return user || undefined;
+  }
+
   async createUser(insertUser: InsertUser): Promise<User> {
     const [user] = await db
       .insert(users)
       .values(insertUser)
       .returning();
     return user;
+  }
+
+  async updateUser(id: number, updateUser: UpdateUser): Promise<User> {
+    const [user] = await db
+      .update(users)
+      .set({ ...updateUser, updated_at: new Date() })
+      .where(eq(users.id, id))
+      .returning();
+    return user;
+  }
+
+  async updateLastLogin(id: number): Promise<void> {
+    await db
+      .update(users)
+      .set({ last_login: new Date() })
+      .where(eq(users.id, id));
+  }
+
+  async changePassword(id: number, hashedPassword: string): Promise<void> {
+    await db
+      .update(users)
+      .set({ 
+        password: hashedPassword, 
+        password_changed_at: new Date(),
+        updated_at: new Date()
+      })
+      .where(eq(users.id, id));
   }
 
   // Platform methods

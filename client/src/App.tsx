@@ -3,7 +3,15 @@ import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { AuthProvider } from "@/hooks/use-auth";
+import { ProtectedRoute } from "@/lib/protected-route";
 import { ResponsiveLayout } from "@/components/layout/responsive-layout";
+
+// Auth pages
+import AuthPage from "@/pages/auth-page";
+import ProfilePage from "@/pages/profile-page";
+
+// Protected pages
 import Dashboard from "@/pages/dashboard";
 import PlatformPO from "@/pages/platform-po";
 import PODetails from "@/pages/po-details";
@@ -15,8 +23,6 @@ import ZeptoPoUpload from "@/pages/zepto-po-upload";
 import ZeptoPOs from "@/pages/zepto-pos";
 import ZeptoPoDetails from "@/pages/zepto-po-details";
 import ZeptoPoEdit from "@/pages/zepto-po-edit";
-// Legacy route - redirected to unified upload
-// import CityMallPoUpload from "@/pages/city-mall-po-upload";
 import CityMallPOs from "@/pages/city-mall-pos";
 import CityMallPoDetails from "@/pages/city-mall-po-details";
 import UploadBlinkitPo from "./pages/upload/UploadBlinkitPo";
@@ -25,7 +31,6 @@ import SwiggyUpload from "./pages/SwiggyUpload";
 import UnifiedPoUpload from "@/pages/unified-po-upload";
 import SapSync from "@/pages/sap-sync";
 import SqlQuery from "@/pages/SqlQuery";
-
 import DistributorPO from "@/pages/distributor-po";
 import SecondarySales from "@/pages/secondary-sales";
 import Inventory from "@/pages/inventory";
@@ -34,54 +39,169 @@ import NotFound from "@/pages/not-found";
 
 function Router() {
   return (
-    <ResponsiveLayout>
-      <Switch>
-          <Route path="/" component={Dashboard} />
-          <Route path="/platform-po" component={PlatformPO} />
-          <Route path="/po-details/:id" component={PODetails} />
-          <Route path="/po-edit/:id" component={POEdit} />
-          <Route path="/flipkart-grocery-upload" component={FlipkartGroceryPOUpload} />
-          <Route path="/flipkart-grocery-pos" component={FlipkartGroceryPOs} />
-          <Route path="/flipkart-grocery-po/:id" component={FlipkartGroceryPODetails} />
-          <Route path="/zepto-upload" component={ZeptoPoUpload} />
-          <Route path="/zepto-pos" component={ZeptoPOs} />
-          <Route path="/zepto-pos/:id" component={ZeptoPoDetails} />
+    <Switch>
+      {/* Public routes */}
+      <Route path="/auth" component={AuthPage} />
+      
+      {/* Protected routes with responsive layout */}
+      <ProtectedRoute path="/" component={() => (
+        <ResponsiveLayout>
+          <Dashboard />
+        </ResponsiveLayout>
+      )} />
+      
+      <ProtectedRoute path="/profile" component={() => <ProfilePage />} />
+      
+      <ProtectedRoute path="/platform-po" component={() => (
+        <ResponsiveLayout>
+          <PlatformPO />
+        </ResponsiveLayout>
+      )} />
+      
+      <ProtectedRoute path="/po-details/:id" component={() => (
+        <ResponsiveLayout>
+          <PODetails />
+        </ResponsiveLayout>
+      )} />
+      
+      <ProtectedRoute path="/po-edit/:id" component={() => (
+        <ResponsiveLayout>
+          <POEdit />
+        </ResponsiveLayout>
+      )} />
+      
+      <ProtectedRoute path="/flipkart-grocery-upload" component={() => (
+        <ResponsiveLayout>
+          <FlipkartGroceryPOUpload />
+        </ResponsiveLayout>
+      )} />
+      
+      <ProtectedRoute path="/flipkart-grocery-pos" component={() => (
+        <ResponsiveLayout>
+          <FlipkartGroceryPOs />
+        </ResponsiveLayout>
+      )} />
+      
+      <ProtectedRoute path="/flipkart-grocery-po/:id" component={() => (
+        <ResponsiveLayout>
+          <FlipkartGroceryPODetails />
+        </ResponsiveLayout>
+      )} />
+      
+      <ProtectedRoute path="/zepto-upload" component={() => (
+        <ResponsiveLayout>
+          <ZeptoPoUpload />
+        </ResponsiveLayout>
+      )} />
+      
+      <ProtectedRoute path="/zepto-pos" component={() => (
+        <ResponsiveLayout>
+          <ZeptoPOs />
+        </ResponsiveLayout>
+      )} />
+      
+      <ProtectedRoute path="/zepto-pos/:id" component={() => (
+        <ResponsiveLayout>
+          <ZeptoPoDetails />
+        </ResponsiveLayout>
+      )} />
+      
+      <ProtectedRoute path="/zepto-pos/edit/:id" component={() => (
+        <ResponsiveLayout>
           <Route path="/zepto-pos/edit/:id">
             {(params) => <ZeptoPoEdit poId={params.id} />}
           </Route>
-          <Route path="/city-mall-upload">
-            {() => {
-              // Redirect legacy city-mall-upload to unified upload
-              window.location.href = "/unified-po-upload";
-              return null;
-            }}
-          </Route>
-          <Route path="/city-mall-pos" component={CityMallPOs} />
-          <Route path="/city-mall-pos/:id" component={CityMallPoDetails} />
-          <Route path="/blinkit-upload" component={UploadBlinkitPo} />
-          <Route path="/blinkit-pos" component={ViewBlinkitPos} />
-          <Route path="/swiggy-upload" component={SwiggyUpload} />
-          <Route path="/unified-po-upload" component={UnifiedPoUpload} />
-          <Route path="/sap-sync" component={SapSync} />
-          <Route path="/distributor-po" component={DistributorPO} />
-          <Route path="/secondary-sales" component={SecondarySales} />
-          <Route path="/inventory" component={Inventory} />
-          <Route path="/sql-query" component={SqlQuery} />
+        </ResponsiveLayout>
+      )} />
+      
+      <Route path="/city-mall-upload">
+        {() => {
+          // Redirect legacy city-mall-upload to unified upload
+          window.location.href = "/unified-po-upload";
+          return null;
+        }}
+      </Route>
+      
+      <ProtectedRoute path="/city-mall-pos" component={() => (
+        <ResponsiveLayout>
+          <CityMallPOs />
+        </ResponsiveLayout>
+      )} />
+      
+      <ProtectedRoute path="/city-mall-pos/:id" component={() => (
+        <ResponsiveLayout>
+          <CityMallPoDetails />
+        </ResponsiveLayout>
+      )} />
+      
+      <ProtectedRoute path="/blinkit-upload" component={() => (
+        <ResponsiveLayout>
+          <UploadBlinkitPo />
+        </ResponsiveLayout>
+      )} />
+      
+      <ProtectedRoute path="/blinkit-pos" component={() => (
+        <ResponsiveLayout>
+          <ViewBlinkitPos />
+        </ResponsiveLayout>
+      )} />
+      
+      <ProtectedRoute path="/swiggy-upload" component={() => (
+        <ResponsiveLayout>
+          <SwiggyUpload />
+        </ResponsiveLayout>
+      )} />
+      
+      <ProtectedRoute path="/unified-po-upload" component={() => (
+        <ResponsiveLayout>
+          <UnifiedPoUpload />
+        </ResponsiveLayout>
+      )} />
+      
+      <ProtectedRoute path="/sap-sync" component={() => (
+        <ResponsiveLayout>
+          <SapSync />
+        </ResponsiveLayout>
+      )} />
+      
+      <ProtectedRoute path="/distributor-po" component={() => (
+        <ResponsiveLayout>
+          <DistributorPO />
+        </ResponsiveLayout>
+      )} />
+      
+      <ProtectedRoute path="/secondary-sales" component={() => (
+        <ResponsiveLayout>
+          <SecondarySales />
+        </ResponsiveLayout>
+      )} />
+      
+      <ProtectedRoute path="/inventory" component={() => (
+        <ResponsiveLayout>
+          <Inventory />
+        </ResponsiveLayout>
+      )} />
+      
+      <ProtectedRoute path="/sql-query" component={() => (
+        <ResponsiveLayout>
+          <SqlQuery />
+        </ResponsiveLayout>
+      )} />
 
-
-          <Route component={NotFound} />
-        </Switch>
-    </ResponsiveLayout>
+      <Route component={NotFound} />
+    </Switch>
   );
 }
 
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Router />
-      </TooltipProvider>
+      <AuthProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Router />
+        </TooltipProvider>
+      </AuthProvider>
     </QueryClientProvider>
   );
 }

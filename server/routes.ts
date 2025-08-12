@@ -2,6 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { callSpGetItemDetails } from "./sqlserver";
+import { setupAuth } from "./auth";
 
 import { insertPfPoSchema, insertPfOrderItemsSchema, insertFlipkartGroceryPoHeaderSchema, insertFlipkartGroceryPoLinesSchema, insertDistributorMstSchema, insertDistributorPoSchema, insertDistributorOrderItemsSchema } from "@shared/schema";
 import { z } from "zod";
@@ -123,6 +124,8 @@ const upload = multer({
 import crypto from 'crypto';
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Setup authentication first
+  setupAuth(app);
   // Platform routes
   app.get("/api/platforms", async (_req, res) => {
     try {
