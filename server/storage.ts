@@ -86,6 +86,10 @@ import {
   type InsertZeptoInventoryDaily,
   type ZeptoInventoryRange,
   type InsertZeptoInventoryRange,
+  type ZeptoInventoryDaily,
+  type InsertZeptoInventoryDaily,
+  type ZeptoInventoryRange,
+  type InsertZeptoInventoryRange,
 
   type DistributorMst,
   type InsertDistributorMst,
@@ -147,6 +151,8 @@ import {
   invSwiggyJmRange,
   invFlipkartJmDaily,
   invFlipkartJmRange,
+  invZeptoJmDaily,
+  invZeptoJmRange,
 
   distributorMst,
   distributorPo,

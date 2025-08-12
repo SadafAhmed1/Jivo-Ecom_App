@@ -617,7 +617,7 @@ export default function InventoryPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {PLATFORMS.map((platform) => {
                 const IconComponent = platform.icon;
                 return (
@@ -660,7 +660,7 @@ export default function InventoryPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {getAvailableBusinessUnits().map((unit) => (
                 <Card
                   key={unit.id}
@@ -706,7 +706,7 @@ export default function InventoryPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {PERIOD_TYPES.map((periodType) => {
                 const IconComponent = periodType.icon;
                 return (
