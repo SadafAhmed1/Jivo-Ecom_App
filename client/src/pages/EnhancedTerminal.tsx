@@ -401,9 +401,9 @@ export default function EnhancedTerminal() {
             )}
           </div>
 
-          {/* Enhanced Terminal Panel */}
+          {/* Clean Terminal Panel */}
           <div 
-            className="border-t bg-white text-gray-800 flex flex-col relative"
+            className="border-t bg-white text-black flex flex-col relative"
             style={{ height: terminalMinimized ? '32px' : `${terminalHeight}px` }}
           >
             {/* Resize Handle */}
@@ -432,30 +432,12 @@ export default function EnhancedTerminal() {
               />
             )}
             
-            <div className="flex items-center justify-between p-2 bg-gray-100 border-b text-xs cursor-pointer" onClick={() => setTerminalMinimized(!terminalMinimized)}>
+            <div className="flex items-center justify-between p-2 bg-white border-b border-gray-200 text-xs cursor-pointer" onClick={() => setTerminalMinimized(!terminalMinimized)}>
               <div className="flex items-center gap-2">
                 <TerminalIcon size={14} />
-                <span className="font-medium">Enhanced Terminal</span>
-                <div className={cn(
-                  "w-2 h-2 rounded-full",
-                  isConnected ? "bg-green-500" : "bg-red-500"
-                )} />
-                <span className="text-gray-600">
-                  {isConnected ? "Connected" : "Disconnected"}
-                </span>
+                <span className="font-medium">Terminal</span>
               </div>
               <div className="flex gap-1">
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  className="h-6 w-6 p-0 text-gray-600 hover:bg-gray-200"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    clearTerminal();
-                  }}
-                >
-                  <Trash2 size={12} />
-                </Button>
                 <Button
                   size="sm"
                   variant="ghost"
@@ -472,63 +454,41 @@ export default function EnhancedTerminal() {
             
             {!terminalMinimized && (
               <>
-                {/* Terminal Output */}
-                <ScrollArea className="flex-1 bg-gray-50" ref={terminalRef}>
-                  <div className="p-3 font-mono text-sm space-y-1">
-                    {messages.length === 0 && (
-                      <div className="text-green-600">
-                        <div className="font-semibold">Enhanced Terminal Ready!</div>
-                        <div className="text-gray-600 mt-2 text-xs space-y-1 leading-relaxed">
-                          <div className="flex items-center gap-2">
-                            <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                            UNRESTRICTED SYSTEM ACCESS - Real terminal, no sandboxing
-                          </div>
-                          <div className="mt-3 space-y-1">
-                            <div>🌐 <strong>Network:</strong> curl ifconfig.me, wget, ping, ssh</div>
-                            <div>💻 <strong>System:</strong> ps aux, top, df -h, sudo commands</div>
-                            <div>🔧 <strong>Dev:</strong> git, npm, node, python, docker</div>
-                            <div>📁 <strong>Files:</strong> ls -la, rm -rf, chmod, nano, vim</div>
-                            <div>🚀 <strong>Test:</strong> bash scripts/test-system-access.sh</div>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                    
+                {/* Clean Terminal Output */}
+                <div className="flex-1 flex flex-col p-3 font-mono text-sm overflow-hidden">
+                  {/* Terminal messages */}
+                  <div className="flex-1 overflow-y-auto mb-3" ref={terminalRef}>
                     {messages.map((message) => (
-                      <div key={message.id} className={cn(
-                        "whitespace-pre-wrap font-mono",
-                        message.type === 'input' && "text-blue-600 font-semibold",
-                        message.type === 'error' && "text-red-600",
-                        message.type === 'system' && "text-orange-600 italic",
-                        message.type === 'output' && "text-gray-800"
-                      )}>
-                        {message.content}
+                      <div key={message.id} className="mb-1">
+                        {message.type === 'input' ? (
+                          <div className="text-black font-medium">{message.content}</div>
+                        ) : (
+                          <div className={cn(
+                            "whitespace-pre-wrap",
+                            message.type === 'error' ? "text-red-600" : 
+                            message.type === 'system' ? "text-blue-600" : "text-black"
+                          )}>
+                            {message.content}
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>
-                </ScrollArea>
-
-                {/* Command Input */}
-                <div className="border-t p-3 bg-white flex items-center gap-2">
-                  <span className="text-blue-600 text-sm font-mono font-bold">$</span>
-                  <Input
-                    ref={inputRef}
-                    value={currentInput}
-                    onChange={(e) => setCurrentInput(e.target.value)}
-                    onKeyPress={handleKeyPress}
-                    className="flex-1 font-mono text-sm border-gray-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                    placeholder={isConnected ? "Type ANY command - FULL ACCESS (try: curl ifconfig.me)" : "Connect to terminal first"}
-                    disabled={!isConnected}
-                  />
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="h-8 w-8 p-0 border-blue-200 hover:bg-blue-50"
-                    onClick={() => sendCommand(currentInput)}
-                    disabled={!isConnected || !currentInput.trim()}
-                  >
-                    <Play size={12} />
-                  </Button>
+                  
+                  {/* Integrated command input */}
+                  <div className="flex items-center gap-2 border-t border-gray-200 pt-2">
+                    <span className="text-black">$</span>
+                    <input
+                      ref={inputRef}
+                      type="text"
+                      value={currentInput}
+                      onChange={(e) => setCurrentInput(e.target.value)}
+                      onKeyDown={handleKeyPress}
+                      placeholder="Type ANY command - FULL ACCESS (try: curl ifco.io)"
+                      className="flex-1 bg-transparent text-black border-none outline-none placeholder-gray-400 font-mono text-sm"
+                      disabled={!isConnected}
+                    />
+                  </div>
                 </div>
               </>
             )}

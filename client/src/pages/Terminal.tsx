@@ -1,190 +1,192 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { 
-  Terminal as TerminalIcon, 
-  ChevronUp,
-  ChevronDown
+  Maximize2,
+  Minimize2
 } from 'lucide-react';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { apiRequest } from '@/lib/queryClient';
+import { cn } from '@/lib/utils';
 
-interface TerminalCommand {
+interface TerminalMessage {
   id: string;
-  command: string;
-  output: string;
-  timestamp: string;
-  status: 'success' | 'error';
-  executionTime?: number;
+  type: 'output' | 'error' | 'input' | 'system';
+  content: string;
+  timestamp: Date;
 }
 
 export default function Terminal() {
-  const [commandHistory, setCommandHistory] = useState<TerminalCommand[]>([]);
-  const [currentCommand, setCurrentCommand] = useState('');
+  const [messages, setMessages] = useState<TerminalMessage[]>([]);
+  const [currentInput, setCurrentInput] = useState('');
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [isConnected, setIsConnected] = useState(false);
+  const [isConnecting, setIsConnecting] = useState(false);
+  
+  const wsRef = useRef<WebSocket | null>(null);
   const terminalRef = useRef<HTMLDivElement>(null);
-  const terminalInputRef = useRef<HTMLInputElement>(null);
-  const queryClient = useQueryClient();
+  const inputRef = useRef<HTMLInputElement>(null);
 
-  // Auto-focus terminal input
+  // Initialize WebSocket connection
   useEffect(() => {
-    if (terminalInputRef.current) {
-      terminalInputRef.current.focus();
-    }
+    connectTerminal();
+    
+    return () => {
+      if (wsRef.current) {
+        wsRef.current.close();
+      }
+    };
   }, []);
 
-  // Scroll to bottom when new commands are added
+  // Auto-scroll terminal
   useEffect(() => {
     if (terminalRef.current) {
       terminalRef.current.scrollTop = terminalRef.current.scrollHeight;
     }
-  }, [commandHistory]);
+  }, [messages]);
 
-  // Execute terminal commands
-  const executeCommand = useMutation({
-    mutationFn: async (command: string) => {
-      const response = await apiRequest(`/api/terminal/execute`, {
-        method: 'POST',
-        body: { command }
-      });
-      return response;
-    },
-    onSuccess: (data, command) => {
-      const newCommand: TerminalCommand = {
-        id: Date.now().toString(),
-        command,
-        output: data.output || '',
-        timestamp: new Date().toISOString(),
-        status: data.exitCode === 0 ? 'success' : 'error',
-        executionTime: data.executionTime
-      };
-      setCommandHistory(prev => [...prev, newCommand]);
-      setCurrentCommand('');
-    },
-    onError: (error: any, command) => {
-      const newCommand: TerminalCommand = {
-        id: Date.now().toString(),
-        command,
-        output: error.message || 'Command failed',
-        timestamp: new Date().toISOString(),
-        status: 'error'
-      };
-      setCommandHistory(prev => [...prev, newCommand]);
-      setCurrentCommand('');
+  // Auto-focus input
+  useEffect(() => {
+    if (inputRef.current) {
+      inputRef.current.focus();
     }
-  });
+  }, [isFullscreen]);
 
-  // Claude Code query mutation
-  const claudeCodeQuery = useMutation({
-    mutationFn: async (prompt: string) => {
-      const response = await apiRequest(`/api/claude-code/query`, {
-        method: 'POST',
-        body: { prompt }
-      });
-      return response;
-    },
-    onSuccess: (data, prompt) => {
-      const newCommand: TerminalCommand = {
-        id: Date.now().toString(),
-        command: `claude ${prompt}`,
-        output: data.response || 'No response from Claude',
-        timestamp: new Date().toISOString(),
-        status: 'success'
-      };
-      setCommandHistory(prev => [...prev, newCommand]);
-      setCurrentCommand('');
-    },
-    onError: (error: any, prompt) => {
-      const newCommand: TerminalCommand = {
-        id: Date.now().toString(),
-        command: `claude ${prompt}`,
-        output: error.message || 'Claude query failed',
-        timestamp: new Date().toISOString(),
-        status: 'error'
-      };
-      setCommandHistory(prev => [...prev, newCommand]);
-      setCurrentCommand('');
-    }
-  });
+  const connectTerminal = () => {
+    if (isConnecting || isConnected) return;
+    
+    setIsConnecting(true);
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const wsUrl = `${protocol}//${window.location.host}/terminal-ws`;
+    
+    try {
+      const ws = new WebSocket(wsUrl);
+      wsRef.current = ws;
 
-  const handleTerminalSubmit = useCallback((e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && currentCommand.trim()) {
-      e.preventDefault();
-      
-      if (currentCommand.startsWith('claude ')) {
-        const prompt = currentCommand.slice(7).trim();
-        if (prompt) {
-          claudeCodeQuery.mutate(prompt);
+      ws.onopen = () => {
+        setIsConnected(true);
+        setIsConnecting(false);
+      };
+
+      ws.onmessage = (event) => {
+        try {
+          const message = JSON.parse(event.data);
+          switch (message.type) {
+            case 'output':
+              addMessage('output', message.data);
+              break;
+            case 'error':
+              addMessage('error', message.data);
+              break;
+            case 'connected':
+              addMessage('system', message.message);
+              break;
+            case 'exit':
+              addMessage('system', `Process exited with code: ${message.code}`);
+              break;
+          }
+        } catch (error) {
+          console.error('Error parsing WebSocket message:', error);
         }
-      } else {
-        executeCommand.mutate(currentCommand.trim());
+      };
+
+      ws.onclose = () => {
+        setIsConnected(false);
+        setIsConnecting(false);
+      };
+
+      ws.onerror = () => {
+        setIsConnecting(false);
+      };
+    } catch (error) {
+      setIsConnecting(false);
+    }
+  };
+
+  const addMessage = (type: TerminalMessage['type'], content: string) => {
+    const message: TerminalMessage = {
+      id: Math.random().toString(36).substr(2, 9),
+      type,
+      content,
+      timestamp: new Date()
+    };
+    setMessages(prev => [...prev, message]);
+  };
+
+  const sendCommand = (command: string) => {
+    if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
+      addMessage('error', 'Terminal not connected');
+      return;
+    }
+
+    addMessage('input', `$ ${command}`);
+    
+    wsRef.current.send(JSON.stringify({
+      type: 'command',
+      data: command
+    }));
+    
+    setCurrentInput("");
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      if (currentInput.trim()) {
+        sendCommand(currentInput.trim());
       }
     }
-  }, [currentCommand, executeCommand, claudeCodeQuery]);
+  };
 
   const clearTerminal = () => {
-    setCommandHistory([]);
+    setMessages([]);
   };
 
   // Fullscreen terminal view
   if (isFullscreen) {
     return (
       <div className="h-screen bg-white text-black flex flex-col">
-        {/* Terminal Header */}
-        <div className="h-10 bg-gray-100 border-b border-gray-300 flex items-center justify-between px-4">
-          <div className="flex items-center gap-2">
-            <TerminalIcon className="h-4 w-4" />
-            <span className="text-sm font-medium">Terminal</span>
-          </div>
+        {/* Minimal header with only fullscreen toggle */}
+        <div className="h-8 flex items-center justify-end px-3 border-b border-gray-200">
           <Button
             variant="ghost"
             size="sm"
             onClick={() => setIsFullscreen(false)}
             className="h-6 w-6 p-0 text-gray-600 hover:text-black"
           >
-            <ChevronDown className="h-3 w-3" />
+            <Minimize2 className="h-4 w-4" />
           </Button>
         </div>
 
-        {/* Terminal Content */}
-        <div className="flex-1 p-4 font-mono text-sm overflow-y-auto" ref={terminalRef}>
-          {commandHistory.length === 0 && (
-            <div className="text-gray-600 mb-4">
-              <div>Welcome to Terminal</div>
-              <div className="text-xs mt-1">Type commands or use 'claude [prompt]' for AI assistance</div>
-            </div>
-          )}
-          
-          {commandHistory.map((cmd) => (
-            <div key={cmd.id} className="mb-3">
-              <div className="flex items-center gap-2 text-black">
-                <span>$</span>
-                <span>{cmd.command}</span>
+        {/* Clean terminal content */}
+        <div className="flex-1 flex flex-col p-3 font-mono text-sm overflow-hidden">
+          {/* Terminal output */}
+          <div className="flex-1 overflow-y-auto mb-3" ref={terminalRef}>
+            {messages.map((msg) => (
+              <div key={msg.id} className="mb-1">
+                {msg.type === 'input' ? (
+                  <div className="text-black font-medium">{msg.content}</div>
+                ) : (
+                  <div className={cn(
+                    "whitespace-pre-wrap",
+                    msg.type === 'error' ? "text-red-600" : 
+                    msg.type === 'system' ? "text-blue-600" : "text-black"
+                  )}>
+                    {msg.content}
+                  </div>
+                )}
               </div>
-              <pre className="text-gray-700 text-xs whitespace-pre-wrap mt-1 pl-3">
-                {cmd.output}
-              </pre>
-            </div>
-          ))}
+            ))}
+          </div>
           
-          {(executeCommand.isPending || claudeCodeQuery.isPending) && (
-            <div className="flex items-center gap-2 text-gray-600 mb-3">
-              <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-gray-600"></div>
-              <span className="text-sm">Executing...</span>
-            </div>
-          )}
-
-          {/* Terminal Input Line */}
-          <div className="flex items-center gap-2">
+          {/* Integrated input line at bottom */}
+          <div className="flex items-center gap-2 border-t border-gray-200 pt-2">
             <span className="text-black">$</span>
             <input
-              ref={terminalInputRef}
+              ref={inputRef}
               type="text"
-              value={currentCommand}
-              onChange={(e) => setCurrentCommand(e.target.value)}
-              onKeyDown={handleTerminalSubmit}
-              placeholder="Type command here..."
+              value={currentInput}
+              onChange={(e) => setCurrentInput(e.target.value)}
+              onKeyDown={handleKeyPress}
+              placeholder="Type ANY command - FULL ACCESS (try: curl ifco.io)"
               className="flex-1 bg-transparent text-black border-none outline-none placeholder-gray-400 font-mono text-sm"
-              disabled={executeCommand.isPending || claudeCodeQuery.isPending}
+              disabled={!isConnected}
               autoFocus
             />
           </div>
@@ -193,65 +195,55 @@ export default function Terminal() {
     );
   }
 
-  // Regular terminal view (also clean and simple)
+  // Regular terminal view 
   return (
     <div className="h-screen bg-white text-black flex flex-col">
-      {/* Clean Terminal Header */}
-      <div className="h-10 bg-gray-100 border-b border-gray-300 flex items-center justify-between px-4">
-        <div className="flex items-center gap-2">
-          <TerminalIcon className="h-4 w-4" />
-          <span className="text-sm font-medium">Terminal</span>
-        </div>
+      {/* Minimal header */}
+      <div className="h-8 flex items-center justify-between px-3 border-b border-gray-200">
+        <div className="text-sm text-gray-600">Terminal</div>
         <Button
           variant="ghost"
           size="sm"
           onClick={() => setIsFullscreen(true)}
           className="h-6 w-6 p-0 text-gray-600 hover:text-black"
         >
-          <ChevronUp className="h-3 w-3" />
+          <Maximize2 className="h-4 w-4" />
         </Button>
       </div>
 
-      {/* Clean Terminal Content */}
-      <div className="flex-1 p-4 font-mono text-sm overflow-y-auto" ref={terminalRef}>
-        {commandHistory.length === 0 && (
-          <div className="text-gray-600 mb-4">
-            <div>Welcome to Terminal</div>
-            <div className="text-xs mt-1">Type commands or use 'claude [prompt]' for AI assistance</div>
-          </div>
-        )}
-        
-        {commandHistory.map((cmd) => (
-          <div key={cmd.id} className="mb-3">
-            <div className="flex items-center gap-2 text-black">
-              <span>$</span>
-              <span>{cmd.command}</span>
+      {/* Clean terminal content */}
+      <div className="flex-1 flex flex-col p-3 font-mono text-sm overflow-hidden">
+        {/* Terminal output */}
+        <div className="flex-1 overflow-y-auto mb-3" ref={terminalRef}>
+          {messages.map((msg) => (
+            <div key={msg.id} className="mb-1">
+              {msg.type === 'input' ? (
+                <div className="text-black font-medium">{msg.content}</div>
+              ) : (
+                <div className={cn(
+                  "whitespace-pre-wrap",
+                  msg.type === 'error' ? "text-red-600" : 
+                  msg.type === 'system' ? "text-blue-600" : "text-black"
+                )}>
+                  {msg.content}
+                </div>
+              )}
             </div>
-            <pre className="text-gray-700 text-xs whitespace-pre-wrap mt-1 pl-3">
-              {cmd.output}
-            </pre>
-          </div>
-        ))}
+          ))}
+        </div>
         
-        {(executeCommand.isPending || claudeCodeQuery.isPending) && (
-          <div className="flex items-center gap-2 text-gray-600 mb-3">
-            <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-gray-600"></div>
-            <span className="text-sm">Executing...</span>
-          </div>
-        )}
-
-        {/* Terminal Input Line */}
-        <div className="flex items-center gap-2">
+        {/* Integrated input line at bottom */}
+        <div className="flex items-center gap-2 border-t border-gray-200 pt-2">
           <span className="text-black">$</span>
           <input
-            ref={terminalInputRef}
+            ref={inputRef}
             type="text"
-            value={currentCommand}
-            onChange={(e) => setCurrentCommand(e.target.value)}
-            onKeyDown={handleTerminalSubmit}
-            placeholder="Type command here..."
+            value={currentInput}
+            onChange={(e) => setCurrentInput(e.target.value)}
+            onKeyDown={handleKeyPress}
+            placeholder="Type ANY command - FULL ACCESS (try: curl ifco.io)"
             className="flex-1 bg-transparent text-black border-none outline-none placeholder-gray-400 font-mono text-sm"
-            disabled={executeCommand.isPending || claudeCodeQuery.isPending}
+            disabled={!isConnected}
             autoFocus
           />
         </div>
