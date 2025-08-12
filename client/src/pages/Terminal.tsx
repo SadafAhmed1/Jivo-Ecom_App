@@ -64,6 +64,7 @@ export default function Terminal() {
   const [sidebarVisible, setSidebarVisible] = useState(true);
   const [terminalMinimized, setTerminalMinimized] = useState(false);
   const [terminalHeight, setTerminalHeight] = useState(320);
+  const [isFullscreen, setIsFullscreen] = useState(false);
   const terminalRef = useRef<HTMLDivElement>(null);
   const terminalInputRef = useRef<HTMLInputElement>(null);
   const queryClient = useQueryClient();
@@ -201,17 +202,19 @@ export default function Terminal() {
   // Claude Code query mutation
   const claudeCodeQuery = useMutation({
     mutationFn: async (prompt: string) => {
-      const response = await apiRequest('/api/claude-code/query', {
+      const response = await fetch('/api/claude-code/query', {
         method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           prompt,
           workingDirectory: currentDirectory,
           timeout: 30000 
         })
       });
-      return response;
+      const data = await response.json();
+      return data;
     },
-    onSuccess: (data, prompt) => {
+    onSuccess: (data: any, prompt) => {
       const newCommand: TerminalCommand = {
         id: Date.now().toString(),
         command: `claude: ${prompt}`,
@@ -391,6 +394,72 @@ export default function Terminal() {
     ));
   };
 
+  if (isFullscreen) {
+    return (
+      <div className="h-screen bg-white text-black flex flex-col">
+        {/* Terminal Header */}
+        <div className="h-10 bg-gray-100 border-b border-gray-300 flex items-center justify-between px-4">
+          <div className="flex items-center gap-2">
+            <TerminalIcon className="h-4 w-4" />
+            <span className="text-sm font-medium">Terminal</span>
+          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setIsFullscreen(false)}
+            className="h-6 w-6 p-0 text-gray-600 hover:text-black"
+          >
+            <ChevronUp className="h-3 w-3 rotate-180" />
+          </Button>
+        </div>
+
+        {/* Terminal Content */}
+        <div className="flex-1 p-4 font-mono text-sm overflow-y-auto">
+          {commandHistory.length === 0 && (
+            <div className="text-gray-600 mb-4">
+              <div>Welcome to Terminal</div>
+            </div>
+          )}
+          
+          {commandHistory.map((cmd) => (
+            <div key={cmd.id} className="mb-3">
+              <div className="flex items-center gap-2 text-black">
+                <span>$</span>
+                <span>{cmd.command}</span>
+              </div>
+              <pre className="text-gray-700 text-xs whitespace-pre-wrap mt-1 pl-3">
+                {cmd.output}
+              </pre>
+            </div>
+          ))}
+          
+          {(executeCommand.isPending || claudeCodeQuery.isPending) && (
+            <div className="flex items-center gap-2 text-gray-600 mb-3">
+              <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-gray-600"></div>
+              <span className="text-sm">Executing...</span>
+            </div>
+          )}
+
+          {/* Terminal Input Line */}
+          <div className="flex items-center gap-2">
+            <span className="text-black">$</span>
+            <input
+              ref={terminalInputRef}
+              type="text"
+              value={currentCommand}
+              onChange={(e) => setCurrentCommand(e.target.value)}
+              onKeyDown={handleTerminalSubmit}
+              placeholder="Type command here..."
+              className="flex-1 bg-transparent text-black border-none outline-none placeholder-gray-400"
+              disabled={executeCommand.isPending || claudeCodeQuery.isPending}
+              autoFocus
+            />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="h-screen flex bg-gray-50">
       {/* Toggle Sidebar Button */}
@@ -557,12 +626,12 @@ export default function Terminal() {
           </div>
         </div>
 
-        {/* Terminal Panel */}
+        {/* Clean White Terminal Panel */}
         <div 
-          className="border-t bg-black text-white flex flex-col"
+          className="border-t bg-white text-black flex flex-col"
           style={{ height: terminalMinimized ? '32px' : `${terminalHeight}px` }}
         >
-          <div className="flex items-center justify-between p-2 bg-gray-800 text-xs cursor-pointer" onClick={() => setTerminalMinimized(!terminalMinimized)}>
+          <div className="flex items-center justify-between p-2 bg-gray-100 border-b text-xs">
             <div className="flex items-center gap-2">
               <TerminalIcon size={14} />
               <span>Terminal</span>
@@ -571,7 +640,7 @@ export default function Terminal() {
               <Button
                 size="sm"
                 variant="ghost"
-                className="h-6 w-6 p-0 text-white hover:bg-gray-600"
+                className="h-6 w-6 p-0 text-gray-600 hover:text-black"
                 onClick={(e) => {
                   e.stopPropagation();
                   clearTerminal();
@@ -582,7 +651,7 @@ export default function Terminal() {
               <Button
                 size="sm"
                 variant="ghost"
-                className="h-6 w-6 p-0 text-white hover:bg-gray-600"
+                className="h-6 w-6 p-0 text-gray-600 hover:text-black"
                 onClick={(e) => {
                   e.stopPropagation();
                   setTerminalMinimized(!terminalMinimized);
@@ -590,72 +659,64 @@ export default function Terminal() {
               >
                 {terminalMinimized ? <Maximize2 size={12} /> : <Minimize2 size={12} />}
               </Button>
+              <Button
+                size="sm"
+                variant="ghost"
+                className="h-6 w-6 p-0 text-gray-600 hover:text-black"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsFullscreen(true);
+                }}
+              >
+                <ChevronUp size={12} />
+              </Button>
             </div>
           </div>
           
           {!terminalMinimized && (
-            <ScrollArea className="flex-1" ref={terminalRef}>
-              <div className="p-3 font-mono text-sm space-y-2">
+            <div className="flex-1 flex flex-col">
+              <div className="flex-1 p-3 font-mono text-sm overflow-y-auto" ref={terminalRef}>
                 {commandHistory.length === 0 && (
-                  <div className="text-green-400">
-                    <div>Welcome to Terminal IDE!</div>
-                    <div className="text-gray-400 mt-1 text-xs space-y-1">
-                      <div>Basic commands: ls, pwd, cat package.json</div>
-                      <div>Find files: find . -name "*.ts" -o -name "*.tsx"</div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-yellow-400">Claude AI: claude [your prompt]</span>
-                        <span className={cn(
-                          "text-[10px] px-1 rounded",
-                          claudeCodeStatusQuery.data?.includes('Authenticated') ? 'bg-green-600 text-white' : 'bg-red-600 text-white'
-                        )}>
-                          {claudeCodeStatusQuery.data?.split(' ')[0] || 'Unknown'}
-                        </span>
-                      </div>
-                      <div className="text-yellow-500 text-[10px]">Examples: claude "analyze this project" | claude "fix this bug"</div>
-                      <div>Git status: git status, git log --oneline -10</div>
-                    </div>
+                  <div className="text-gray-600 mb-4">
+                    <div>Welcome to Terminal</div>
                   </div>
                 )}
                 
                 {commandHistory.map((cmd) => (
-                  <div key={cmd.id} className="space-y-1">
-                    <div className="flex items-center gap-2 text-green-400">
-                      <span>{cmd.command.startsWith('claude:') ? '🤖' : '$'}</span>
-                      <span className={cmd.command.startsWith('claude:') ? 'text-yellow-400' : ''}>{cmd.command}</span>
-                      <Badge
-                        variant={cmd.status === 'success' ? 'default' : 'destructive'}
-                        className="text-xs ml-auto"
-                      >
-                        {cmd.status}
-                        {cmd.executionTime && ` (${cmd.executionTime}ms)`}
-                      </Badge>
+                  <div key={cmd.id} className="mb-3">
+                    <div className="flex items-center gap-2 text-black">
+                      <span>$</span>
+                      <span>{cmd.command}</span>
                     </div>
-                    <pre className={cn(
-                      "text-xs whitespace-pre-wrap pl-3",
-                      cmd.command.startsWith('claude:') && cmd.status === 'success' 
-                        ? "text-blue-200 bg-blue-900/20 p-2 rounded border-l-2 border-blue-400" 
-                        : "text-gray-200"
-                    )}>
+                    <pre className="text-gray-700 text-xs whitespace-pre-wrap mt-1 pl-3">
                       {cmd.output}
                     </pre>
                   </div>
                 ))}
                 
-                {/* Current input line */}
+                {(executeCommand.isPending || claudeCodeQuery.isPending) && (
+                  <div className="flex items-center gap-2 text-gray-600 mb-3">
+                    <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-gray-600"></div>
+                    <span className="text-sm">Executing...</span>
+                  </div>
+                )}
+
+                {/* Terminal Input Line */}
                 <div className="flex items-center gap-2">
-                  <span className="text-green-400">$</span>
-                  <Input
+                  <span className="text-black">$</span>
+                  <input
                     ref={terminalInputRef}
+                    type="text"
                     value={currentCommand}
                     onChange={(e) => setCurrentCommand(e.target.value)}
                     onKeyDown={handleTerminalSubmit}
-                    className="flex-1 bg-transparent border-none text-white text-sm font-mono p-0 h-auto focus-visible:ring-0 focus-visible:ring-offset-0"
-                    placeholder="Type a command..."
-                    disabled={executeCommand.isPending}
+                    placeholder="Type command here..."
+                    className="flex-1 bg-transparent text-black border-none outline-none placeholder-gray-400 font-mono text-sm"
+                    disabled={executeCommand.isPending || claudeCodeQuery.isPending}
                   />
                 </div>
               </div>
-            </ScrollArea>
+            </div>
           )}
         </div>
       </div>
