@@ -1796,13 +1796,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { fileUploadTracking } = await import("@shared/schema");
       const { eq, and } = await import("drizzle-orm");
       
+      // Only check for duplicates if it's the exact same import combination AND successful
       const existingFile = await db.select().from(fileUploadTracking)
         .where(and(
           eq(fileUploadTracking.file_hash, fileHash),
           eq(fileUploadTracking.platform, platform),
           eq(fileUploadTracking.business_unit, businessUnit),
           eq(fileUploadTracking.period_type, periodType),
-          eq(fileUploadTracking.upload_type, 'inventory')
+          eq(fileUploadTracking.upload_type, 'inventory'),
+          eq(fileUploadTracking.status, 'completed') // Only block if previous import was successful
         ))
         .limit(1);
       
@@ -1968,15 +1970,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Generate file hash for duplicate detection
       const fileHash = generateFileHash(req.file.buffer, req.file.originalname || 'unknown');
       
-      // Check for duplicate file
-      const isDuplicate = await checkForDuplicateFile(fileHash, platform, businessUnit, periodType);
-      if (isDuplicate) {
-        return res.status(409).json({ 
-          error: "Duplicate file detected", 
-          message: "This file has already been imported into the database. Please upload a different file or check your previous imports.",
-          fileHash: fileHash.substring(0, 8) + "..." // Show partial hash for reference
-        });
-      }
+      // Note: We don't check for duplicates in preview - users should be able to preview any file
 
       let parsedData;
 
@@ -2943,13 +2937,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (isDuplicate) {
           return res.status(409).json({ 
             error: "Duplicate File Detected", 
-            message: `This exact file has already been uploaded for ${platform.charAt(0).toUpperCase() + platform.slice(1)} ${businessUnit.toUpperCase()} ${periodType} inventory import. Please upload a different file or verify your data.`,
+            message: `This exact file has already been successfully imported for ${platform.charAt(0).toUpperCase() + platform.slice(1)} ${businessUnit.toUpperCase()} ${periodType} inventory. You can still preview the data or choose a different period type.`,
             details: {
               platform: platform.charAt(0).toUpperCase() + platform.slice(1),
               businessUnit: businessUnit.toUpperCase(),
               periodType: periodType.charAt(0).toUpperCase() + periodType.slice(1),
               fileHash: fileHash.substring(0, 8) + "...",
-              uploadType: "Inventory Import"
+              uploadType: "Inventory Import",
+              allowPreview: true
             }
           });
         }

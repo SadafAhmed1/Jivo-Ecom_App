@@ -265,10 +265,10 @@ export default function InventoryPage() {
       if (error.response?.status === 409) {
         const errorData = error.response.data;
         toast({
-          title: errorData.error || "Duplicate File Detected",
-          description: errorData.message || "This file has already been uploaded for this configuration.",
-          variant: "destructive",
-          duration: 8000,
+          title: "File Already Processed",
+          description: errorData.message || "This file has already been uploaded for this configuration. Try switching to a different period type or upload a new file.",
+          variant: "default",
+          duration: 6000,
         });
       } else {
         toast({
@@ -338,14 +338,14 @@ export default function InventoryPage() {
       setIsUploading(false);
       setUploadProgress(0);
       
-      // Handle duplicate file detection with detailed error message
+      // Handle duplicate file detection with detailed error message  
       if (error.response?.status === 409) {
         const errorData = error.response.data;
         toast({
-          title: errorData.error || "Duplicate File Detected",
-          description: errorData.message || "This file has already been uploaded for this configuration.",
-          variant: "destructive",
-          duration: 8000,
+          title: "Already Imported",
+          description: errorData.message || "This file has already been successfully imported. The data is already in your database.",
+          variant: "default",
+          duration: 6000,
         });
       } else {
         toast({
