@@ -9,6 +9,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { insertUserSchema, loginUserSchema } from "@shared/schema";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Eye, EyeOff, User, Mail, Building, Phone, UserCircle, Shield } from "lucide-react";
 import { Redirect } from "wouter";
 import { z } from "zod";
@@ -42,7 +43,7 @@ export default function AuthPage() {
       confirmPassword: "",
       full_name: "",
       phone: "",
-      department: "",
+      department: "E-Com" as "E-Com" | "IT Six",
       role: "user",
       is_active: true,
     },
@@ -262,16 +263,20 @@ export default function AuthPage() {
                           render={({ field }) => (
                             <FormItem>
                               <FormLabel className="text-sm font-medium">Department</FormLabel>
-                              <FormControl>
-                                <div className="relative">
-                                  <Building className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                                  <Input
-                                    placeholder="Department"
-                                    className="pl-10 h-12 border-gray-200 focus:border-blue-500 focus:ring-blue-500"
-                                    {...field}
-                                  />
-                                </div>
-                              </FormControl>
+                              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <FormControl>
+                                  <SelectTrigger className="h-12 border-gray-200 focus:border-blue-500 focus:ring-blue-500">
+                                    <div className="flex items-center">
+                                      <Building className="mr-2 h-4 w-4 text-gray-400" />
+                                      <SelectValue placeholder="Select department" />
+                                    </div>
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  <SelectItem value="E-Com">E-Com</SelectItem>
+                                  <SelectItem value="IT Six">IT Six</SelectItem>
+                                </SelectContent>
+                              </Select>
                               <FormMessage />
                             </FormItem>
                           )}

@@ -264,7 +264,7 @@ export const users = pgTable("users", {
   full_name: text("full_name"),
   phone: varchar("phone", { length: 20 }),
   role: varchar("role", { length: 20 }).default("user"),
-  department: varchar("department", { length: 100 }),
+  department: varchar("department", { length: 100 }).default("E-Com"),
   is_active: boolean("is_active").default(true),
   last_login: timestamp("last_login"),
   password_changed_at: timestamp("password_changed_at"),
@@ -278,6 +278,8 @@ export const insertUserSchema = createInsertSchema(users).omit({
   updated_at: true,
   last_login: true,
   password_changed_at: true
+}).extend({
+  department: z.enum(["E-Com", "IT Six"]).default("E-Com"),
 });
 
 export const loginUserSchema = z.object({
