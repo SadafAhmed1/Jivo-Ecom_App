@@ -261,23 +261,14 @@ export default function InventoryPage() {
       setIsUploading(false);
       setUploadProgress(0);
       
-      // Handle duplicate file detection with detailed error message
-      if (error.response?.status === 409) {
-        const errorData = error.response.data;
-        toast({
-          title: "File Already Processed",
-          description: errorData.message || "This file has already been uploaded for this configuration. Try switching to a different period type or upload a new file.",
-          variant: "default",
-          duration: 6000,
-        });
-      } else {
-        toast({
-          title: "Failed to parse file",
-          description: error.message,
-          variant: "destructive",
-          duration: 5000,
-        });
-      }
+      // Since previews should never be blocked, this shouldn't happen
+      // But handle gracefully just in case
+      toast({
+        title: "Preview Error",
+        description: error.message || "Unable to preview file. Please try again.",
+        variant: "destructive",
+        duration: 5000,
+      });
     },
   });
 
@@ -693,8 +684,12 @@ export default function InventoryPage() {
                 </Card>
               ))}
             </div>
-            <div className="mt-4 flex justify-between">
-              <Button variant="outline" onClick={goBack} className="flex items-center space-x-2">
+            <div className="mt-4 flex justify-start">
+              <Button 
+                variant="outline" 
+                onClick={goBack} 
+                className="flex items-center space-x-2 w-full sm:w-auto min-h-[44px]"
+              >
                 <ArrowLeft className="w-4 h-4" />
                 <span>Back</span>
               </Button>
@@ -742,8 +737,12 @@ export default function InventoryPage() {
                 );
               })}
             </div>
-            <div className="mt-4 flex justify-between">
-              <Button variant="outline" onClick={goBack} className="flex items-center space-x-2">
+            <div className="mt-4 flex justify-start">
+              <Button 
+                variant="outline" 
+                onClick={goBack} 
+                className="flex items-center space-x-2 w-full sm:w-auto min-h-[44px]"
+              >
                 <ArrowLeft className="w-4 h-4" />
                 <span>Back</span>
               </Button>
@@ -768,12 +767,19 @@ export default function InventoryPage() {
             {selectedPeriodType === "daily" ? (
               <div className="space-y-4">
                 <p className="text-sm text-gray-600">Daily reports are ready for upload without date specification.</p>
-                <div className="flex justify-between">
-                  <Button variant="outline" onClick={goBack} className="flex items-center space-x-2">
+                <div className="flex flex-col sm:flex-row gap-3 sm:justify-between">
+                  <Button 
+                    variant="outline" 
+                    onClick={goBack} 
+                    className="flex items-center space-x-2 w-full sm:w-auto min-h-[44px]"
+                  >
                     <ArrowLeft className="w-4 h-4" />
                     <span>Back</span>
                   </Button>
-                  <Button onClick={handleDateRangeNext} className="flex items-center space-x-2">
+                  <Button 
+                    onClick={handleDateRangeNext} 
+                    className="flex items-center space-x-2 w-full sm:w-auto min-h-[44px]"
+                  >
                     <span>Continue</span>
                     <ArrowRight className="w-4 h-4" />
                   </Button>
@@ -801,15 +807,19 @@ export default function InventoryPage() {
                     />
                   </div>
                 </div>
-                <div className="flex justify-between">
-                  <Button variant="outline" onClick={goBack} className="flex items-center space-x-2">
+                <div className="flex flex-col sm:flex-row gap-3 sm:justify-between">
+                  <Button 
+                    variant="outline" 
+                    onClick={goBack} 
+                    className="flex items-center space-x-2 w-full sm:w-auto min-h-[44px]"
+                  >
                     <ArrowLeft className="w-4 h-4" />
                     <span>Back</span>
                   </Button>
                   <Button 
                     onClick={handleDateRangeNext}
                     disabled={!dateRange.startDate || !dateRange.endDate}
-                    className="flex items-center space-x-2"
+                    className="flex items-center space-x-2 w-full sm:w-auto min-h-[44px]"
                   >
                     <span>Continue</span>
                     <ArrowRight className="w-4 h-4" />
@@ -836,14 +846,14 @@ export default function InventoryPage() {
           <CardContent>
             <div className="space-y-4">
               <div
-                className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
+                className={`border-2 border-dashed rounded-lg p-4 sm:p-8 text-center transition-colors ${
                   dragActive ? "border-blue-500 bg-blue-50" : "border-gray-300"
                 }`}
               >
-                <Upload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                <Upload className="w-8 h-8 sm:w-12 sm:h-12 text-gray-400 mx-auto mb-4" />
                 <div className="space-y-2">
-                  <p className="text-lg font-medium">Choose file to upload</p>
-                  <p className="text-sm text-gray-600">
+                  <p className="text-base sm:text-lg font-medium">Choose file to upload</p>
+                  <p className="text-xs sm:text-sm text-gray-600">
                     {selectedPlatform === 'amazon' ? 'CSV and XLSX files supported' : 'CSV files supported'}
                   </p>
                   <div className="relative">
@@ -854,18 +864,36 @@ export default function InventoryPage() {
                       className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                       disabled={previewMutation.isPending}
                     />
-                    <Button disabled={previewMutation.isPending}>
-                      {previewMutation.isPending ? "Processing..." : "Browse Files"}
+                    <Button 
+                      disabled={previewMutation.isPending}
+                      className="w-full sm:w-auto px-4 py-2"
+                    >
+                      {previewMutation.isPending ? (
+                        <div className="flex items-center space-x-2">
+                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                          <span>Processing...</span>
+                        </div>
+                      ) : (
+                        "Browse Files"
+                      )}
                     </Button>
                   </div>
                 </div>
               </div>
-              <div className="flex justify-between">
-                <Button variant="outline" onClick={goBack} className="flex items-center space-x-2">
+              <div className="flex flex-col sm:flex-row gap-3 sm:justify-between">
+                <Button 
+                  variant="outline" 
+                  onClick={goBack} 
+                  className="flex items-center space-x-2 w-full sm:w-auto min-h-[44px]"
+                >
                   <ArrowLeft className="w-4 h-4" />
                   <span>Back</span>
                 </Button>
-                <Button variant="outline" onClick={resetToStart} className="flex items-center space-x-2">
+                <Button 
+                  variant="outline" 
+                  onClick={resetToStart} 
+                  className="flex items-center space-x-2 w-full sm:w-auto min-h-[44px]"
+                >
                   <RotateCcw className="w-4 h-4" />
                   <span>Start Over</span>
                 </Button>

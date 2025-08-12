@@ -2707,23 +2707,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Period type must be either daily or range" });
       }
 
-      // Check for duplicate file if hash is provided
-      if (fileHash) {
-        const isDuplicate = await checkForDuplicateInventoryFile(fileHash, platform, businessUnit, periodType);
-        if (isDuplicate) {
-          return res.status(409).json({ 
-            error: "Duplicate File Detected", 
-            message: `This exact file has already been uploaded for ${platform.charAt(0).toUpperCase() + platform.slice(1)} ${businessUnit.toUpperCase()} ${periodType} inventory preview. Please upload a different file or verify your data.`,
-            details: {
-              platform: platform.charAt(0).toUpperCase() + platform.slice(1),
-              businessUnit: businessUnit.toUpperCase(),
-              periodType: periodType.charAt(0).toUpperCase() + periodType.slice(1),
-              fileHash: fileHash.substring(0, 8) + "...",
-              uploadType: "Inventory Preview"
-            }
-          });
-        }
-      }
+      // Preview should always be allowed - no duplicate checking for preview
 
       // Store the file for attachment
       const attachmentPath = `uploads/${Date.now()}_${req.file.originalname}`;
