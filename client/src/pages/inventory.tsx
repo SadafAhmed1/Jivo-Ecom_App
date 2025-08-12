@@ -905,8 +905,8 @@ export default function InventoryPage() {
 
       {/* Step 6: Preview Data */}
       {currentStep === "preview" && parsedData && (
-        <div className="flex flex-col h-[calc(100vh-250px)]">
-          {/* Summary Cards - Fixed at top */}
+        <div className="flex flex-col min-h-0">
+          {/* Summary Cards - Responsive */}
           <Card className="mb-4">
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
@@ -925,99 +925,114 @@ export default function InventoryPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="p-4 bg-blue-50 rounded-lg">
-                  <div className="text-2xl font-bold text-blue-600">{parsedData.totalItems || 0}</div>
-                  <div className="text-sm text-blue-600">Total Records</div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+                <div className="p-3 sm:p-4 bg-blue-50 rounded-lg">
+                  <div className="text-xl sm:text-2xl font-bold text-blue-600">{parsedData.totalItems || 0}</div>
+                  <div className="text-xs sm:text-sm text-blue-600">Total Records</div>
                 </div>
                 {selectedPlatform === 'jiomart' ? (
                   <>
-                    <div className="p-4 bg-green-50 rounded-lg">
-                      <div className="text-2xl font-bold text-green-600">{parsedData.summary?.totalSellableInventory || 0}</div>
-                      <div className="text-sm text-green-600">Sellable Inventory</div>
+                    <div className="p-3 sm:p-4 bg-green-50 rounded-lg">
+                      <div className="text-xl sm:text-2xl font-bold text-green-600">{parsedData.summary?.totalSellableInventory || 0}</div>
+                      <div className="text-xs sm:text-sm text-green-600">Sellable Inventory</div>
                     </div>
-                    <div className="p-4 bg-red-50 rounded-lg">
-                      <div className="text-2xl font-bold text-red-600">{parsedData.summary?.totalUnsellableInventory || 0}</div>
-                      <div className="text-sm text-red-600">Unsellable Inventory</div>
+                    <div className="p-3 sm:p-4 bg-red-50 rounded-lg">
+                      <div className="text-xl sm:text-2xl font-bold text-red-600">{parsedData.summary?.totalUnsellableInventory || 0}</div>
+                      <div className="text-xs sm:text-sm text-red-600">Unsellable Inventory</div>
                     </div>
-                    <div className="p-4 bg-yellow-50 rounded-lg">
-                      <div className="text-2xl font-bold text-yellow-600">{parsedData.summary?.totalIntransit || 0}</div>
-                      <div className="text-sm text-yellow-600">In Transit</div>
+                    <div className="p-3 sm:p-4 bg-yellow-50 rounded-lg">
+                      <div className="text-xl sm:text-2xl font-bold text-yellow-600">{parsedData.summary?.totalIntransit || 0}</div>
+                      <div className="text-xs sm:text-sm text-yellow-600">In Transit</div>
                     </div>
                   </>
                 ) : selectedPlatform === 'amazon' ? (
                   <>
-                    <div className="p-4 bg-green-50 rounded-lg">
-                      <div className="text-2xl font-bold text-green-600">{parsedData.summary?.totalUnitsAvailable || 0}</div>
-                      <div className="text-sm text-green-600">Total Units Received</div>
+                    <div className="p-3 sm:p-4 bg-green-50 rounded-lg">
+                      <div className="text-xl sm:text-2xl font-bold text-green-600">{parsedData.summary?.totalUnitsAvailable || 0}</div>
+                      <div className="text-xs sm:text-sm text-green-600">Total Units Received</div>
                     </div>
-                    <div className="p-4 bg-blue-50 rounded-lg">
-                      <div className="text-2xl font-bold text-blue-600">{parsedData.summary?.totalInboundQuantity || 0}</div>
-                      <div className="text-sm text-blue-600">Open PO Quantity</div>
+                    <div className="p-3 sm:p-4 bg-blue-50 rounded-lg">
+                      <div className="text-xl sm:text-2xl font-bold text-blue-600">{parsedData.summary?.totalInboundQuantity || 0}</div>
+                      <div className="text-xs sm:text-sm text-blue-600">Open PO Quantity</div>
                     </div>
-                    <div className="p-4 bg-purple-50 rounded-lg">
-                      <div className="text-2xl font-bold text-purple-600">₹{(parsedData.summary?.totalValue || 0).toLocaleString()}</div>
-                      <div className="text-sm text-purple-600">Net Received Value</div>
+                    <div className="p-3 sm:p-4 bg-purple-50 rounded-lg">
+                      <div className="text-xl sm:text-2xl font-bold text-purple-600">₹{(parsedData.summary?.totalValue || 0).toLocaleString()}</div>
+                      <div className="text-xs sm:text-sm text-purple-600">Net Received Value</div>
                     </div>
                   </>
                 ) : selectedPlatform === 'swiggy' ? (
                   <>
-                    <div className="p-4 bg-green-50 rounded-lg">
-                      <div className="text-2xl font-bold text-green-600">{parsedData.summary?.totalWarehouseQty || 0}</div>
-                      <div className="text-sm text-green-600">Warehouse Qty</div>
+                    <div className="p-3 sm:p-4 bg-green-50 rounded-lg">
+                      <div className="text-xl sm:text-2xl font-bold text-green-600">{parsedData.summary?.totalWarehouseQty || 0}</div>
+                      <div className="text-xs sm:text-sm text-green-600">Warehouse Qty</div>
                     </div>
-                    <div className="p-4 bg-blue-50 rounded-lg">
-                      <div className="text-2xl font-bold text-blue-600">{parsedData.summary?.totalOpenPoQty || 0}</div>
-                      <div className="text-sm text-blue-600">Open PO Qty</div>
+                    <div className="p-3 sm:p-4 bg-blue-50 rounded-lg">
+                      <div className="text-xl sm:text-2xl font-bold text-blue-600">{parsedData.summary?.totalOpenPoQty || 0}</div>
+                      <div className="text-xs sm:text-sm text-blue-600">Open PO Qty</div>
                     </div>
-                    <div className="p-4 bg-red-50 rounded-lg">
-                      <div className="text-2xl font-bold text-red-600">₹{(parsedData.summary?.totalPotentialGmvLoss || 0).toLocaleString()}</div>
-                      <div className="text-sm text-red-600">Potential Loss</div>
+                    <div className="p-3 sm:p-4 bg-red-50 rounded-lg">
+                      <div className="text-xl sm:text-2xl font-bold text-red-600">₹{(parsedData.summary?.totalPotentialGmvLoss || 0).toLocaleString()}</div>
+                      <div className="text-xs sm:text-sm text-red-600">Potential Loss</div>
                     </div>
                   </>
                 ) : selectedPlatform === 'flipkart' ? (
                   <>
-                    <div className="p-4 bg-green-50 rounded-lg">
-                      <div className="text-2xl font-bold text-green-600">{parsedData.summary?.totalLiveOnWebsite || 0}</div>
-                      <div className="text-sm text-green-600">Live on Website</div>
+                    <div className="p-3 sm:p-4 bg-green-50 rounded-lg">
+                      <div className="text-xl sm:text-2xl font-bold text-green-600">{parsedData.summary?.totalLiveOnWebsite || 0}</div>
+                      <div className="text-xs sm:text-sm text-green-600">Live on Website</div>
                     </div>
-                    <div className="p-4 bg-blue-50 rounded-lg">
-                      <div className="text-2xl font-bold text-blue-600">{parsedData.summary?.totalSales7D || 0}</div>
-                      <div className="text-sm text-blue-600">7 Days Sales</div>
+                    <div className="p-3 sm:p-4 bg-blue-50 rounded-lg">
+                      <div className="text-xl sm:text-2xl font-bold text-blue-600">{parsedData.summary?.totalSales7D || 0}</div>
+                      <div className="text-xs sm:text-sm text-blue-600">7 Days Sales</div>
                     </div>
-                    <div className="p-4 bg-purple-50 rounded-lg">
-                      <div className="text-2xl font-bold text-purple-600">{parsedData.summary?.totalB2bScheduled || 0}</div>
-                      <div className="text-sm text-purple-600">B2B Scheduled</div>
+                    <div className="p-3 sm:p-4 bg-purple-50 rounded-lg">
+                      <div className="text-xl sm:text-2xl font-bold text-purple-600">{parsedData.summary?.totalB2bScheduled || 0}</div>
+                      <div className="text-xs sm:text-sm text-purple-600">B2B Scheduled</div>
                     </div>
                   </>
                 ) : selectedPlatform === 'zepto' ? (
                   <>
-                    <div className="p-4 bg-green-50 rounded-lg">
-                      <div className="text-2xl font-bold text-green-600">{parsedData.summary?.totalUnits || 0}</div>
-                      <div className="text-sm text-green-600">Total Units</div>
+                    <div className="p-3 sm:p-4 bg-green-50 rounded-lg">
+                      <div className="text-xl sm:text-2xl font-bold text-green-600">{parsedData.summary?.totalUnits || 0}</div>
+                      <div className="text-xs sm:text-sm text-green-600">Total Units</div>
                     </div>
-                    <div className="p-4 bg-blue-50 rounded-lg">
-                      <div className="text-2xl font-bold text-blue-600">{parsedData.summary?.uniqueCities || 0}</div>
-                      <div className="text-sm text-blue-600">Cities</div>
+                    <div className="p-3 sm:p-4 bg-blue-50 rounded-lg">
+                      <div className="text-xl sm:text-2xl font-bold text-blue-600">{parsedData.summary?.uniqueCities || 0}</div>
+                      <div className="text-xs sm:text-sm text-blue-600">Cities</div>
                     </div>
-                    <div className="p-4 bg-purple-50 rounded-lg">
-                      <div className="text-2xl font-bold text-purple-600">{parsedData.summary?.uniqueSKUs || 0}</div>
-                      <div className="text-sm text-purple-600">Unique SKUs</div>
+                    <div className="p-3 sm:p-4 bg-purple-50 rounded-lg">
+                      <div className="text-xl sm:text-2xl font-bold text-purple-600">{parsedData.summary?.uniqueSKUs || 0}</div>
+                      <div className="text-xs sm:text-sm text-purple-600">Unique SKUs</div>
+                    </div>
+                  </>
+                ) : selectedPlatform === 'bigbasket' ? (
+                  <>
+                    <div className="p-3 sm:p-4 bg-green-50 rounded-lg">
+                      <div className="text-xl sm:text-2xl font-bold text-green-600">{parsedData.summary?.totalSOH || 0}</div>
+                      <div className="text-xs sm:text-sm text-green-600">Stock on Hand</div>
+                    </div>
+                    <div className="p-3 sm:p-4 bg-blue-50 rounded-lg">
+                      <div className="text-xl sm:text-2xl font-bold text-blue-600">₹{(parsedData.summary?.totalSOHValue || 0).toLocaleString()}</div>
+                      <div className="text-xs sm:text-sm text-blue-600">SOH Value</div>
+                    </div>
+                    <div className="p-3 sm:p-4 bg-purple-50 rounded-lg">
+                      <div className="text-xl sm:text-2xl font-bold text-purple-600">{parsedData.summary?.uniqueBrands || 0}</div>
+                      <div className="text-xs sm:text-sm text-purple-600">Unique Brands</div>
                     </div>
                   </>
                 ) : (
                   <>
-                    <div className="p-4 bg-green-50 rounded-lg">
-                      <div className="text-2xl font-bold text-green-600">{parsedData.summary?.totalStockOnHand || 0}</div>
-                      <div className="text-sm text-green-600">Stock on Hand</div>
+                    <div className="p-3 sm:p-4 bg-green-50 rounded-lg">
+                      <div className="text-xl sm:text-2xl font-bold text-green-600">{parsedData.summary?.totalStockOnHand || 0}</div>
+                      <div className="text-xs sm:text-sm text-green-600">Stock on Hand</div>
                     </div>
-                    <div className="p-4 bg-blue-50 rounded-lg">
-                      <div className="text-2xl font-bold text-blue-600">{parsedData.summary?.totalAvailableQuantity || 0}</div>
-                      <div className="text-sm text-blue-600">Available</div>
+                    <div className="p-3 sm:p-4 bg-blue-50 rounded-lg">
+                      <div className="text-xl sm:text-2xl font-bold text-blue-600">{parsedData.summary?.totalAvailableQuantity || 0}</div>
+                      <div className="text-xs sm:text-sm text-blue-600">Available</div>
                     </div>
-                    <div className="p-4 bg-red-50 rounded-lg">
-                      <div className="text-2xl font-bold text-red-600">{(parsedData.summary?.totalDamagedQuantity || 0) + (parsedData.summary?.totalExpiredQuantity || 0)}</div>
-                      <div className="text-sm text-red-600">Damaged + Expired</div>
+                    <div className="p-3 sm:p-4 bg-red-50 rounded-lg">
+                      <div className="text-xl sm:text-2xl font-bold text-red-600">{(parsedData.summary?.totalDamagedQuantity || 0) + (parsedData.summary?.totalExpiredQuantity || 0)}</div>
+                      <div className="text-xs sm:text-sm text-red-600">Damaged + Expired</div>
                     </div>
                   </>
                 )}
@@ -1025,18 +1040,18 @@ export default function InventoryPage() {
             </CardContent>
           </Card>
 
-          {/* Data Table - Scrollable */}
-          <Card className="flex-1 flex flex-col min-h-0">
-            <CardHeader className="flex-shrink-0">
-              <CardTitle className="text-lg">Inventory Data Preview</CardTitle>
+          {/* Data Table - Mobile Responsive */}
+          <Card className="mb-4">
+            <CardHeader>
+              <CardTitle className="text-base sm:text-lg">Inventory Data Preview</CardTitle>
               <CardDescription>
-                All {parsedData.items?.length || 0} inventory records from your file
+                Review all {parsedData.items?.length || 0} inventory records from your uploaded file
               </CardDescription>
             </CardHeader>
-            <CardContent className="flex-1 p-0 overflow-hidden">
+            <CardContent className="p-0">
               {parsedData.items && parsedData.items.length > 0 && (
-                <div className="h-full border rounded-lg overflow-hidden">
-                  <div className="h-full overflow-y-auto">
+                <div className="border rounded-lg overflow-hidden">
+                  <div className="max-h-96 sm:max-h-[500px] overflow-auto">
                     <Table>
                       <TableHeader className="sticky top-0 bg-white z-10 border-b">
                         <TableRow>
@@ -1351,37 +1366,52 @@ export default function InventoryPage() {
             </CardContent>
           </Card>
 
-          {/* Action Buttons - Fixed at bottom */}
-          <div className="flex justify-between items-center pt-6 mt-6 border-t-2 bg-white flex-shrink-0 sticky bottom-0">
-            <Button variant="outline" onClick={goBack} className="flex items-center space-x-2" size="lg">
-              <ArrowLeft className="w-4 h-4" />
-              <span>Back</span>
-            </Button>
-            <div className="flex space-x-4">
-              <Button variant="outline" onClick={resetToStart} className="flex items-center space-x-2" size="lg">
-                <RotateCcw className="w-4 h-4" />
-                <span>Start Over</span>
-              </Button>
-              <Button
-                onClick={() => importMutation.mutate()}
-                disabled={importMutation.isPending || !parsedData.items?.length}
-                className="bg-green-600 hover:bg-green-700 text-white flex items-center space-x-2 px-8 py-3 text-lg font-semibold shadow-lg"
-                size="lg"
-              >
-                {importMutation.isPending ? (
-                  <>
-                    <div className="w-5 h-5 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                    <span>Importing to Database...</span>
-                  </>
-                ) : (
-                  <>
-                    <Database className="w-5 h-5" />
-                    <span>Import to Database</span>
-                  </>
-                )}
-              </Button>
-            </div>
-          </div>
+          {/* Action Buttons - Mobile Responsive */}
+          <Card className="mt-4">
+            <CardContent className="p-4">
+              <div className="flex flex-col sm:flex-row gap-3 sm:justify-between sm:items-center">
+                <Button 
+                  variant="outline" 
+                  onClick={goBack} 
+                  className="flex items-center justify-center space-x-2 w-full sm:w-auto min-h-[48px]"
+                  size="lg"
+                >
+                  <ArrowLeft className="w-4 h-4" />
+                  <span>Back</span>
+                </Button>
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <Button 
+                    variant="outline" 
+                    onClick={resetToStart} 
+                    className="flex items-center justify-center space-x-2 w-full sm:w-auto min-h-[48px]"
+                    size="lg"
+                  >
+                    <RotateCcw className="w-4 h-4" />
+                    <span>Start Over</span>
+                  </Button>
+                  <Button
+                    onClick={() => importMutation.mutate()}
+                    disabled={importMutation.isPending || !parsedData.items?.length}
+                    className="bg-green-600 hover:bg-green-700 text-white flex items-center justify-center space-x-2 px-6 py-3 text-base sm:text-lg font-semibold shadow-lg w-full sm:w-auto min-h-[48px]"
+                    size="lg"
+                  >
+                    {importMutation.isPending ? (
+                      <>
+                        <div className="w-5 h-5 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                        <span>Importing...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Database className="w-5 h-5" />
+                        <span className="hidden sm:inline">Import to Database</span>
+                        <span className="sm:hidden">Import</span>
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       )}
     </div>
