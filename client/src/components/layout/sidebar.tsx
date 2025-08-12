@@ -61,15 +61,7 @@ const navigation: NavigationItem[] = [
     icon: Database,
     active: true,
     description: "Sync item master data from SAP B1 Hanna ERP"
-  },
-  {
-    name: "SQL Query",
-    href: "/sql-query",
-    icon: Database,
-    active: true,
-    description: "Execute custom SQL queries and generate reports"
-  },
-
+  }
 ];
 
 export function Sidebar() {
