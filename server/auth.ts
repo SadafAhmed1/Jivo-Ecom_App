@@ -66,9 +66,9 @@ export function setupAuth(app: Express) {
 
   passport.serializeUser((user, done) => done(null, user.id));
   
-  passport.deserializeUser(async (id: number, done) => {
+  passport.deserializeUser(async (id: string, done) => {
     try {
-      const user = await storage.getUser(id);
+      const user = await storage.getUser(parseInt(id) || 0);
       done(null, user);
     } catch (error) {
       done(error);
@@ -153,6 +153,60 @@ export function setupAuth(app: Express) {
   app.get("/api/user", (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
     res.json(req.user);
+  });
+
+  // Update user profile endpoint
+  app.put("/api/user/profile", async (req, res) => {
+    try {
+      if (!req.isAuthenticated()) return res.sendStatus(401);
+      
+      const validatedData = updateUserSchema.parse(req.body);
+      const updatedUser = await storage.updateUser(req.user!.id, validatedData);
+      
+      res.json(updatedUser);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: "Invalid input data", details: error.errors });
+      }
+      console.error("Profile update error:", error);
+      res.status(500).json({ error: "Profile update failed" });
+    }
+  });
+
+  // Change password endpoint
+  app.put("/api/user/password", async (req, res) => {
+    try {
+      if (!req.isAuthenticated()) return res.sendStatus(401);
+      
+      const validatedData = changePasswordSchema.parse(req.body);
+      const user = await storage.getUser(req.user!.id);
+      
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+
+      // Verify current password
+      const isCurrentPasswordValid = await comparePasswords(
+        validatedData.currentPassword,
+        user.password
+      );
+      
+      if (!isCurrentPasswordValid) {
+        return res.status(400).json({ error: "Current password is incorrect" });
+      }
+
+      // Update password
+      const hashedNewPassword = await hashPassword(validatedData.newPassword);
+      await storage.changePassword(req.user!.id, hashedNewPassword);
+      
+      res.json({ message: "Password changed successfully" });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: "Invalid input data", details: error.errors });
+      }
+      console.error("Password change error:", error);
+      res.status(500).json({ error: "Password change failed" });
+    }
   });
 
   // Update profile endpoint

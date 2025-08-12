@@ -84,6 +84,55 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
   });
 
+  const updateProfileMutation = useMutation({
+    mutationFn: async (updateData: UpdateUser) => {
+      const res = await apiRequest("PUT", "/api/user/profile", updateData);
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.error || "Profile update failed");
+      }
+      return await res.json();
+    },
+    onSuccess: (user: SelectUser) => {
+      queryClient.setQueryData(["/api/user"], user);
+      toast({
+        title: "Profile updated!",
+        description: "Your profile information has been successfully updated.",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Update failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const changePasswordMutation = useMutation({
+    mutationFn: async (passwordData: ChangePassword) => {
+      const res = await apiRequest("PUT", "/api/user/password", passwordData);
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.error || "Password change failed");
+      }
+      return await res.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Password updated!",
+        description: "Your password has been successfully changed.",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Password change failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
   const logoutMutation = useMutation({
     mutationFn: async () => {
       await apiRequest("POST", "/api/logout");
@@ -98,55 +147,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     onError: (error: Error) => {
       toast({
         title: "Logout failed",
-        description: error.message,
-        variant: "destructive",
-      });
-    },
-  });
-
-  const updateProfileMutation = useMutation({
-    mutationFn: async (data: UpdateUser) => {
-      const res = await apiRequest("PUT", "/api/profile", data);
-      if (!res.ok) {
-        const error = await res.json();
-        throw new Error(error.error || "Profile update failed");
-      }
-      return await res.json();
-    },
-    onSuccess: (user: SelectUser) => {
-      queryClient.setQueryData(["/api/user"], user);
-      toast({
-        title: "Profile updated",
-        description: "Your profile has been successfully updated.",
-      });
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Profile update failed",
-        description: error.message,
-        variant: "destructive",
-      });
-    },
-  });
-
-  const changePasswordMutation = useMutation({
-    mutationFn: async (data: ChangePassword) => {
-      const res = await apiRequest("POST", "/api/change-password", data);
-      if (!res.ok) {
-        const error = await res.json();
-        throw new Error(error.error || "Password change failed");
-      }
-      return await res.json();
-    },
-    onSuccess: () => {
-      toast({
-        title: "Password changed",
-        description: "Your password has been successfully changed.",
-      });
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Password change failed",
         description: error.message,
         variant: "destructive",
       });
