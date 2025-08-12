@@ -2695,9 +2695,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Platform, business unit, and period type are required" });
       }
 
-      if (!["jiomart", "blinkit", "amazon", "swiggy", "flipkart", "zepto"].includes(platform)) {
-        console.log("DEBUG: Platform not supported:", platform, "- supported platforms:", ["jiomart", "blinkit", "amazon", "swiggy", "flipkart", "zepto"]);
-        return res.status(400).json({ error: "Currently only Jio Mart, Blinkit, Amazon, Swiggy, FlipKart, and Zepto inventory are supported" });
+      if (!["jiomart", "blinkit", "amazon", "swiggy", "flipkart", "zepto", "bigbasket"].includes(platform)) {
+        console.log("DEBUG: Platform not supported:", platform, "- supported platforms:", ["jiomart", "blinkit", "amazon", "swiggy", "flipkart", "zepto", "bigbasket"]);
+        return res.status(400).json({ error: "Currently only Jio Mart, Blinkit, Amazon, Swiggy, FlipKart, Zepto, and BigBasket inventory are supported" });
       }
 
       if (platform === "amazon") {
@@ -2870,6 +2870,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
           };
           
           console.log(`Successfully parsed ${zeptoResult.summary.totalRecords} Zepto inventory records`);
+        } else if (platform === "bigbasket") {
+          console.log("Processing BigBasket inventory preview...");
+          const { parseBigBasketInventoryCsv } = await import('./bigbasket-inventory-parser');
+          const bigbasketItems = parseBigBasketInventoryCsv(req.file.buffer.toString('utf8'));
+
+          const summary = {
+            totalProducts: bigbasketItems.length,
+            totalSOH: bigbasketItems.reduce((sum, item) => sum + item.soh, 0),
+            totalSOHValue: bigbasketItems.reduce((sum, item) => sum + item.soh_value, 0),
+            uniqueCities: new Set(bigbasketItems.map(item => item.city)).size,
+            uniqueBrands: new Set(bigbasketItems.map(item => item.brand_name)).size
+          };
+
+          parsedData = {
+            platform: "BigBasket",
+            businessUnit: businessUnit.toUpperCase(),
+            periodType: periodType,
+            reportDate: reportDate ? new Date(reportDate) : new Date(),
+            totalItems: bigbasketItems.length,
+            items: bigbasketItems.map(item => ({ ...item, attachment_path: attachmentPath })),
+            summary
+          };
+
+          console.log(`Successfully parsed ${bigbasketItems.length} BigBasket inventory records`);
         }
 
         if (!parsedData) {
@@ -3015,6 +3039,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
             items: periodType === "daily" ? zeptoResult.dailyData : zeptoResult.rangeData
           };
           console.log("Zepto parsing completed, data:", parsedData ? 'Success' : 'Failed');
+        } else if (platform === "bigbasket") {
+          console.log("Processing BigBasket inventory file...");
+          const { parseBigBasketInventoryCsv } = await import('./bigbasket-inventory-parser');
+          const bigbasketItems = parseBigBasketInventoryCsv(req.file.buffer.toString('utf8'));
+
+          const summary = {
+            totalProducts: bigbasketItems.length,
+            totalSOH: bigbasketItems.reduce((sum, item) => sum + item.soh, 0),
+            totalSOHValue: bigbasketItems.reduce((sum, item) => sum + item.soh_value, 0),
+            uniqueCities: new Set(bigbasketItems.map(item => item.city)).size,
+            uniqueBrands: new Set(bigbasketItems.map(item => item.brand_name)).size
+          };
+
+          parsedData = {
+            platform: "BigBasket", 
+            businessUnit: businessUnit.toUpperCase(),
+            periodType: periodType,
+            reportDate: reportDate,
+            totalItems: bigbasketItems.length,
+            items: bigbasketItems,
+            summary
+          };
+          console.log("BigBasket parsing completed, data:", parsedData ? 'Success' : 'Failed');
         }
 
         if (!parsedData) {
@@ -3091,6 +3138,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         } else if (platform === "zepto" && businessUnit === "jm" && periodType === "range") {
           insertedItems = await storage.createInventoryZeptoJmRange(inventoryItemsWithDates as any);
           tableName = "INV_Zepto_JM_Range";
+        } else if (platform === "bigbasket" && businessUnit === "jm" && periodType === "daily") {
+          insertedItems = await storage.createInventoryBigBasketJmDaily(inventoryItemsWithDates as any);
+          tableName = "INV_BigBasket_JM_Daily";
+        } else if (platform === "bigbasket" && businessUnit === "jm" && periodType === "range") {
+          insertedItems = await storage.createInventoryBigBasketJmRange(inventoryItemsWithDates as any);
+          tableName = "INV_BigBasket_JM_Range";
         }
 
         if (!insertedItems) {

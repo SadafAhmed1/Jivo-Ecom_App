@@ -86,10 +86,10 @@ import {
   type InsertZeptoInventoryDaily,
   type ZeptoInventoryRange,
   type InsertZeptoInventoryRange,
-  type ZeptoInventoryDaily,
-  type InsertZeptoInventoryDaily,
-  type ZeptoInventoryRange,
-  type InsertZeptoInventoryRange,
+  type BigBasketInventoryDaily,
+  type InsertBigBasketInventoryDaily,
+  type BigBasketInventoryRange,
+  type InsertBigBasketInventoryRange,
 
   type DistributorMst,
   type InsertDistributorMst,
@@ -153,6 +153,8 @@ import {
   invFlipkartJmRange,
   invZeptoJmDaily,
   invZeptoJmRange,
+  invBigBasketJmDaily,
+  invBigBasketJmRange,
 
   distributorMst,
   distributorPo,
@@ -1635,14 +1637,14 @@ export class DatabaseStorage implements IStorage {
     return await db.insert(invZeptoJmRange).values(items).returning();
   }
 
-  // Zepto Inventory JM Daily
-  async createInventoryZeptoJmDaily(items: InsertZeptoInventoryDaily[]): Promise<ZeptoInventoryDaily[]> {
-    return await db.insert(invZeptoJmDaily).values(items).returning();
+  // BigBasket Inventory JM Daily
+  async createInventoryBigBasketJmDaily(items: InsertBigBasketInventoryDaily[]): Promise<BigBasketInventoryDaily[]> {
+    return await db.insert(invBigBasketJmDaily).values(items).returning();
   }
 
-  // Zepto Inventory JM Range
-  async createInventoryZeptoJmRange(items: InsertZeptoInventoryRange[]): Promise<ZeptoInventoryRange[]> {
-    return await db.insert(invZeptoJmRange).values(items).returning();
+  // BigBasket Inventory JM Range  
+  async createInventoryBigBasketJmRange(items: InsertBigBasketInventoryRange[]): Promise<BigBasketInventoryRange[]> {
+    return await db.insert(invBigBasketJmRange).values(items).returning();
   }
 
   async updateInventory(id: number, header: any, items: any): Promise<any> {

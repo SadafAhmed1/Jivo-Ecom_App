@@ -1,0 +1,314 @@
+city,sku_id,brand_name,sku_name,sku_weight,sku_pack_type,sku_description,top_category_name,mid_category_name,leaf_category_name,soh,soh_value
+Kolkata,40166398,Jivo,Extra Light Olive Oil,1 L,Bottle,Jivo extra-light-olive-oil 1 L Bottle,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,45.0,25440.105
+Hyderabad,40304418,Jivo,Cold Pressed Soyabean Oil,1 L,Bottle,Jivo cold-pressed-soyabean-oil 1 L Bottle,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Cold Pressed Oil,45.0,7140.4168
+Noida,40309979,Jivo,Canola Omega-3 Rich Cooking Oil 1 L,1 L,Pouch,Jivo canola-omega-3-rich-cooking-oil-1-l 1 L Pouch,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,33.0,6314.88
+Pune,40335337,Jivo,Mojito Healthy Wheatgrass Juice,200 ml,&,Jivo mojito-healthy-wheatgrass-juice 200 ml,Beverages,Fruit Juices & Drinks,Juices,8.0,272.0
+Gurgaon,40166398,Jivo,Extra Light Olive Oil,1 L,Bottle,Jivo extra-light-olive-oil 1 L Bottle,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,199.0,147916.7059
+Noida,40166395,Jivo,Cold Press Kachi Ghani Mustard Oil,1 L,Bottle,Jivo cold-press-kachi-ghani-mustard-oil 1 L Bottle,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Soya & Mustard Oils,39.0,6550.7309
+Agra,40166396,Jivo,Cold Press Kachi Ghani Mustard Oil,5 L,Bottle,Jivo cold-press-kachi-ghani-mustard-oil 5 L Bottle,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Soya & Mustard Oils,3.0,2444.995
+Coimbatore,40335334,Jivo,Apple Healthy Wheatgrass Juice,200 ml,&,Jivo apple-healthy-wheatgrass-juice 200 ml,Beverages,Fruit Juices & Drinks,Juices,1.0,34.0
+Chandigarh Tricity,40250809,Jivo,Extra Light Olive Oil - Antioxidants Rich Light Cooking Medium For Frying Grilling,2 L,&,Jivo extra-light-olive-oil-antioxidants-rich-light-cooking-medium-for-frying-grilling 2 L,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,2.0,2141.18
+Patna,40166398,Jivo,Extra Light Olive Oil,1 L,Bottle,Jivo extra-light-olive-oil 1 L Bottle,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,11.0,6270.0
+Visakhapatnam,282780,Jivo,Canola Oil,5 L,Bottle,Jivo canola-oil 5 L Bottle,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,14.0,17220.0
+Delhi,40249992,Jivo,Sunflower Oil - Cold Pressed Fortified With Vitamins A & D Chemical Free,5 L,Jar,Jivo sunflower-oil-cold-pressed-fortified-with-vitamins-a-d-chemical-free 5 L Jar,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Cold Pressed Oil,19.0,13401.9369
+Agra,40250809,Jivo,Extra Light Olive Oil - Antioxidants Rich Light Cooking Medium For Frying Grilling,2 L,&,Jivo extra-light-olive-oil-antioxidants-rich-light-cooking-medium-for-frying-grilling 2 L,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,3.0,3211.8
+Pune,40335335,Jivo,Blueberry Healthy Wheatgrass Juice,200 ml,&,Jivo blueberry-healthy-wheatgrass-juice 200 ml,Beverages,Fruit Juices & Drinks,Juices,7.0,238.0
+Visakhapatnam,40304419,Jivo,Cold-Pressed Soyabean Oil,5 L,Can,Jivo cold-pressed-soyabean-oil 5 L Can,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Cold Pressed Oil,6.0,4788.0
+Lucknow-Kanpur,40166398,Jivo,Extra Light Olive Oil,1 L,Bottle,Jivo extra-light-olive-oil 1 L Bottle,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,11.0,5877.56
+Gurgaon,40197821,Jivo,Pomace Olive Oil,5 L,&,Jivo pomace-olive-oil 5 L,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,1.0,1725.0
+Bangalore,40335330,Jivo,Ginger Ale Healthy Wheatgrass Juice - Sugar Free,200 ml,&,Jivo ginger-ale-healthy-wheatgrass-juice-sugar-free 200 ml,Beverages,Fruit Juices & Drinks,"Unsweetened, Cold Press",12.0,408.0
+Visakhapatnam,40197821,Jivo,Pomace Olive Oil,5 L,&,Jivo pomace-olive-oil 5 L,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,22.0,47960.0
+DehraDun,40197820,Jivo,Pomace Olive Oil,1 L,&,Jivo pomace-olive-oil 1 L,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,2.0,862.0004
+Guwahati,40197821,Jivo,Pomace Olive Oil,5 L,&,Jivo pomace-olive-oil 5 L,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,5.0,10373.3334
+Gurgaon,40166397,Jivo,Extra Light Olive Oil,5 L,Tin,Jivo extra-light-olive-oil 5 L Tin,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,2.0,5038.0
+Vijayawada-Guntur,282779,Jivo,Canola Oil - Cold Pressed,1 L,&,Jivo canola-oil-cold-pressed 1 L,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,7.0,1757.0
+Gwalior,40197820,Jivo,Pomace Olive Oil,1 L,&,Jivo pomace-olive-oil 1 L,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,1.0,431.0
+Visakhapatnam,40304418,Jivo,Cold Pressed Soyabean Oil,1 L,Bottle,Jivo cold-pressed-soyabean-oil 1 L Bottle,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Cold Pressed Oil,3.0,478.5
+Bangalore,40249992,Jivo,Sunflower Oil - Cold Pressed Fortified With Vitamins A & D Chemical Free,5 L,Jar,Jivo sunflower-oil-cold-pressed-fortified-with-vitamins-a-d-chemical-free 5 L Jar,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Cold Pressed Oil,67.0,55230.8
+Pune,40304418,Jivo,Cold Pressed Soyabean Oil,1 L,Bottle,Jivo cold-pressed-soyabean-oil 1 L Bottle,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Cold Pressed Oil,42.0,6849.12
+Mumbai,40335334,Jivo,Apple Healthy Wheatgrass Juice,200 ml,&,Jivo apple-healthy-wheatgrass-juice 200 ml,Beverages,Fruit Juices & Drinks,Juices,9.0,306.0
+Allahabad,40250808,Jivo,Extra Virgin Olive Oil - Antioxidants Rich Suitable For Salads Saute,1 L,&,Jivo extra-virgin-olive-oil-antioxidants-rich-suitable-for-salads-saute 1 L,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,2.0,1613.02
+Lucknow-Kanpur,40249993,Jivo,Cold Pressed Sunflower Oil,1 L,Bottle,Jivo cold-pressed-sunflower-oil 1 L Bottle,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Cold Pressed Oil,78.0,11703.1053
+Delhi,40309980,Jivo,Pomace Olive Oil,2 L,&,Jivo pomace-olive-oil 2 L,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,12.0,10344.0
+Lucknow-Kanpur,40166395,Jivo,Cold Press Kachi Ghani Mustard Oil,1 L,Bottle,Jivo cold-press-kachi-ghani-mustard-oil 1 L Bottle,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Soya & Mustard Oils,45.0,7588.5471
+Gurgaon,40335339,Jivo,Indian Tonic Water,200 ml,&,Jivo indian-tonic-water 200 ml,Beverages,Energy & Soft Drinks,Soda & Cocktail Mix,48.0,2263.28
+Gwalior,40250809,Jivo,Extra Light Olive Oil - Antioxidants Rich Light Cooking Medium For Frying Grilling,2 L,&,Jivo extra-light-olive-oil-antioxidants-rich-light-cooking-medium-for-frying-grilling 2 L,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,1.0,1070.6
+Vijayawada-Guntur,40166398,Jivo,Extra Light Olive Oil,1 L,Bottle,Jivo extra-light-olive-oil 1 L Bottle,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,5.0,2850.0
+Ludhiana,40309980,Jivo,Pomace Olive Oil,2 L,&,Jivo pomace-olive-oil 2 L,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,1.0,862.0
+Ludhiana,40304419,Jivo,Cold-Pressed Soyabean Oil,5 L,Can,Jivo cold-pressed-soyabean-oil 5 L Can,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Cold Pressed Oil,1.0,725.0
+Hyderabad,40250809,Jivo,Extra Light Olive Oil - Antioxidants Rich Light Cooking Medium For Frying Grilling,2 L,&,Jivo extra-light-olive-oil-antioxidants-rich-light-cooking-medium-for-frying-grilling 2 L,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,56.0,63896.0
+Kolkata,282779,Jivo,Canola Oil - Cold Pressed,1 L,&,Jivo canola-oil-cold-pressed 1 L,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,52.0,13042.015
+Kolkata,40335338,Jivo,Rose Healthy Wheatgrass Juice,200 ml,&,Jivo rose-healthy-wheatgrass-juice 200 ml,Beverages,Fruit Juices & Drinks,Juices,33.0,1650.0
+Nagpur,40166398,Jivo,Extra Light Olive Oil,1 L,Bottle,Jivo extra-light-olive-oil 1 L Bottle,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,14.0,7980.0
+Vijayawada-Guntur,40309980,Jivo,Pomace Olive Oil,2 L,&,Jivo pomace-olive-oil 2 L,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,8.0,6976.0
+Visakhapatnam,40197820,Jivo,Pomace Olive Oil,1 L,&,Jivo pomace-olive-oil 1 L,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,15.0,6620.82
+Gurgaon,40304417,Jivo,Extra-Virgin Olive Oil,5 L,Tin,Jivo extra-virgin-olive-oil 5 L Tin,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,9.0,34740.0
+Raipur,40250809,Jivo,Extra Light Olive Oil - Antioxidants Rich Light Cooking Medium For Frying Grilling,2 L,&,Jivo extra-light-olive-oil-antioxidants-rich-light-cooking-medium-for-frying-grilling 2 L,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,6.0,6846.0
+Lucknow-Kanpur,40166397,Jivo,Extra Light Olive Oil,5 L,Tin,Jivo extra-light-olive-oil 5 L Tin,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,9.0,22557.3067
+Agra,40335339,Jivo,Indian Tonic Water,200 ml,&,Jivo indian-tonic-water 200 ml,Beverages,Energy & Soft Drinks,Soda & Cocktail Mix,1.0,64.6
+Noida,40166398,Jivo,Extra Light Olive Oil,1 L,Bottle,Jivo extra-light-olive-oil 1 L Bottle,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,96.0,51294.6932
+Hyderabad,40166397,Jivo,Extra Light Olive Oil,5 L,Tin,Jivo extra-light-olive-oil 5 L Tin,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,54.0,152698.0
+Bhubaneshwar-Cuttack,40197820,Jivo,Pomace Olive Oil,1 L,&,Jivo pomace-olive-oil 1 L,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,4.0,1765.4
+Gurgaon,40335331,Jivo,Mojito Healthy Wheatgrass Juice - Sugar Free,200 ml,&,Jivo mojito-healthy-wheatgrass-juice-sugar-free 200 ml,Beverages,Fruit Juices & Drinks,"Unsweetened, Cold Press",5.0,170.0
+Delhi,40335335,Jivo,Blueberry Healthy Wheatgrass Juice,200 ml,&,Jivo blueberry-healthy-wheatgrass-juice 200 ml,Beverages,Fruit Juices & Drinks,Juices,3.0,102.0
+Delhi,40335333,Jivo,Fizzy Water Flavoured With Peach,750 ml,&,Jivo fizzy-water-flavoured-with-peach 750 ml,Beverages,Fruit Juices & Drinks,"Unsweetened, Cold Press",1.0,37.38
+Kochi,40249993,Jivo,Cold Pressed Sunflower Oil,1 L,Bottle,Jivo cold-pressed-sunflower-oil 1 L Bottle,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Cold Pressed Oil,2.0,338.88
+Nagpur,40197821,Jivo,Pomace Olive Oil,5 L,&,Jivo pomace-olive-oil 5 L,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,8.0,17259.1667
+Nagpur,40309980,Jivo,Pomace Olive Oil,2 L,&,Jivo pomace-olive-oil 2 L,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,7.0,6104.0
+Pune,40335336,Jivo,Mango Healthy Wheatgrass Juice,200 ml,&,Jivo mango-healthy-wheatgrass-juice 200 ml,Beverages,Fruit Juices & Drinks,Juices,20.0,680.0
+Hyderabad,40335339,Jivo,Indian Tonic Water,200 ml,&,Jivo indian-tonic-water 200 ml,Beverages,Energy & Soft Drinks,Soda & Cocktail Mix,51.0,3315.0
+Bhubaneshwar-Cuttack,282779,Jivo,Canola Oil - Cold Pressed,1 L,&,Jivo canola-oil-cold-pressed 1 L,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,3.0,753.03
+Gurgaon,40249993,Jivo,Cold Pressed Sunflower Oil,1 L,Bottle,Jivo cold-pressed-sunflower-oil 1 L Bottle,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Cold Pressed Oil,73.0,10941.7616
+Raipur,40166398,Jivo,Extra Light Olive Oil,1 L,Bottle,Jivo extra-light-olive-oil 1 L Bottle,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,3.0,1710.0
+Gurgaon,40304418,Jivo,Cold Pressed Soyabean Oil,1 L,Bottle,Jivo cold-pressed-soyabean-oil 1 L Bottle,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Cold Pressed Oil,17.0,2339.725
+Chandigarh Tricity,40166398,Jivo,Extra Light Olive Oil,1 L,Bottle,Jivo extra-light-olive-oil 1 L Bottle,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,8.0,6419.5137
+Agra,40166398,Jivo,Extra Light Olive Oil,1 L,Bottle,Jivo extra-light-olive-oil 1 L Bottle,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,3.0,1602.975
+Coimbatore,40249992,Jivo,Sunflower Oil - Cold Pressed Fortified With Vitamins A & D Chemical Free,5 L,Jar,Jivo sunflower-oil-cold-pressed-fortified-with-vitamins-a-d-chemical-free 5 L Jar,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Cold Pressed Oil,1.0,847.2
+Allahabad,40197820,Jivo,Pomace Olive Oil,1 L,&,Jivo pomace-olive-oil 1 L,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,3.0,1293.0
+Delhi,40166397,Jivo,Extra Light Olive Oil,5 L,Tin,Jivo extra-light-olive-oil 5 L Tin,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,1.0,2519.0
+Coimbatore,40335333,Jivo,Fizzy Water Flavoured With Peach,750 ml,&,Jivo fizzy-water-flavoured-with-peach 750 ml,Beverages,Fruit Juices & Drinks,"Unsweetened, Cold Press",1.0,40.8
+Noida,282779,Jivo,Canola Oil - Cold Pressed,1 L,&,Jivo canola-oil-cold-pressed 1 L,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,113.0,25988.87
+Bangalore,40335337,Jivo,Mojito Healthy Wheatgrass Juice,200 ml,&,Jivo mojito-healthy-wheatgrass-juice 200 ml,Beverages,Fruit Juices & Drinks,Juices,25.0,850.0
+Bangalore,40335336,Jivo,Mango Healthy Wheatgrass Juice,200 ml,&,Jivo mango-healthy-wheatgrass-juice 200 ml,Beverages,Fruit Juices & Drinks,Juices,21.0,714.0
+Allahabad,40317122,Jivo,Gold Multi-Source Edible Oil,5 l,&,Jivo gold-multi-source-edible-oil 5 l,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Blended Cooking Oils,2.0,1279.98
+Bangalore,40335335,Jivo,Blueberry Healthy Wheatgrass Juice,200 ml,&,Jivo blueberry-healthy-wheatgrass-juice 200 ml,Beverages,Fruit Juices & Drinks,Juices,11.0,374.0
+Delhi,40249993,Jivo,Cold Pressed Sunflower Oil,1 L,Bottle,Jivo cold-pressed-sunflower-oil 1 L Bottle,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Cold Pressed Oil,82.0,12310.285
+Bangalore,40335333,Jivo,Fizzy Water Flavoured With Peach,750 ml,&,Jivo fizzy-water-flavoured-with-peach 750 ml,Beverages,Fruit Juices & Drinks,"Unsweetened, Cold Press",6.0,244.8
+Gurgaon,40249992,Jivo,Sunflower Oil - Cold Pressed Fortified With Vitamins A & D Chemical Free,5 L,Jar,Jivo sunflower-oil-cold-pressed-fortified-with-vitamins-a-d-chemical-free 5 L Jar,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Cold Pressed Oil,43.0,31861.3
+Hyderabad,40249993,Jivo,Cold Pressed Sunflower Oil,1 L,Bottle,Jivo cold-pressed-sunflower-oil 1 L Bottle,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Cold Pressed Oil,535.0,90940.5168
+Allahabad,40309979,Jivo,Canola Omega-3 Rich Cooking Oil 1 L,1 L,Pouch,Jivo canola-omega-3-rich-cooking-oil-1-l 1 L Pouch,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,2.0,382.72
+Noida,40335334,Jivo,Apple Healthy Wheatgrass Juice,200 ml,&,Jivo apple-healthy-wheatgrass-juice 200 ml,Beverages,Fruit Juices & Drinks,Juices,10.0,340.0
+Gurgaon,40250809,Jivo,Extra Light Olive Oil - Antioxidants Rich Light Cooking Medium For Frying Grilling,2 L,&,Jivo extra-light-olive-oil-antioxidants-rich-light-cooking-medium-for-frying-grilling 2 L,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,37.0,39485.7276
+Chandigarh Tricity,40304418,Jivo,Cold Pressed Soyabean Oil,1 L,Bottle,Jivo cold-pressed-soyabean-oil 1 L Bottle,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Cold Pressed Oil,6.0,867.0
+Lucknow-Kanpur,40250809,Jivo,Extra Light Olive Oil - Antioxidants Rich Light Cooking Medium For Frying Grilling,2 L,&,Jivo extra-light-olive-oil-antioxidants-rich-light-cooking-medium-for-frying-grilling 2 L,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,10.0,10706.0
+Nashik,282779,Jivo,Canola Oil - Cold Pressed,1 L,&,Jivo canola-oil-cold-pressed 1 L,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,3.0,753.0
+Guwahati,40166398,Jivo,Extra Light Olive Oil,1 L,Bottle,Jivo extra-light-olive-oil 1 L Bottle,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,2.0,1077.8
+Delhi,40335331,Jivo,Mojito Healthy Wheatgrass Juice - Sugar Free,200 ml,&,Jivo mojito-healthy-wheatgrass-juice-sugar-free 200 ml,Beverages,Fruit Juices & Drinks,"Unsweetened, Cold Press",1.0,34.0
+Kochi,40197821,Jivo,Pomace Olive Oil,5 L,&,Jivo pomace-olive-oil 5 L,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,1.0,2025.0
+Mumbai,40166398,Jivo,Extra Light Olive Oil,1 L,Bottle,Jivo extra-light-olive-oil 1 L Bottle,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,184.0,104873.0
+Visakhapatnam,40249993,Jivo,Cold Pressed Sunflower Oil,1 L,Bottle,Jivo cold-pressed-sunflower-oil 1 L Bottle,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Cold Pressed Oil,39.0,6630.0
+Lucknow-Kanpur,282779,Jivo,Canola Oil - Cold Pressed,1 L,&,Jivo canola-oil-cold-pressed 1 L,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,5.0,1149.95
+Noida,40335338,Jivo,Rose Healthy Wheatgrass Juice,200 ml,&,Jivo rose-healthy-wheatgrass-juice 200 ml,Beverages,Fruit Juices & Drinks,Juices,19.0,646.0
+Delhi,40335336,Jivo,Mango Healthy Wheatgrass Juice,200 ml,&,Jivo mango-healthy-wheatgrass-juice 200 ml,Beverages,Fruit Juices & Drinks,Juices,11.0,373.98
+Delhi,40304417,Jivo,Extra-Virgin Olive Oil,5 L,Tin,Jivo extra-virgin-olive-oil 5 L Tin,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,6.0,23685.0
+Visakhapatnam,40335334,Jivo,Apple Healthy Wheatgrass Juice,200 ml,&,Jivo apple-healthy-wheatgrass-juice 200 ml,Beverages,Fruit Juices & Drinks,Juices,1.0,34.0
+DehraDun,282779,Jivo,Canola Oil - Cold Pressed,1 L,&,Jivo canola-oil-cold-pressed 1 L,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,6.0,1379.94
+Ranchi,282780,Jivo,Canola Oil,5 L,Bottle,Jivo canola-oil 5 L Bottle,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,1.0,1125.0
+Pune,40197821,Jivo,Pomace Olive Oil,5 L,&,Jivo pomace-olive-oil 5 L,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,47.0,101367.5
+Gurgaon,282779,Jivo,Canola Oil - Cold Pressed,1 L,&,Jivo canola-oil-cold-pressed 1 L,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,158.0,36338.4826
+Delhi,282780,Jivo,Canola Oil,5 L,Bottle,Jivo canola-oil 5 L Bottle,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,38.0,42749.8032
+Mumbai,40197820,Jivo,Pomace Olive Oil,1 L,&,Jivo pomace-olive-oil 1 L,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,111.0,48827.34
+Lucknow-Kanpur,40197820,Jivo,Pomace Olive Oil,1 L,&,Jivo pomace-olive-oil 1 L,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,14.0,6007.0075
+Noida,40335339,Jivo,Indian Tonic Water,200 ml,&,Jivo indian-tonic-water 200 ml,Beverages,Energy & Soft Drinks,Soda & Cocktail Mix,12.0,775.2
+Hyderabad,40335336,Jivo,Mango Healthy Wheatgrass Juice,200 ml,&,Jivo mango-healthy-wheatgrass-juice 200 ml,Beverages,Fruit Juices & Drinks,Juices,64.0,2176.0
+Hyderabad,40304417,Jivo,Extra-Virgin Olive Oil,5 L,Tin,Jivo extra-virgin-olive-oil 5 L Tin,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,6.0,20695.01
+Guwahati,40250808,Jivo,Extra Virgin Olive Oil - Antioxidants Rich Suitable For Salads Saute,1 L,&,Jivo extra-virgin-olive-oil-antioxidants-rich-suitable-for-salads-saute 1 L,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,31.0,26647.6
+Agra,40249993,Jivo,Cold Pressed Sunflower Oil,1 L,Bottle,Jivo cold-pressed-sunflower-oil 1 L Bottle,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Cold Pressed Oil,7.0,1050.0
+Coimbatore,40335339,Jivo,Indian Tonic Water,200 ml,&,Jivo indian-tonic-water 200 ml,Beverages,Energy & Soft Drinks,Soda & Cocktail Mix,1.0,64.6
+Gwalior,40249993,Jivo,Cold Pressed Sunflower Oil,1 L,Bottle,Jivo cold-pressed-sunflower-oil 1 L Bottle,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Cold Pressed Oil,1.0,150.0
+DehraDun,40309979,Jivo,Canola Omega-3 Rich Cooking Oil 1 L,1 L,Pouch,Jivo canola-omega-3-rich-cooking-oil-1-l 1 L Pouch,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,1.0,191.36
+Hyderabad,40166398,Jivo,Extra Light Olive Oil,1 L,Bottle,Jivo extra-light-olive-oil 1 L Bottle,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,91.0,51870.0
+Pune,40166398,Jivo,Extra Light Olive Oil,1 L,Bottle,Jivo extra-light-olive-oil 1 L Bottle,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,106.0,60420.0
+Gurgaon,40335340,Jivo,Mango Healthy Wheatgrass Juice,500 ml,&,Jivo mango-healthy-wheatgrass-juice 500 ml,Beverages,Fruit Juices & Drinks,Juices,3.0,106.59
+Pune,40166397,Jivo,Extra Light Olive Oil,5 L,Tin,Jivo extra-light-olive-oil 5 L Tin,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,13.0,32334.01
+Bangalore,40335334,Jivo,Apple Healthy Wheatgrass Juice,200 ml,&,Jivo apple-healthy-wheatgrass-juice 200 ml,Beverages,Fruit Juices & Drinks,Juices,31.0,1054.0
+Raipur,40197821,Jivo,Pomace Olive Oil,5 L,&,Jivo pomace-olive-oil 5 L,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,3.0,6540.0
+Noida,40309978,Jivo,Cold Pressed Soyabean Oil,1 L,Pouch,Jivo cold-pressed-soyabean-oil 1 L Pouch,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Soya & Mustard Oils,2.0,204.0
+Visakhapatnam,40250809,Jivo,Extra Light Olive Oil - Antioxidants Rich Light Cooking Medium For Frying Grilling,2 L,&,Jivo extra-light-olive-oil-antioxidants-rich-light-cooking-medium-for-frying-grilling 2 L,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,5.0,5705.0
+Allahabad,40304417,Jivo,Extra-Virgin Olive Oil,5 L,Tin,Jivo extra-virgin-olive-oil 5 L Tin,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,3.0,11842.5
+Nagpur,40249993,Jivo,Cold Pressed Sunflower Oil,1 L,Bottle,Jivo cold-pressed-sunflower-oil 1 L Bottle,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Cold Pressed Oil,17.0,2890.0
+Mysore,40166398,Jivo,Extra Light Olive Oil,1 L,Bottle,Jivo extra-light-olive-oil 1 L Bottle,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,1.0,570.0
+Agra,40166397,Jivo,Extra Light Olive Oil,5 L,Tin,Jivo extra-light-olive-oil 5 L Tin,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,1.0,2466.52
+Mumbai,282779,Jivo,Canola Oil - Cold Pressed,1 L,&,Jivo canola-oil-cold-pressed 1 L,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,135.0,33816.75
+Ranchi,40197820,Jivo,Pomace Olive Oil,1 L,&,Jivo pomace-olive-oil 1 L,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,38.0,16770.8625
+Allahabad,40249993,Jivo,Cold Pressed Sunflower Oil,1 L,Bottle,Jivo cold-pressed-sunflower-oil 1 L Bottle,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Cold Pressed Oil,14.0,2100.0
+Noida,282780,Jivo,Canola Oil,5 L,Bottle,Jivo canola-oil 5 L Bottle,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,32.0,35999.79
+Kolkata,40335336,Jivo,Mango Healthy Wheatgrass Juice,200 ml,&,Jivo mango-healthy-wheatgrass-juice 200 ml,Beverages,Fruit Juices & Drinks,Juices,30.0,1500.0
+Mumbai,40335331,Jivo,Mojito Healthy Wheatgrass Juice - Sugar Free,200 ml,&,Jivo mojito-healthy-wheatgrass-juice-sugar-free 200 ml,Beverages,Fruit Juices & Drinks,"Unsweetened, Cold Press",25.0,850.0
+Mumbai,40335338,Jivo,Rose Healthy Wheatgrass Juice,200 ml,&,Jivo rose-healthy-wheatgrass-juice 200 ml,Beverages,Fruit Juices & Drinks,Juices,17.0,578.0
+Gurgaon,40317122,Jivo,Gold Multi-Source Edible Oil,5 l,&,Jivo gold-multi-source-edible-oil 5 l,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Blended Cooking Oils,3.0,1920.03
+Mumbai,40197821,Jivo,Pomace Olive Oil,5 L,&,Jivo pomace-olive-oil 5 L,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,3.0,6225.0
+Ludhiana,40249993,Jivo,Cold Pressed Sunflower Oil,1 L,Bottle,Jivo cold-pressed-sunflower-oil 1 L Bottle,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Cold Pressed Oil,6.0,901.1382
+Allahabad,282780,Jivo,Canola Oil,5 L,Bottle,Jivo canola-oil 5 L Bottle,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,3.0,3374.99
+Agra,282779,Jivo,Canola Oil - Cold Pressed,1 L,&,Jivo canola-oil-cold-pressed 1 L,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,2.0,459.98
+Pune,40335338,Jivo,Rose Healthy Wheatgrass Juice,200 ml,&,Jivo rose-healthy-wheatgrass-juice 200 ml,Beverages,Fruit Juices & Drinks,Juices,17.0,578.0
+Hyderabad,40335338,Jivo,Rose Healthy Wheatgrass Juice,200 ml,&,Jivo rose-healthy-wheatgrass-juice 200 ml,Beverages,Fruit Juices & Drinks,Juices,23.0,782.0
+Noida,40304417,Jivo,Extra-Virgin Olive Oil,5 L,Tin,Jivo extra-virgin-olive-oil 5 L Tin,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,54.0,213742.5
+Pune,282779,Jivo,Canola Oil - Cold Pressed,1 L,&,Jivo canola-oil-cold-pressed 1 L,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,48.0,12027.0
+Chennai,40166398,Jivo,Extra Light Olive Oil,1 L,Bottle,Jivo extra-light-olive-oil 1 L Bottle,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,39.0,22230.0
+Kolkata,40335337,Jivo,Mojito Healthy Wheatgrass Juice,200 ml,&,Jivo mojito-healthy-wheatgrass-juice 200 ml,Beverages,Fruit Juices & Drinks,Juices,34.0,1700.0
+Hyderabad,40197821,Jivo,Pomace Olive Oil,5 L,&,Jivo pomace-olive-oil 5 L,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,52.0,112630.0
+Ludhiana,40197820,Jivo,Pomace Olive Oil,1 L,&,Jivo pomace-olive-oil 1 L,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,5.0,2155.55
+Mangaluru,40166398,Jivo,Extra Light Olive Oil,1 L,Bottle,Jivo extra-light-olive-oil 1 L Bottle,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,2.0,1134.75
+Chandigarh Tricity,40309980,Jivo,Pomace Olive Oil,2 L,&,Jivo pomace-olive-oil 2 L,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,2.0,1724.0
+Chandigarh Tricity,40249993,Jivo,Cold Pressed Sunflower Oil,1 L,Bottle,Jivo cold-pressed-sunflower-oil 1 L Bottle,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Cold Pressed Oil,14.0,2099.86
+Raipur,40309980,Jivo,Pomace Olive Oil,2 L,&,Jivo pomace-olive-oil 2 L,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,3.0,2616.0
+Agra,40335331,Jivo,Mojito Healthy Wheatgrass Juice - Sugar Free,200 ml,&,Jivo mojito-healthy-wheatgrass-juice-sugar-free 200 ml,Beverages,Fruit Juices & Drinks,"Unsweetened, Cold Press",1.0,34.0
+Delhi,40309979,Jivo,Canola Omega-3 Rich Cooking Oil 1 L,1 L,Pouch,Jivo canola-omega-3-rich-cooking-oil-1-l 1 L Pouch,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,22.0,4210.05
+Bangalore,40335338,Jivo,Rose Healthy Wheatgrass Juice,200 ml,&,Jivo rose-healthy-wheatgrass-juice 200 ml,Beverages,Fruit Juices & Drinks,Juices,25.0,850.0
+Mumbai,40335337,Jivo,Mojito Healthy Wheatgrass Juice,200 ml,&,Jivo mojito-healthy-wheatgrass-juice 200 ml,Beverages,Fruit Juices & Drinks,Juices,17.0,578.0
+Guwahati,40304420,Jivo,Extra Virgin Coconut Oil,1 L,Bottle,Jivo extra-virgin-coconut-oil 1 L Bottle,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Cold Pressed Oil,1.0,350.0
+Allahabad,40250809,Jivo,Extra Light Olive Oil - Antioxidants Rich Light Cooking Medium For Frying Grilling,2 L,&,Jivo extra-light-olive-oil-antioxidants-rich-light-cooking-medium-for-frying-grilling 2 L,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,3.0,3211.8
+Chandigarh Tricity,40166396,Jivo,Cold Press Kachi Ghani Mustard Oil,5 L,Bottle,Jivo cold-press-kachi-ghani-mustard-oil 5 L Bottle,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Soya & Mustard Oils,5.0,3987.485
+Vijayawada-Guntur,40304419,Jivo,Cold-Pressed Soyabean Oil,5 L,Can,Jivo cold-pressed-soyabean-oil 5 L Can,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Cold Pressed Oil,7.0,5538.25
+Coimbatore,40335335,Jivo,Blueberry Healthy Wheatgrass Juice,200 ml,&,Jivo blueberry-healthy-wheatgrass-juice 200 ml,Beverages,Fruit Juices & Drinks,Juices,1.0,34.0
+Gurgaon,40309980,Jivo,Pomace Olive Oil,2 L,&,Jivo pomace-olive-oil 2 L,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,32.0,26904.0
+Bangalore,40166397,Jivo,Extra Light Olive Oil,5 L,Tin,Jivo extra-light-olive-oil 5 L Tin,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,1.0,2694.5
+Hyderabad,40309980,Jivo,Pomace Olive Oil,2 L,&,Jivo pomace-olive-oil 2 L,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,55.0,47918.0
+Agra,40250808,Jivo,Extra Virgin Olive Oil - Antioxidants Rich Suitable For Salads Saute,1 L,&,Jivo extra-virgin-olive-oil-antioxidants-rich-suitable-for-salads-saute 1 L,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,1.0,806.51
+Pune,40335332,Jivo,Fizzy Water Flavoured With Lemon,750 ml,&,Jivo fizzy-water-flavoured-with-lemon 750 ml,Beverages,Fruit Juices & Drinks,"Unsweetened, Cold Press",10.0,373.9
+Hyderabad,40335332,Jivo,Fizzy Water Flavoured With Lemon,750 ml,&,Jivo fizzy-water-flavoured-with-lemon 750 ml,Beverages,Fruit Juices & Drinks,"Unsweetened, Cold Press",12.0,489.45
+Raipur,40249993,Jivo,Cold Pressed Sunflower Oil,1 L,Bottle,Jivo cold-pressed-sunflower-oil 1 L Bottle,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Cold Pressed Oil,6.0,1020.0
+Ludhiana,282779,Jivo,Canola Oil - Cold Pressed,1 L,&,Jivo canola-oil-cold-pressed 1 L,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,8.0,1839.921
+Mumbai,40335330,Jivo,Ginger Ale Healthy Wheatgrass Juice - Sugar Free,200 ml,&,Jivo ginger-ale-healthy-wheatgrass-juice-sugar-free 200 ml,Beverages,Fruit Juices & Drinks,"Unsweetened, Cold Press",13.0,442.0
+Coimbatore,40249993,Jivo,Cold Pressed Sunflower Oil,1 L,Bottle,Jivo cold-pressed-sunflower-oil 1 L Bottle,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Cold Pressed Oil,2.0,338.88
+Ludhiana,40250808,Jivo,Extra Virgin Olive Oil - Antioxidants Rich Suitable For Salads Saute,1 L,&,Jivo extra-virgin-olive-oil-antioxidants-rich-suitable-for-salads-saute 1 L,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,1.0,806.51
+Hyderabad,282779,Jivo,Canola Oil - Cold Pressed,1 L,&,Jivo canola-oil-cold-pressed 1 L,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,126.0,31604.8797
+Delhi,40197820,Jivo,Pomace Olive Oil,1 L,&,Jivo pomace-olive-oil 1 L,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,65.0,28019.1794
+Gurgaon,40166396,Jivo,Cold Press Kachi Ghani Mustard Oil,5 L,Bottle,Jivo cold-press-kachi-ghani-mustard-oil 5 L Bottle,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Soya & Mustard Oils,24.0,19595.963
+Gurgaon,40309978,Jivo,Cold Pressed Soyabean Oil,1 L,Pouch,Jivo cold-pressed-soyabean-oil 1 L Pouch,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Soya & Mustard Oils,1.0,105.505
+Gurgaon,40335335,Jivo,Blueberry Healthy Wheatgrass Juice,200 ml,&,Jivo blueberry-healthy-wheatgrass-juice 200 ml,Beverages,Fruit Juices & Drinks,Juices,17.0,578.16
+Nashik,282780,Jivo,Canola Oil,5 L,Bottle,Jivo canola-oil 5 L Bottle,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,2.0,2250.0
+Ludhiana,40309979,Jivo,Canola Omega-3 Rich Cooking Oil 1 L,1 L,Pouch,Jivo canola-omega-3-rich-cooking-oil-1-l 1 L Pouch,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,2.0,382.74
+Lucknow-Kanpur,40249992,Jivo,Sunflower Oil - Cold Pressed Fortified With Vitamins A & D Chemical Free,5 L,Jar,Jivo sunflower-oil-cold-pressed-fortified-with-vitamins-a-d-chemical-free 5 L Jar,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Cold Pressed Oil,5.0,3833.3384
+Coimbatore,40335330,Jivo,Ginger Ale Healthy Wheatgrass Juice - Sugar Free,200 ml,&,Jivo ginger-ale-healthy-wheatgrass-juice-sugar-free 200 ml,Beverages,Fruit Juices & Drinks,"Unsweetened, Cold Press",1.0,34.0
+Mysore,40249992,Jivo,Sunflower Oil - Cold Pressed Fortified With Vitamins A & D Chemical Free,5 L,Jar,Jivo sunflower-oil-cold-pressed-fortified-with-vitamins-a-d-chemical-free 5 L Jar,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Cold Pressed Oil,1.0,847.2
+Agra,40309979,Jivo,Canola Omega-3 Rich Cooking Oil 1 L,1 L,Pouch,Jivo canola-omega-3-rich-cooking-oil-1-l 1 L Pouch,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,3.0,574.08
+Kochi,40335339,Jivo,Indian Tonic Water,200 ml,&,Jivo indian-tonic-water 200 ml,Beverages,Energy & Soft Drinks,Soda & Cocktail Mix,1.0,64.6
+Bangalore,40166398,Jivo,Extra Light Olive Oil,1 L,Bottle,Jivo extra-light-olive-oil 1 L Bottle,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,152.0,86640.0
+Noida,40166396,Jivo,Cold Press Kachi Ghani Mustard Oil,5 L,Bottle,Jivo cold-press-kachi-ghani-mustard-oil 5 L Bottle,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Soya & Mustard Oils,43.0,35465.3766
+Delhi,40335334,Jivo,Apple Healthy Wheatgrass Juice,200 ml,&,Jivo apple-healthy-wheatgrass-juice 200 ml,Beverages,Fruit Juices & Drinks,Juices,7.0,238.25
+Ranchi,282779,Jivo,Canola Oil - Cold Pressed,1 L,&,Jivo canola-oil-cold-pressed 1 L,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,23.0,5773.23
+Pune,40335331,Jivo,Mojito Healthy Wheatgrass Juice - Sugar Free,200 ml,&,Jivo mojito-healthy-wheatgrass-juice-sugar-free 200 ml,Beverages,Fruit Juices & Drinks,"Unsweetened, Cold Press",19.0,646.0
+Gwalior,40249992,Jivo,Sunflower Oil - Cold Pressed Fortified With Vitamins A & D Chemical Free,5 L,Jar,Jivo sunflower-oil-cold-pressed-fortified-with-vitamins-a-d-chemical-free 5 L Jar,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Cold Pressed Oil,1.0,745.0
+Nashik,40197820,Jivo,Pomace Olive Oil,1 L,&,Jivo pomace-olive-oil 1 L,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,2.0,882.0
+Ludhiana,40166395,Jivo,Cold Press Kachi Ghani Mustard Oil,1 L,Bottle,Jivo cold-press-kachi-ghani-mustard-oil 1 L Bottle,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Soya & Mustard Oils,14.0,2362.575
+Mumbai,40335332,Jivo,Fizzy Water Flavoured With Lemon,750 ml,&,Jivo fizzy-water-flavoured-with-lemon 750 ml,Beverages,Fruit Juices & Drinks,"Unsweetened, Cold Press",2.0,74.78
+Visakhapatnam,40335339,Jivo,Indian Tonic Water,200 ml,&,Jivo indian-tonic-water 200 ml,Beverages,Energy & Soft Drinks,Soda & Cocktail Mix,1.0,65.0
+Noida,40166397,Jivo,Extra Light Olive Oil,5 L,Tin,Jivo extra-light-olive-oil 5 L Tin,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,7.0,17633.0
+Kolkata,40335335,Jivo,Blueberry Healthy Wheatgrass Juice,200 ml,&,Jivo blueberry-healthy-wheatgrass-juice 200 ml,Beverages,Fruit Juices & Drinks,Juices,26.0,1300.0
+Raipur,40304419,Jivo,Cold-Pressed Soyabean Oil,5 L,Can,Jivo cold-pressed-soyabean-oil 5 L Can,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Cold Pressed Oil,3.0,2394.0
+Gurgaon,40166395,Jivo,Cold Press Kachi Ghani Mustard Oil,1 L,Bottle,Jivo cold-press-kachi-ghani-mustard-oil 1 L Bottle,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Soya & Mustard Oils,185.0,31521.5035
+Allahabad,40166397,Jivo,Extra Light Olive Oil,5 L,Tin,Jivo extra-light-olive-oil 5 L Tin,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,4.0,10076.0
+Chandigarh Tricity,282780,Jivo,Canola Oil,5 L,Bottle,Jivo canola-oil 5 L Bottle,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,4.0,4500.0
+Hyderabad,282780,Jivo,Canola Oil,5 L,Bottle,Jivo canola-oil 5 L Bottle,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,80.0,95460.0
+Delhi,40166398,Jivo,Extra Light Olive Oil,1 L,Bottle,Jivo extra-light-olive-oil 1 L Bottle,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,37.0,21914.5893
+Allahabad,282779,Jivo,Canola Oil - Cold Pressed,1 L,&,Jivo canola-oil-cold-pressed 1 L,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,3.0,689.97
+Raipur,40197820,Jivo,Pomace Olive Oil,1 L,&,Jivo pomace-olive-oil 1 L,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,4.0,1765.56
+Bangalore,93147,Jivo,Canola Oil,5 L,1225.0,Jivo canola-oil 5 L 1225.0 Jar,Gourmet & World Food,Oils & Vinegar,Canola & Rapeseed Oil,14.0,25088.0
+Chandigarh Tricity,40304419,Jivo,Cold-Pressed Soyabean Oil,5 L,Can,Jivo cold-pressed-soyabean-oil 5 L Can,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Cold Pressed Oil,2.0,1485.01
+Kolkata,40197820,Jivo,Pomace Olive Oil,1 L,&,Jivo pomace-olive-oil 1 L,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,77.0,33981.3556
+Hyderabad,40335335,Jivo,Blueberry Healthy Wheatgrass Juice,200 ml,&,Jivo blueberry-healthy-wheatgrass-juice 200 ml,Beverages,Fruit Juices & Drinks,Juices,13.0,442.0
+Hyderabad,40335337,Jivo,Mojito Healthy Wheatgrass Juice,200 ml,&,Jivo mojito-healthy-wheatgrass-juice 200 ml,Beverages,Fruit Juices & Drinks,Juices,39.0,1326.0
+Delhi,40250808,Jivo,Extra Virgin Olive Oil - Antioxidants Rich Suitable For Salads Saute,1 L,&,Jivo extra-virgin-olive-oil-antioxidants-rich-suitable-for-salads-saute 1 L,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,44.0,35486.44
+Vijayawada-Guntur,40197820,Jivo,Pomace Olive Oil,1 L,&,Jivo pomace-olive-oil 1 L,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,8.0,3531.12
+Noida,40250809,Jivo,Extra Light Olive Oil - Antioxidants Rich Light Cooking Medium For Frying Grilling,2 L,&,Jivo extra-light-olive-oil-antioxidants-rich-light-cooking-medium-for-frying-grilling 2 L,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,41.0,43852.6
+Pune,40249992,Jivo,Sunflower Oil - Cold Pressed Fortified With Vitamins A & D Chemical Free,5 L,Jar,Jivo sunflower-oil-cold-pressed-fortified-with-vitamins-a-d-chemical-free 5 L Jar,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Cold Pressed Oil,11.0,8901.2
+DehraDun,40249993,Jivo,Cold Pressed Sunflower Oil,1 L,Bottle,Jivo cold-pressed-sunflower-oil 1 L Bottle,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Cold Pressed Oil,17.0,2550.0
+Vijayawada-Guntur,282780,Jivo,Canola Oil,5 L,Bottle,Jivo canola-oil 5 L Bottle,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,8.0,9840.0
+Mysore,40249993,Jivo,Cold Pressed Sunflower Oil,1 L,Bottle,Jivo cold-pressed-sunflower-oil 1 L Bottle,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Cold Pressed Oil,3.0,508.32
+Pune,40335333,Jivo,Fizzy Water Flavoured With Peach,750 ml,&,Jivo fizzy-water-flavoured-with-peach 750 ml,Beverages,Fruit Juices & Drinks,"Unsweetened, Cold Press",8.0,299.12
+Allahabad,40166398,Jivo,Extra Light Olive Oil,1 L,Bottle,Jivo extra-light-olive-oil 1 L Bottle,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,2.0,1068.66
+Mumbai,282780,Jivo,Canola Oil,5 L,Bottle,Jivo canola-oil 5 L Bottle,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,43.0,52680.0
+Nagpur,40197820,Jivo,Pomace Olive Oil,1 L,&,Jivo pomace-olive-oil 1 L,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,12.0,5296.6125
+Chennai,40166397,Jivo,Extra Light Olive Oil,5 L,Tin,Jivo extra-light-olive-oil 5 L Tin,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,10.0,26870.0
+Raipur,282780,Jivo,Canola Oil,5 L,Bottle,Jivo canola-oil 5 L Bottle,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,3.0,3690.0
+Delhi,40335339,Jivo,Indian Tonic Water,200 ml,&,Jivo indian-tonic-water 200 ml,Beverages,Energy & Soft Drinks,Soda & Cocktail Mix,6.0,277.4
+Vijayawada-Guntur,40304418,Jivo,Cold Pressed Soyabean Oil,1 L,Bottle,Jivo cold-pressed-soyabean-oil 1 L Bottle,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Cold Pressed Oil,7.0,1117.0
+Nagpur,40304418,Jivo,Cold Pressed Soyabean Oil,1 L,Bottle,Jivo cold-pressed-soyabean-oil 1 L Bottle,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Cold Pressed Oil,10.0,1595.0
+Noida,40250808,Jivo,Extra Virgin Olive Oil - Antioxidants Rich Suitable For Salads Saute,1 L,&,Jivo extra-virgin-olive-oil-antioxidants-rich-suitable-for-salads-saute 1 L,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,44.0,35463.69
+Delhi,40335337,Jivo,Mojito Healthy Wheatgrass Juice,200 ml,&,Jivo mojito-healthy-wheatgrass-juice 200 ml,Beverages,Fruit Juices & Drinks,Juices,21.0,715.05
+Nashik,40335330,Jivo,Ginger Ale Healthy Wheatgrass Juice - Sugar Free,200 ml,&,Jivo ginger-ale-healthy-wheatgrass-juice-sugar-free 200 ml,Beverages,Fruit Juices & Drinks,"Unsweetened, Cold Press",1.0,34.0
+DehraDun,40166398,Jivo,Extra Light Olive Oil,1 L,Bottle,Jivo extra-light-olive-oil 1 L Bottle,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,5.0,2671.65
+Delhi,40335340,Jivo,Mango Healthy Wheatgrass Juice,500 ml,&,Jivo mango-healthy-wheatgrass-juice 500 ml,Beverages,Fruit Juices & Drinks,Juices,2.0,145.06
+Chandigarh Tricity,40166395,Jivo,Cold Press Kachi Ghani Mustard Oil,1 L,Bottle,Jivo cold-press-kachi-ghani-mustard-oil 1 L Bottle,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Soya & Mustard Oils,22.0,3713.7575
+Agra,40166395,Jivo,Cold Press Kachi Ghani Mustard Oil,1 L,Bottle,Jivo cold-press-kachi-ghani-mustard-oil 1 L Bottle,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Soya & Mustard Oils,2.0,344.0
+Chandigarh Tricity,40309979,Jivo,Canola Omega-3 Rich Cooking Oil 1 L,1 L,Pouch,Jivo canola-omega-3-rich-cooking-oil-1-l 1 L Pouch,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,2.0,382.75
+Gurgaon,40335333,Jivo,Fizzy Water Flavoured With Peach,750 ml,&,Jivo fizzy-water-flavoured-with-peach 750 ml,Beverages,Fruit Juices & Drinks,"Unsweetened, Cold Press",1.0,37.38
+Bangalore,40249993,Jivo,Cold Pressed Sunflower Oil,1 L,Bottle,Jivo cold-pressed-sunflower-oil 1 L Bottle,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Cold Pressed Oil,130.0,19809.26
+Pune,40249993,Jivo,Cold Pressed Sunflower Oil,1 L,Bottle,Jivo cold-pressed-sunflower-oil 1 L Bottle,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Cold Pressed Oil,309.0,54013.2
+Pune,282780,Jivo,Canola Oil,5 L,Bottle,Jivo canola-oil 5 L Bottle,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,50.0,60345.0
+Chandigarh Tricity,282779,Jivo,Canola Oil - Cold Pressed,1 L,&,Jivo canola-oil-cold-pressed 1 L,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,17.0,3909.8624
+Gurgaon,40250808,Jivo,Extra Virgin Olive Oil - Antioxidants Rich Suitable For Salads Saute,1 L,&,Jivo extra-virgin-olive-oil-antioxidants-rich-suitable-for-salads-saute 1 L,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,55.0,44344.05
+Agra,282780,Jivo,Canola Oil,5 L,Bottle,Jivo canola-oil 5 L Bottle,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,3.0,3374.99
+Delhi,40304419,Jivo,Cold-Pressed Soyabean Oil,5 L,Can,Jivo cold-pressed-soyabean-oil 5 L Can,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Cold Pressed Oil,17.0,12267.5001
+Gurgaon,40309979,Jivo,Canola Omega-3 Rich Cooking Oil 1 L,1 L,Pouch,Jivo canola-omega-3-rich-cooking-oil-1-l 1 L Pouch,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,89.0,17031.8516
+Coimbatore,40166398,Jivo,Extra Light Olive Oil,1 L,Bottle,Jivo extra-light-olive-oil 1 L Bottle,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,1.0,570.0
+Raipur,282779,Jivo,Canola Oil - Cold Pressed,1 L,&,Jivo canola-oil-cold-pressed 1 L,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,6.0,1506.0
+Mangaluru,40249992,Jivo,Sunflower Oil - Cold Pressed Fortified With Vitamins A & D Chemical Free,5 L,Jar,Jivo sunflower-oil-cold-pressed-fortified-with-vitamins-a-d-chemical-free 5 L Jar,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Cold Pressed Oil,2.0,1694.4
+DehraDun,40166395,Jivo,Cold Press Kachi Ghani Mustard Oil,1 L,Bottle,Jivo cold-press-kachi-ghani-mustard-oil 1 L Bottle,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Soya & Mustard Oils,17.0,2867.1792
+Ludhiana,282780,Jivo,Canola Oil,5 L,Bottle,Jivo canola-oil 5 L Bottle,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,1.0,1125.0
+Lucknow-Kanpur,40309979,Jivo,Canola Omega-3 Rich Cooking Oil 1 L,1 L,Pouch,Jivo canola-omega-3-rich-cooking-oil-1-l 1 L Pouch,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,8.0,1530.88
+Pune,40304419,Jivo,Cold-Pressed Soyabean Oil,5 L,Can,Jivo cold-pressed-soyabean-oil 5 L Can,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Cold Pressed Oil,44.0,34119.1
+Lucknow-Kanpur,40250808,Jivo,Extra Virgin Olive Oil - Antioxidants Rich Suitable For Salads Saute,1 L,&,Jivo extra-virgin-olive-oil-antioxidants-rich-suitable-for-salads-saute 1 L,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,7.0,5645.57
+Hyderabad,40197820,Jivo,Pomace Olive Oil,1 L,&,Jivo pomace-olive-oil 1 L,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,83.0,36593.2157
+Noida,40335331,Jivo,Mojito Healthy Wheatgrass Juice - Sugar Free,200 ml,&,Jivo mojito-healthy-wheatgrass-juice-sugar-free 200 ml,Beverages,Fruit Juices & Drinks,"Unsweetened, Cold Press",10.0,340.0
+Pune,40335330,Jivo,Ginger Ale Healthy Wheatgrass Juice - Sugar Free,200 ml,&,Jivo ginger-ale-healthy-wheatgrass-juice-sugar-free 200 ml,Beverages,Fruit Juices & Drinks,"Unsweetened, Cold Press",10.0,340.0
+Agra,40197820,Jivo,Pomace Olive Oil,1 L,&,Jivo pomace-olive-oil 1 L,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,6.0,2586.0
+Ludhiana,40304418,Jivo,Cold Pressed Soyabean Oil,1 L,Bottle,Jivo cold-pressed-soyabean-oil 1 L Bottle,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Cold Pressed Oil,4.0,534.6535
+Hyderabad,40304419,Jivo,Cold-Pressed Soyabean Oil,5 L,Can,Jivo cold-pressed-soyabean-oil 5 L Can,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Cold Pressed Oil,41.0,32249.25
+Hyderabad,40335330,Jivo,Ginger Ale Healthy Wheatgrass Juice - Sugar Free,200 ml,&,Jivo ginger-ale-healthy-wheatgrass-juice-sugar-free 200 ml,Beverages,Fruit Juices & Drinks,"Unsweetened, Cold Press",26.0,884.0
+Noida,40197820,Jivo,Pomace Olive Oil,1 L,&,Jivo pomace-olive-oil 1 L,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,76.0,32745.5583
+Delhi,40335338,Jivo,Rose Healthy Wheatgrass Juice,200 ml,&,Jivo rose-healthy-wheatgrass-juice 200 ml,Beverages,Fruit Juices & Drinks,Juices,9.0,306.24
+Delhi,282779,Jivo,Canola Oil - Cold Pressed,1 L,&,Jivo canola-oil-cold-pressed 1 L,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,38.0,8739.6257
+Nagpur,282779,Jivo,Canola Oil - Cold Pressed,1 L,&,Jivo canola-oil-cold-pressed 1 L,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,18.0,4517.98
+Chandigarh Tricity,40197820,Jivo,Pomace Olive Oil,1 L,&,Jivo pomace-olive-oil 1 L,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,12.0,5173.1236
+Lucknow-Kanpur,40166396,Jivo,Cold Press Kachi Ghani Mustard Oil,5 L,Bottle,Jivo cold-press-kachi-ghani-mustard-oil 5 L Bottle,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Soya & Mustard Oils,9.0,7118.0296
+Nagpur,40250809,Jivo,Extra Light Olive Oil - Antioxidants Rich Light Cooking Medium For Frying Grilling,2 L,&,Jivo extra-light-olive-oil-antioxidants-rich-light-cooking-medium-for-frying-grilling 2 L,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,7.0,7987.0
+Vijayawada-Guntur,40250809,Jivo,Extra Light Olive Oil - Antioxidants Rich Light Cooking Medium For Frying Grilling,2 L,&,Jivo extra-light-olive-oil-antioxidants-rich-light-cooking-medium-for-frying-grilling 2 L,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,9.0,10269.0
+Nashik,40166398,Jivo,Extra Light Olive Oil,1 L,Bottle,Jivo extra-light-olive-oil 1 L Bottle,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,2.0,1140.0
+Nashik,40166397,Jivo,Extra Light Olive Oil,5 L,Tin,Jivo extra-light-olive-oil 5 L Tin,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,2.0,5364.0
+Visakhapatnam,40166398,Jivo,Extra Light Olive Oil,1 L,Bottle,Jivo extra-light-olive-oil 1 L Bottle,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,12.0,6840.0
+Hyderabad,40335334,Jivo,Apple Healthy Wheatgrass Juice,200 ml,&,Jivo apple-healthy-wheatgrass-juice 200 ml,Beverages,Fruit Juices & Drinks,Juices,84.0,2855.3775
+Gurgaon,40335337,Jivo,Mojito Healthy Wheatgrass Juice,200 ml,&,Jivo mojito-healthy-wheatgrass-juice 200 ml,Beverages,Fruit Juices & Drinks,Juices,31.0,1055.55
+Pune,40335334,Jivo,Apple Healthy Wheatgrass Juice,200 ml,&,Jivo apple-healthy-wheatgrass-juice 200 ml,Beverages,Fruit Juices & Drinks,Juices,15.0,510.0
+Ludhiana,40166396,Jivo,Cold Press Kachi Ghani Mustard Oil,5 L,Bottle,Jivo cold-press-kachi-ghani-mustard-oil 5 L Bottle,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Soya & Mustard Oils,3.0,2458.3335
+Chandigarh Tricity,40250808,Jivo,Extra Virgin Olive Oil - Antioxidants Rich Suitable For Salads Saute,1 L,&,Jivo extra-virgin-olive-oil-antioxidants-rich-suitable-for-salads-saute 1 L,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,3.0,2419.53
+Allahabad,40166396,Jivo,Cold Press Kachi Ghani Mustard Oil,5 L,Bottle,Jivo cold-press-kachi-ghani-mustard-oil 5 L Bottle,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Soya & Mustard Oils,2.0,1670.0
+Lucknow-Kanpur,40317122,Jivo,Gold Multi-Source Edible Oil,5 l,&,Jivo gold-multi-source-edible-oil 5 l,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Blended Cooking Oils,4.0,2559.96
+Noida,40309980,Jivo,Pomace Olive Oil,2 L,&,Jivo pomace-olive-oil 2 L,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,1.0,770.85
+Gurgaon,282780,Jivo,Canola Oil,5 L,Bottle,Jivo canola-oil 5 L Bottle,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,69.0,77624.8922
+Delhi,40166395,Jivo,Cold Press Kachi Ghani Mustard Oil,1 L,Bottle,Jivo cold-press-kachi-ghani-mustard-oil 1 L Bottle,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Soya & Mustard Oils,75.0,12788.0486
+Lucknow-Kanpur,40304417,Jivo,Extra-Virgin Olive Oil,5 L,Tin,Jivo extra-virgin-olive-oil 5 L Tin,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,16.0,62256.5625
+Mumbai,40335336,Jivo,Mango Healthy Wheatgrass Juice,200 ml,&,Jivo mango-healthy-wheatgrass-juice 200 ml,Beverages,Fruit Juices & Drinks,Juices,17.0,578.0
+Agra,40249992,Jivo,Sunflower Oil - Cold Pressed Fortified With Vitamins A & D Chemical Free,5 L,Jar,Jivo sunflower-oil-cold-pressed-fortified-with-vitamins-a-d-chemical-free 5 L Jar,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Cold Pressed Oil,4.0,2988.3333
+Mumbai,40335333,Jivo,Fizzy Water Flavoured With Peach,750 ml,&,Jivo fizzy-water-flavoured-with-peach 750 ml,Beverages,Fruit Juices & Drinks,"Unsweetened, Cold Press",2.0,74.78
+Mumbai,40335335,Jivo,Blueberry Healthy Wheatgrass Juice,200 ml,&,Jivo blueberry-healthy-wheatgrass-juice 200 ml,Beverages,Fruit Juices & Drinks,Juices,12.0,408.0
+Visakhapatnam,40309980,Jivo,Pomace Olive Oil,2 L,&,Jivo pomace-olive-oil 2 L,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,16.0,13952.0
+Allahabad,40166395,Jivo,Cold Press Kachi Ghani Mustard Oil,1 L,Bottle,Jivo cold-press-kachi-ghani-mustard-oil 1 L Bottle,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Soya & Mustard Oils,3.0,511.0
+Raipur,40304418,Jivo,Cold Pressed Soyabean Oil,1 L,Bottle,Jivo cold-pressed-soyabean-oil 1 L Bottle,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Cold Pressed Oil,1.0,159.5
+Noida,40249993,Jivo,Cold Pressed Sunflower Oil,1 L,Bottle,Jivo cold-pressed-sunflower-oil 1 L Bottle,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Cold Pressed Oil,122.0,18299.852
+Gurgaon,40335336,Jivo,Mango Healthy Wheatgrass Juice,200 ml,&,Jivo mango-healthy-wheatgrass-juice 200 ml,Beverages,Fruit Juices & Drinks,Juices,34.0,1121.85
+Bangalore,40335339,Jivo,Indian Tonic Water,200 ml,&,Jivo indian-tonic-water 200 ml,Beverages,Energy & Soft Drinks,Soda & Cocktail Mix,91.0,5878.6
+Vijayawada-Guntur,40197821,Jivo,Pomace Olive Oil,5 L,&,Jivo pomace-olive-oil 5 L,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,7.0,15260.0
+Delhi,40304418,Jivo,Cold Pressed Soyabean Oil,1 L,Bottle,Jivo cold-pressed-soyabean-oil 1 L Bottle,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Cold Pressed Oil,10.0,1393.1099
+Mangaluru,40249993,Jivo,Cold Pressed Sunflower Oil,1 L,Bottle,Jivo cold-pressed-sunflower-oil 1 L Bottle,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Cold Pressed Oil,5.0,847.2
+Delhi,40166396,Jivo,Cold Press Kachi Ghani Mustard Oil,5 L,Bottle,Jivo cold-press-kachi-ghani-mustard-oil 5 L Bottle,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Soya & Mustard Oils,15.0,12079.55
+Visakhapatnam,40166397,Jivo,Extra Light Olive Oil,5 L,Tin,Jivo extra-light-olive-oil 5 L Tin,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,5.0,14260.0
+Kolkata,40197821,Jivo,Pomace Olive Oil,5 L,&,Jivo pomace-olive-oil 5 L,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,1.0,2075.01
+Vijayawada-Guntur,40249993,Jivo,Cold Pressed Sunflower Oil,1 L,Bottle,Jivo cold-pressed-sunflower-oil 1 L Bottle,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Cold Pressed Oil,24.0,4080.0
+Gurgaon,40197820,Jivo,Pomace Olive Oil,1 L,&,Jivo pomace-olive-oil 1 L,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,110.0,47406.2103
+Bangalore,40335331,Jivo,Mojito Healthy Wheatgrass Juice - Sugar Free,200 ml,&,Jivo mojito-healthy-wheatgrass-juice-sugar-free 200 ml,Beverages,Fruit Juices & Drinks,"Unsweetened, Cold Press",35.0,1190.0
+Patna,40197820,Jivo,Pomace Olive Oil,1 L,&,Jivo pomace-olive-oil 1 L,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,17.0,7502.6125
+Hyderabad,40335333,Jivo,Fizzy Water Flavoured With Peach,750 ml,&,Jivo fizzy-water-flavoured-with-peach 750 ml,Beverages,Fruit Juices & Drinks,"Unsweetened, Cold Press",15.0,611.84
+Ludhiana,40166398,Jivo,Extra Light Olive Oil,1 L,Bottle,Jivo extra-light-olive-oil 1 L Bottle,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,5.0,2671.5
+Kolkata,40335334,Jivo,Apple Healthy Wheatgrass Juice,200 ml,&,Jivo apple-healthy-wheatgrass-juice 200 ml,Beverages,Fruit Juices & Drinks,Juices,32.0,1600.0
+Lucknow-Kanpur,40197821,Jivo,Pomace Olive Oil,5 L,&,Jivo pomace-olive-oil 5 L,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,2.0,3823.5
+Gurgaon,40335338,Jivo,Rose Healthy Wheatgrass Juice,200 ml,&,Jivo rose-healthy-wheatgrass-juice 200 ml,Beverages,Fruit Juices & Drinks,Juices,36.0,1225.08
+Lucknow-Kanpur,282780,Jivo,Canola Oil,5 L,Bottle,Jivo canola-oil 5 L Bottle,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,13.0,14624.93
+Ranchi,40166398,Jivo,Extra Light Olive Oil,1 L,Bottle,Jivo extra-light-olive-oil 1 L Bottle,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,32.0,18029.1031
+Gurgaon,40335334,Jivo,Apple Healthy Wheatgrass Juice,200 ml,&,Jivo apple-healthy-wheatgrass-juice 200 ml,Beverages,Fruit Juices & Drinks,Juices,25.0,851.2
+Bangalore,40335332,Jivo,Fizzy Water Flavoured With Lemon,750 ml,&,Jivo fizzy-water-flavoured-with-lemon 750 ml,Beverages,Fruit Juices & Drinks,"Unsweetened, Cold Press",3.0,122.4
+Patna,282779,Jivo,Canola Oil - Cold Pressed,1 L,&,Jivo canola-oil-cold-pressed 1 L,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,16.0,4016.16
+Mumbai,40166397,Jivo,Extra Light Olive Oil,5 L,Tin,Jivo extra-light-olive-oil 5 L Tin,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,3.0,8083.5
+Noida,40335340,Jivo,Mango Healthy Wheatgrass Juice,500 ml,&,Jivo mango-healthy-wheatgrass-juice 500 ml,Beverages,Fruit Juices & Drinks,Juices,11.0,797.83
+Gurgaon,40304419,Jivo,Cold-Pressed Soyabean Oil,5 L,Can,Jivo cold-pressed-soyabean-oil 5 L Can,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Cold Pressed Oil,34.0,23079.34
+Visakhapatnam,282779,Jivo,Canola Oil - Cold Pressed,1 L,&,Jivo canola-oil-cold-pressed 1 L,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,13.0,3262.9933
+Nagpur,282780,Jivo,Canola Oil,5 L,Bottle,Jivo canola-oil 5 L Bottle,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,8.0,9840.0
+Noida,40249992,Jivo,Sunflower Oil - Cold Pressed Fortified With Vitamins A & D Chemical Free,5 L,Jar,Jivo sunflower-oil-cold-pressed-fortified-with-vitamins-a-d-chemical-free 5 L Jar,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Cold Pressed Oil,30.0,22100.0
+Delhi,40250809,Jivo,Extra Light Olive Oil - Antioxidants Rich Light Cooking Medium For Frying Grilling,2 L,&,Jivo extra-light-olive-oil-antioxidants-rich-light-cooking-medium-for-frying-grilling 2 L,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,29.0,31047.1525
+Noida,40335336,Jivo,Mango Healthy Wheatgrass Juice,200 ml,&,Jivo mango-healthy-wheatgrass-juice 200 ml,Beverages,Fruit Juices & Drinks,Juices,14.0,475.86
+Noida,40335335,Jivo,Blueberry Healthy Wheatgrass Juice,200 ml,&,Jivo blueberry-healthy-wheatgrass-juice 200 ml,Beverages,Fruit Juices & Drinks,Juices,7.0,238.0
+Bangalore,40197820,Jivo,Pomace Olive Oil,1 L,&,Jivo pomace-olive-oil 1 L,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,1.0,420.39
+Nagpur,40304419,Jivo,Cold-Pressed Soyabean Oil,5 L,Can,Jivo cold-pressed-soyabean-oil 5 L Can,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Cold Pressed Oil,6.0,4788.0
+Lucknow-Kanpur,40309980,Jivo,Pomace Olive Oil,2 L,&,Jivo pomace-olive-oil 2 L,"Foodgrains, Oil & Masala",Edible Oils & Ghee,Olive & Canola Oils,3.0,2299.0

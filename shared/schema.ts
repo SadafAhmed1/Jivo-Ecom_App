@@ -1976,4 +1976,65 @@ export type InsertZeptoInventoryDaily = z.infer<typeof insertZeptoInventoryDaily
 export type ZeptoInventoryRange = typeof invZeptoJmRange.$inferSelect;
 export type InsertZeptoInventoryRange = z.infer<typeof insertZeptoInventoryRangeSchema>;
 
+// BigBasket Inventory Tables
+export const invBigBasketJmDaily = pgTable("INV_BigBasket_JM_Daily", {
+  id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
+  report_date: timestamp("report_date").notNull(),
+  city: text("city"),
+  sku_id: text("sku_id"),
+  brand_name: text("brand_name"),
+  sku_name: text("sku_name"),
+  sku_weight: text("sku_weight"),
+  sku_pack_type: text("sku_pack_type"),
+  sku_description: text("sku_description"),
+  top_category_name: text("top_category_name"),
+  mid_category_name: text("mid_category_name"),
+  leaf_category_name: text("leaf_category_name"),
+  soh: decimal("soh", { precision: 10, scale: 2 }),
+  soh_value: decimal("soh_value", { precision: 10, scale: 2 }),
+  attachment_path: text("attachment_path"),
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow()
+});
+
+export const invBigBasketJmRange = pgTable("INV_BigBasket_JM_Range", {
+  id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
+  period_start: timestamp("period_start").notNull(),
+  period_end: timestamp("period_end").notNull(),
+  city: text("city"),
+  sku_id: text("sku_id"),
+  brand_name: text("brand_name"),
+  sku_name: text("sku_name"),
+  sku_weight: text("sku_weight"),
+  sku_pack_type: text("sku_pack_type"),
+  sku_description: text("sku_description"),
+  top_category_name: text("top_category_name"),
+  mid_category_name: text("mid_category_name"),
+  leaf_category_name: text("leaf_category_name"),
+  soh: decimal("soh", { precision: 10, scale: 2 }),
+  soh_value: decimal("soh_value", { precision: 10, scale: 2 }),
+  attachment_path: text("attachment_path"),
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow()
+});
+
+// Insert schemas for BigBasket Inventory
+export const insertBigBasketInventoryDailySchema = createInsertSchema(invBigBasketJmDaily).omit({
+  id: true,
+  created_at: true,
+  updated_at: true
+});
+
+export const insertBigBasketInventoryRangeSchema = createInsertSchema(invBigBasketJmRange).omit({
+  id: true,
+  created_at: true,
+  updated_at: true
+});
+
+// Types for BigBasket Inventory
+export type BigBasketInventoryDaily = typeof invBigBasketJmDaily.$inferSelect;
+export type InsertBigBasketInventoryDaily = z.infer<typeof insertBigBasketInventoryDailySchema>;
+export type BigBasketInventoryRange = typeof invBigBasketJmRange.$inferSelect;
+export type InsertBigBasketInventoryRange = z.infer<typeof insertBigBasketInventoryRangeSchema>;
+
 

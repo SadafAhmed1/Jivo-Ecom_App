@@ -73,6 +73,10 @@ interface ParsedInventoryData {
     totalUnits?: number;
     uniqueCities?: number;
     uniqueSKUs?: number;
+    // BigBasket specific fields
+    totalSOH?: number;
+    totalSOHValue?: number;
+    uniqueBrands?: number;
   };
 }
 
@@ -111,6 +115,12 @@ const PLATFORMS = [
     id: "zepto",
     name: "Zepto",
     description: "Upload Zepto inventory data (CSV)",
+    icon: Package,
+  },
+  {
+    id: "bigbasket",
+    name: "BigBasket",
+    description: "Upload BigBasket inventory data (CSV)",
     icon: Package,
   },
 ];
