@@ -68,6 +68,11 @@ interface ParsedInventoryData {
     totalSales30D?: number;
     totalB2bScheduled?: number;
     uniqueWarehouses?: number;
+    // Zepto specific fields
+    totalRecords?: number;
+    totalUnits?: number;
+    uniqueCities?: number;
+    uniqueSKUs?: number;
   };
 }
 
@@ -100,6 +105,12 @@ const PLATFORMS = [
     id: "flipkart",
     name: "FlipKart",
     description: "Upload FlipKart inventory data (CSV)",
+    icon: Package,
+  },
+  {
+    id: "zepto",
+    name: "Zepto",
+    description: "Upload Zepto inventory data (CSV)",
     icon: Package,
   },
 ];
@@ -941,6 +952,21 @@ export default function InventoryPage() {
                       <div className="text-sm text-purple-600">B2B Scheduled</div>
                     </div>
                   </>
+                ) : selectedPlatform === 'zepto' ? (
+                  <>
+                    <div className="p-4 bg-green-50 rounded-lg">
+                      <div className="text-2xl font-bold text-green-600">{parsedData.summary?.totalUnits || 0}</div>
+                      <div className="text-sm text-green-600">Total Units</div>
+                    </div>
+                    <div className="p-4 bg-blue-50 rounded-lg">
+                      <div className="text-2xl font-bold text-blue-600">{parsedData.summary?.uniqueCities || 0}</div>
+                      <div className="text-sm text-blue-600">Cities</div>
+                    </div>
+                    <div className="p-4 bg-purple-50 rounded-lg">
+                      <div className="text-2xl font-bold text-purple-600">{parsedData.summary?.uniqueSKUs || 0}</div>
+                      <div className="text-sm text-purple-600">Unique SKUs</div>
+                    </div>
+                  </>
                 ) : (
                   <>
                     <div className="p-4 bg-green-50 rounded-lg">
@@ -980,18 +1006,21 @@ export default function InventoryPage() {
                           <TableHead className="w-40 border-r">
                             {selectedPlatform === 'amazon' ? 'ASIN' : 
                              selectedPlatform === 'swiggy' ? 'SKU Code' : 
-                             selectedPlatform === 'flipkart' ? 'SKU' : 'SKU ID'}
+                             selectedPlatform === 'flipkart' ? 'SKU' : 
+                             selectedPlatform === 'zepto' ? 'SKU Code' : 'SKU ID'}
                           </TableHead>
                           <TableHead className="min-w-[250px] border-r">
                             {selectedPlatform === 'jiomart' ? 'Title' : 
                              selectedPlatform === 'amazon' ? 'Product Title' : 
                              selectedPlatform === 'swiggy' ? 'SKU Description' : 
-                             selectedPlatform === 'flipkart' ? 'Product Title' : 'Product Name'}
+                             selectedPlatform === 'flipkart' ? 'Product Title' : 
+                             selectedPlatform === 'zepto' ? 'SKU Name' : 'Product Name'}
                           </TableHead>
                           <TableHead className="w-32 border-r">
                             {selectedPlatform === 'amazon' ? 'Brand' : 
                              selectedPlatform === 'swiggy' ? 'Storage Type' : 
-                             selectedPlatform === 'flipkart' ? 'Brand' : 'Category'}
+                             selectedPlatform === 'flipkart' ? 'Brand' : 
+                             selectedPlatform === 'zepto' ? 'City' : 'Category'}
                           </TableHead>
                           {selectedPlatform === 'blinkit' && <TableHead className="w-32 border-r">Brand</TableHead>}
                           {selectedPlatform === 'amazon' && <TableHead className="w-32 border-r">Condition</TableHead>}
@@ -1000,11 +1029,15 @@ export default function InventoryPage() {
                           {selectedPlatform === 'swiggy' && <TableHead className="w-32 border-r">City</TableHead>}
                           {selectedPlatform === 'swiggy' && <TableHead className="w-32 border-r">Facility</TableHead>}
                           {selectedPlatform === 'flipkart' && <TableHead className="w-32 border-r">Warehouse</TableHead>}
+                          {selectedPlatform === 'zepto' && <TableHead className="w-32 border-r">Brand</TableHead>}
+                          {selectedPlatform === 'zepto' && <TableHead className="w-32 border-r">Category</TableHead>}
+                          {selectedPlatform === 'zepto' && <TableHead className="w-32 border-r">EAN</TableHead>}
                           <TableHead className="w-24 border-r">
                             {selectedPlatform === 'jiomart' ? 'Status' : 
                              selectedPlatform === 'amazon' ? 'Units Available' : 
                              selectedPlatform === 'swiggy' ? 'Days on Hand' : 
-                             selectedPlatform === 'flipkart' ? 'Price' : 'Size'}
+                             selectedPlatform === 'flipkart' ? 'Price' : 
+                             selectedPlatform === 'zepto' ? 'Units' : 'Size'}
                           </TableHead>
                           {selectedPlatform === 'jiomart' ? (
                             <>
@@ -1034,6 +1067,13 @@ export default function InventoryPage() {
                               <TableHead className="text-right w-24 border-r">30D Sales</TableHead>
                               <TableHead className="text-right w-24">B2B Scheduled</TableHead>
                             </>
+                          ) : selectedPlatform === 'zepto' ? (
+                            <>
+                              <TableHead className="text-right w-24 border-r">MRP (₹)</TableHead>
+                              <TableHead className="text-right w-24 border-r">Selling Price</TableHead>
+                              <TableHead className="text-right w-24 border-r">Pack Size</TableHead>
+                              <TableHead className="text-right w-24">Report Date</TableHead>
+                            </>
                           ) : (
                             <>
                               <TableHead className="text-right w-24 border-r">Stock</TableHead>
@@ -1053,25 +1093,29 @@ export default function InventoryPage() {
                             <TableCell className="font-mono text-xs border-r">
                               {selectedPlatform === 'amazon' ? item.asin : 
                                selectedPlatform === 'swiggy' ? item.sku_code : 
-                               selectedPlatform === 'flipkart' ? item.sku : (item.sku_id || item.fnsku)}
+                               selectedPlatform === 'flipkart' ? item.sku : 
+                               selectedPlatform === 'zepto' ? item.skuCode : (item.sku_id || item.fnsku)}
                             </TableCell>
                             <TableCell className="border-r" title={
                               selectedPlatform === 'jiomart' ? item.title : 
                               selectedPlatform === 'amazon' ? item.product_name : 
                               selectedPlatform === 'swiggy' ? item.sku_description : 
-                              selectedPlatform === 'flipkart' ? item.title : item.product_name
+                              selectedPlatform === 'flipkart' ? item.title : 
+                              selectedPlatform === 'zepto' ? item.skuName : item.product_name
                             }>
                               <div className="max-w-[250px] truncate text-sm">
                                 {selectedPlatform === 'jiomart' ? item.title : 
                                  selectedPlatform === 'amazon' ? item.product_name : 
                                  selectedPlatform === 'swiggy' ? item.sku_description : 
-                                 selectedPlatform === 'flipkart' ? item.title : item.product_name}
+                                 selectedPlatform === 'flipkart' ? item.title : 
+                                 selectedPlatform === 'zepto' ? item.skuName : item.product_name}
                               </div>
                             </TableCell>
                             <TableCell className="text-sm border-r">
                               {selectedPlatform === 'amazon' ? item.brand : 
                                selectedPlatform === 'swiggy' ? item.storage_type : 
-                               selectedPlatform === 'flipkart' ? item.brand : item.category}
+                               selectedPlatform === 'flipkart' ? item.brand : 
+                               selectedPlatform === 'zepto' ? item.city : item.category}
                             </TableCell>
                             {selectedPlatform === 'blinkit' && (
                               <TableCell className="text-sm border-r">{item.brand}</TableCell>
@@ -1094,6 +1138,15 @@ export default function InventoryPage() {
                             {selectedPlatform === 'flipkart' && (
                               <TableCell className="text-sm border-r">{item.warehouseId}</TableCell>
                             )}
+                            {selectedPlatform === 'zepto' && (
+                              <TableCell className="text-sm border-r">{item.brand}</TableCell>
+                            )}
+                            {selectedPlatform === 'zepto' && (
+                              <TableCell className="text-sm border-r">{item.category}</TableCell>
+                            )}
+                            {selectedPlatform === 'zepto' && (
+                              <TableCell className="text-sm border-r">{item.ean}</TableCell>
+                            )}
                             <TableCell className="border-r">
                               {selectedPlatform === 'jiomart' ? (
                                 <span className={`px-2 py-1 text-xs rounded-full ${
@@ -1109,6 +1162,8 @@ export default function InventoryPage() {
                                 <span className="text-sm">{item.days_on_hand || 0}</span>
                               ) : selectedPlatform === 'flipkart' ? (
                                 <span className="text-sm">₹{parseInt(item.flipkartSellingPrice || '0').toLocaleString()}</span>
+                              ) : selectedPlatform === 'zepto' ? (
+                                <span className="text-sm font-mono">{item.units || 0}</span>
                               ) : (
                                 <span className="text-sm">{item.size}</span>
                               )}
@@ -1171,6 +1226,21 @@ export default function InventoryPage() {
                                 </TableCell>
                                 <TableCell className="text-right text-sm">
                                   {parseInt(item.b2bScheduled || '0').toLocaleString()}
+                                </TableCell>
+                              </>
+                            ) : selectedPlatform === 'zepto' ? (
+                              <>
+                                <TableCell className="text-right text-sm border-r">
+                                  ₹{parseFloat(item.mrp || '0').toLocaleString()}
+                                </TableCell>
+                                <TableCell className="text-right text-sm border-r">
+                                  ₹{parseFloat(item.sellingPrice || '0').toLocaleString()}
+                                </TableCell>
+                                <TableCell className="text-right text-sm border-r">
+                                  {item.packSize || '-'}
+                                </TableCell>
+                                <TableCell className="text-right text-sm">
+                                  {item.reportDate ? format(new Date(item.reportDate), 'MMM dd') : '-'}
                                 </TableCell>
                               </>
                             ) : (

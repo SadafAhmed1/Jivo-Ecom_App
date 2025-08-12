@@ -23,6 +23,7 @@ import { parseJioMartInventoryCsv } from "./jiomart-inventory-parser";
 import { parseBlinkitInventoryCsv } from "./blinkit-inventory-parser";
 import { parseAmazonInventoryFile } from "./amazon-inventory-parser";
 import { parseFlipkartInventoryCSV } from "./flipkart-inventory-parser";
+import { parseZeptoInventory } from "./zepto-inventory-parser";
 import { db } from "./db";
 import { sql } from "drizzle-orm";
 import { 
@@ -2844,6 +2845,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
           };
           
           console.log(`Successfully parsed ${flipkartItems.length} FlipKart inventory records`);
+        } else if (platform === "zepto") {
+          console.log("Processing Zepto inventory preview...");
+          const zeptoResult = parseZeptoInventory(
+            req.file.buffer.toString('utf8'),
+            reportDate ? new Date(reportDate) : new Date(),
+            periodStart,
+            periodEnd
+          );
+
+          parsedData = {
+            platform: "Zepto",
+            businessUnit: businessUnit.toUpperCase(),
+            periodType: periodType,
+            reportDate: reportDate ? new Date(reportDate) : new Date(),
+            totalItems: zeptoResult.summary.totalRecords,
+            items: periodType === "daily" ? zeptoResult.dailyData : zeptoResult.rangeData,
+            summary: {
+              totalRecords: zeptoResult.summary.totalRecords,
+              totalUnits: zeptoResult.summary.totalUnits,
+              uniqueCities: zeptoResult.summary.uniqueCities,
+              uniqueSKUs: zeptoResult.summary.uniqueSKUs
+            }
+          };
+          
+          console.log(`Successfully parsed ${zeptoResult.summary.totalRecords} Zepto inventory records`);
         }
 
         if (!parsedData) {
@@ -2971,6 +2997,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
             items: flipkartItems
           };
           console.log("FlipKart parsing completed, data:", parsedData ? 'Success' : 'Failed');
+        } else if (platform === "zepto") {
+          console.log("Processing Zepto inventory file...");
+          const zeptoResult = parseZeptoInventory(
+            req.file.buffer.toString('utf8'),
+            reportDate,
+            periodStart,
+            periodEnd
+          );
+
+          parsedData = {
+            platform: "Zepto", 
+            businessUnit: businessUnit.toUpperCase(),
+            periodType: periodType,
+            reportDate: reportDate,
+            totalItems: zeptoResult.summary.totalRecords,
+            items: periodType === "daily" ? zeptoResult.dailyData : zeptoResult.rangeData
+          };
+          console.log("Zepto parsing completed, data:", parsedData ? 'Success' : 'Failed');
         }
 
         if (!parsedData) {
@@ -3041,6 +3085,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         } else if (platform === "flipkart" && businessUnit === "jm" && periodType === "range") {
           insertedItems = await storage.createInventoryFlipkartJmRange(inventoryItemsWithDates as any);
           tableName = "INV_FlipKart_JM_Range";
+        } else if (platform === "zepto" && businessUnit === "jm" && periodType === "daily") {
+          insertedItems = await storage.createInventoryZeptoJmDaily(inventoryItemsWithDates as any);
+          tableName = "INV_Zepto_JM_Daily";
+        } else if (platform === "zepto" && businessUnit === "jm" && periodType === "range") {
+          insertedItems = await storage.createInventoryZeptoJmRange(inventoryItemsWithDates as any);
+          tableName = "INV_Zepto_JM_Range";
         }
 
         if (!insertedItems) {

@@ -1919,4 +1919,61 @@ export type InsertFlipkartInventoryDaily = z.infer<typeof insertFlipkartInventor
 export type FlipkartInventoryRange = typeof invFlipkartJmRange.$inferSelect;
 export type InsertFlipkartInventoryRange = z.infer<typeof insertFlipkartInventoryRangeSchema>;
 
+// Zepto Inventory Tables
+export const invZeptoJmDaily = pgTable("INV_Zepto_JM_Daily", {
+  id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
+  report_date: timestamp("report_date").notNull(),
+  city: varchar("city", { length: 100 }),
+  sku_name: text("sku_name"),
+  sku_code: varchar("sku_code", { length: 200 }),
+  ean: varchar("ean", { length: 50 }),
+  sku_category: varchar("sku_category", { length: 100 }),
+  sku_sub_category: varchar("sku_sub_category", { length: 100 }),
+  brand_name: varchar("brand_name", { length: 100 }),
+  manufacturer_name: varchar("manufacturer_name", { length: 200 }),
+  manufacturer_id: varchar("manufacturer_id", { length: 100 }),
+  units: integer("units"),
+  attachment_path: text("attachment_path"),
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow()
+});
+
+export const invZeptoJmRange = pgTable("INV_Zepto_JM_Range", {
+  id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
+  period_start: timestamp("period_start").notNull(),
+  period_end: timestamp("period_end").notNull(),
+  city: varchar("city", { length: 100 }),
+  sku_name: text("sku_name"),
+  sku_code: varchar("sku_code", { length: 200 }),
+  ean: varchar("ean", { length: 50 }),
+  sku_category: varchar("sku_category", { length: 100 }),
+  sku_sub_category: varchar("sku_sub_category", { length: 100 }),
+  brand_name: varchar("brand_name", { length: 100 }),
+  manufacturer_name: varchar("manufacturer_name", { length: 200 }),
+  manufacturer_id: varchar("manufacturer_id", { length: 100 }),
+  units: integer("units"),
+  attachment_path: text("attachment_path"),
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow()
+});
+
+// Zepto Inventory Insert Schemas
+export const insertZeptoInventoryDailySchema = createInsertSchema(invZeptoJmDaily).omit({
+  id: true,
+  created_at: true,
+  updated_at: true
+});
+
+export const insertZeptoInventoryRangeSchema = createInsertSchema(invZeptoJmRange).omit({
+  id: true,
+  created_at: true,
+  updated_at: true
+});
+
+// Types for Zepto Inventory
+export type ZeptoInventoryDaily = typeof invZeptoJmDaily.$inferSelect;
+export type InsertZeptoInventoryDaily = z.infer<typeof insertZeptoInventoryDailySchema>;
+export type ZeptoInventoryRange = typeof invZeptoJmRange.$inferSelect;
+export type InsertZeptoInventoryRange = z.infer<typeof insertZeptoInventoryRangeSchema>;
+
 
