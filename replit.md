@@ -38,8 +38,8 @@ Preferred communication style: Simple, everyday language.
 3. **pf_item_mst**: Platform-specific item mappings with SAP references
 4. **pf_po**: Purchase order headers
 5. **pf_order_items**: Line-item details for purchase orders
-6. **INV_FlipKart_JM_Daily**: FlipKart daily inventory tracking with comprehensive metrics
-7. **INV_FlipKart_JM_Range**: FlipKart range-based inventory reporting
+6. **INV_FlipKart_JM_Daily**: FlipKart daily inventory tracking with comprehensive metrics (41 records imported successfully)
+7. **INV_FlipKart_JM_Range**: FlipKart range-based inventory reporting (ready for range-based imports)
 
 ### Authentication & Security
 - Session-based authentication
