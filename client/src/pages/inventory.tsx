@@ -62,6 +62,12 @@ interface ParsedInventoryData {
     totalPotentialGmvLoss?: number;
     uniqueFacilities?: number;
     uniqueCities?: number;
+    // FlipKart specific fields
+    totalLiveOnWebsite?: number;
+    totalSales7D?: number;
+    totalSales30D?: number;
+    totalB2bScheduled?: number;
+    uniqueWarehouses?: number;
   };
 }
 
@@ -88,6 +94,12 @@ const PLATFORMS = [
     id: "swiggy",
     name: "Swiggy",
     description: "Upload Swiggy inventory data",
+    icon: Package,
+  },
+  {
+    id: "flipkart",
+    name: "FlipKart",
+    description: "Upload FlipKart inventory data (CSV)",
     icon: Package,
   },
 ];
@@ -914,6 +926,21 @@ export default function InventoryPage() {
                       <div className="text-sm text-red-600">Potential Loss</div>
                     </div>
                   </>
+                ) : selectedPlatform === 'flipkart' ? (
+                  <>
+                    <div className="p-4 bg-green-50 rounded-lg">
+                      <div className="text-2xl font-bold text-green-600">{parsedData.summary?.totalLiveOnWebsite || 0}</div>
+                      <div className="text-sm text-green-600">Live on Website</div>
+                    </div>
+                    <div className="p-4 bg-blue-50 rounded-lg">
+                      <div className="text-2xl font-bold text-blue-600">{parsedData.summary?.totalSales7D || 0}</div>
+                      <div className="text-sm text-blue-600">7 Days Sales</div>
+                    </div>
+                    <div className="p-4 bg-purple-50 rounded-lg">
+                      <div className="text-2xl font-bold text-purple-600">{parsedData.summary?.totalB2bScheduled || 0}</div>
+                      <div className="text-sm text-purple-600">B2B Scheduled</div>
+                    </div>
+                  </>
                 ) : (
                   <>
                     <div className="p-4 bg-green-50 rounded-lg">
@@ -952,16 +979,19 @@ export default function InventoryPage() {
                           {selectedPlatform === 'jiomart' && <TableHead className="w-32 border-r">RFC ID</TableHead>}
                           <TableHead className="w-40 border-r">
                             {selectedPlatform === 'amazon' ? 'ASIN' : 
-                             selectedPlatform === 'swiggy' ? 'SKU Code' : 'SKU ID'}
+                             selectedPlatform === 'swiggy' ? 'SKU Code' : 
+                             selectedPlatform === 'flipkart' ? 'SKU' : 'SKU ID'}
                           </TableHead>
                           <TableHead className="min-w-[250px] border-r">
                             {selectedPlatform === 'jiomart' ? 'Title' : 
                              selectedPlatform === 'amazon' ? 'Product Title' : 
-                             selectedPlatform === 'swiggy' ? 'SKU Description' : 'Product Name'}
+                             selectedPlatform === 'swiggy' ? 'SKU Description' : 
+                             selectedPlatform === 'flipkart' ? 'Product Title' : 'Product Name'}
                           </TableHead>
                           <TableHead className="w-32 border-r">
                             {selectedPlatform === 'amazon' ? 'Brand' : 
-                             selectedPlatform === 'swiggy' ? 'Storage Type' : 'Category'}
+                             selectedPlatform === 'swiggy' ? 'Storage Type' : 
+                             selectedPlatform === 'flipkart' ? 'Brand' : 'Category'}
                           </TableHead>
                           {selectedPlatform === 'blinkit' && <TableHead className="w-32 border-r">Brand</TableHead>}
                           {selectedPlatform === 'amazon' && <TableHead className="w-32 border-r">Condition</TableHead>}
@@ -969,10 +999,12 @@ export default function InventoryPage() {
                           {selectedPlatform === 'swiggy' && <TableHead className="w-32 border-r">L2 Category</TableHead>}
                           {selectedPlatform === 'swiggy' && <TableHead className="w-32 border-r">City</TableHead>}
                           {selectedPlatform === 'swiggy' && <TableHead className="w-32 border-r">Facility</TableHead>}
+                          {selectedPlatform === 'flipkart' && <TableHead className="w-32 border-r">Warehouse</TableHead>}
                           <TableHead className="w-24 border-r">
                             {selectedPlatform === 'jiomart' ? 'Status' : 
                              selectedPlatform === 'amazon' ? 'Units Available' : 
-                             selectedPlatform === 'swiggy' ? 'Days on Hand' : 'Size'}
+                             selectedPlatform === 'swiggy' ? 'Days on Hand' : 
+                             selectedPlatform === 'flipkart' ? 'Price' : 'Size'}
                           </TableHead>
                           {selectedPlatform === 'jiomart' ? (
                             <>
@@ -995,6 +1027,13 @@ export default function InventoryPage() {
                               <TableHead className="text-right w-24 border-r">Potential Loss</TableHead>
                               <TableHead className="text-right w-24">Business Category</TableHead>
                             </>
+                          ) : selectedPlatform === 'flipkart' ? (
+                            <>
+                              <TableHead className="text-right w-24 border-r">Live on Website</TableHead>
+                              <TableHead className="text-right w-24 border-r">7D Sales</TableHead>
+                              <TableHead className="text-right w-24 border-r">30D Sales</TableHead>
+                              <TableHead className="text-right w-24">B2B Scheduled</TableHead>
+                            </>
                           ) : (
                             <>
                               <TableHead className="text-right w-24 border-r">Stock</TableHead>
@@ -1013,22 +1052,26 @@ export default function InventoryPage() {
                             )}
                             <TableCell className="font-mono text-xs border-r">
                               {selectedPlatform === 'amazon' ? item.asin : 
-                               selectedPlatform === 'swiggy' ? item.sku_code : (item.sku_id || item.fnsku)}
+                               selectedPlatform === 'swiggy' ? item.sku_code : 
+                               selectedPlatform === 'flipkart' ? item.sku : (item.sku_id || item.fnsku)}
                             </TableCell>
                             <TableCell className="border-r" title={
                               selectedPlatform === 'jiomart' ? item.title : 
                               selectedPlatform === 'amazon' ? item.product_name : 
-                              selectedPlatform === 'swiggy' ? item.sku_description : item.product_name
+                              selectedPlatform === 'swiggy' ? item.sku_description : 
+                              selectedPlatform === 'flipkart' ? item.title : item.product_name
                             }>
                               <div className="max-w-[250px] truncate text-sm">
                                 {selectedPlatform === 'jiomart' ? item.title : 
                                  selectedPlatform === 'amazon' ? item.product_name : 
-                                 selectedPlatform === 'swiggy' ? item.sku_description : item.product_name}
+                                 selectedPlatform === 'swiggy' ? item.sku_description : 
+                                 selectedPlatform === 'flipkart' ? item.title : item.product_name}
                               </div>
                             </TableCell>
                             <TableCell className="text-sm border-r">
                               {selectedPlatform === 'amazon' ? item.brand : 
-                               selectedPlatform === 'swiggy' ? item.storage_type : item.category}
+                               selectedPlatform === 'swiggy' ? item.storage_type : 
+                               selectedPlatform === 'flipkart' ? item.brand : item.category}
                             </TableCell>
                             {selectedPlatform === 'blinkit' && (
                               <TableCell className="text-sm border-r">{item.brand}</TableCell>
@@ -1048,6 +1091,9 @@ export default function InventoryPage() {
                             {selectedPlatform === 'swiggy' && (
                               <TableCell className="text-sm border-r">{item.facility_name}</TableCell>
                             )}
+                            {selectedPlatform === 'flipkart' && (
+                              <TableCell className="text-sm border-r">{item.warehouseId}</TableCell>
+                            )}
                             <TableCell className="border-r">
                               {selectedPlatform === 'jiomart' ? (
                                 <span className={`px-2 py-1 text-xs rounded-full ${
@@ -1061,6 +1107,8 @@ export default function InventoryPage() {
                                 <span className="text-sm font-mono">{parseInt(item.units_available || '0').toLocaleString()}</span>
                               ) : selectedPlatform === 'swiggy' ? (
                                 <span className="text-sm">{item.days_on_hand || 0}</span>
+                              ) : selectedPlatform === 'flipkart' ? (
+                                <span className="text-sm">₹{parseInt(item.flipkartSellingPrice || '0').toLocaleString()}</span>
                               ) : (
                                 <span className="text-sm">{item.size}</span>
                               )}
@@ -1108,6 +1156,21 @@ export default function InventoryPage() {
                                 </TableCell>
                                 <TableCell className="text-sm">
                                   {item.business_category}
+                                </TableCell>
+                              </>
+                            ) : selectedPlatform === 'flipkart' ? (
+                              <>
+                                <TableCell className="text-right text-sm border-r">
+                                  {parseInt(item.liveOnWebsite || '0').toLocaleString()}
+                                </TableCell>
+                                <TableCell className="text-right text-sm border-r">
+                                  {parseInt(item.sales7D || '0').toLocaleString()}
+                                </TableCell>
+                                <TableCell className="text-right text-sm border-r">
+                                  {parseInt(item.sales30D || '0').toLocaleString()}
+                                </TableCell>
+                                <TableCell className="text-right text-sm">
+                                  {parseInt(item.b2bScheduled || '0').toLocaleString()}
                                 </TableCell>
                               </>
                             ) : (
