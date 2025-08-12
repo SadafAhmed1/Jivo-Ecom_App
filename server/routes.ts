@@ -2695,9 +2695,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Platform, business unit, and period type are required" });
       }
 
-      if (!["jiomart", "blinkit", "amazon", "swiggy", "flipkart"].includes(platform)) {
-        console.log("DEBUG: Platform not supported:", platform, "- supported platforms:", ["jiomart", "blinkit", "amazon", "swiggy", "flipkart"]);
-        return res.status(400).json({ error: "Currently only Jio Mart, Blinkit, Amazon, Swiggy, and FlipKart inventory are supported" });
+      if (!["jiomart", "blinkit", "amazon", "swiggy", "flipkart", "zepto"].includes(platform)) {
+        console.log("DEBUG: Platform not supported:", platform, "- supported platforms:", ["jiomart", "blinkit", "amazon", "swiggy", "flipkart", "zepto"]);
+        return res.status(400).json({ error: "Currently only Jio Mart, Blinkit, Amazon, Swiggy, FlipKart, and Zepto inventory are supported" });
       }
 
       if (platform === "amazon") {
@@ -3002,8 +3002,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const zeptoResult = parseZeptoInventory(
             req.file.buffer.toString('utf8'),
             reportDate,
-            periodStart,
-            periodEnd
+            periodStart || undefined,
+            periodEnd || undefined
           );
 
           parsedData = {
