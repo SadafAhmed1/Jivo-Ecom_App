@@ -905,18 +905,18 @@ export default function InventoryPage() {
 
       {/* Step 6: Preview Data */}
       {currentStep === "preview" && parsedData && (
-        <div className="flex flex-col h-full max-h-[calc(100vh-200px)]">
+        <div className="flex flex-col h-[calc(100vh-250px)]">
           {/* Summary Cards - Fixed at top */}
-          <Card className="mb-4 shadow-sm">
-            <CardHeader className="pb-4">
-              <CardTitle className="flex items-center space-x-2 text-lg">
-                <Eye className="w-5 h-5 text-blue-600" />
+          <Card className="mb-4">
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2">
+                <Eye className="w-5 h-5" />
                 <span>Preview Inventory Data</span>
               </CardTitle>
-              <CardDescription className="text-sm">
+              <CardDescription>
                 Review the inventory data before importing to {selectedPlatformData?.name} - {selectedBusinessUnitData?.name}
                 <br />
-                <span className="font-medium text-blue-600 text-xs sm:text-sm">
+                <span className="font-medium text-blue-600">
                   Target Table: INV_{
                     selectedPlatform === 'jiomart' ? 'JioMart' : 
                     selectedPlatform === 'amazon' ? 'Amazon' : 'Blinkit'
@@ -924,25 +924,25 @@ export default function InventoryPage() {
                 </span>
               </CardDescription>
             </CardHeader>
-            <CardContent className="pt-0">
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-                <div className="p-3 sm:p-4 bg-blue-50 rounded-lg border border-blue-200">
-                  <div className="text-xl sm:text-2xl font-bold text-blue-700">{parsedData.totalItems || 0}</div>
-                  <div className="text-xs sm:text-sm text-blue-600 font-medium">Total Records</div>
+            <CardContent>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="p-4 bg-blue-50 rounded-lg">
+                  <div className="text-2xl font-bold text-blue-600">{parsedData.totalItems || 0}</div>
+                  <div className="text-sm text-blue-600">Total Records</div>
                 </div>
                 {selectedPlatform === 'jiomart' ? (
                   <>
-                    <div className="p-3 sm:p-4 bg-green-50 rounded-lg border border-green-200">
-                      <div className="text-xl sm:text-2xl font-bold text-green-700">{parsedData.summary?.totalSellableInventory || 0}</div>
-                      <div className="text-xs sm:text-sm text-green-600 font-medium">Sellable Inventory</div>
+                    <div className="p-4 bg-green-50 rounded-lg">
+                      <div className="text-2xl font-bold text-green-600">{parsedData.summary?.totalSellableInventory || 0}</div>
+                      <div className="text-sm text-green-600">Sellable Inventory</div>
                     </div>
-                    <div className="p-3 sm:p-4 bg-red-50 rounded-lg border border-red-200">
-                      <div className="text-xl sm:text-2xl font-bold text-red-700">{parsedData.summary?.totalUnsellableInventory || 0}</div>
-                      <div className="text-xs sm:text-sm text-red-600 font-medium">Unsellable Inventory</div>
+                    <div className="p-4 bg-red-50 rounded-lg">
+                      <div className="text-2xl font-bold text-red-600">{parsedData.summary?.totalUnsellableInventory || 0}</div>
+                      <div className="text-sm text-red-600">Unsellable Inventory</div>
                     </div>
-                    <div className="p-3 sm:p-4 bg-yellow-50 rounded-lg border border-yellow-200">
-                      <div className="text-xl sm:text-2xl font-bold text-yellow-700">{parsedData.summary?.totalIntransit || 0}</div>
-                      <div className="text-xs sm:text-sm text-yellow-600 font-medium">In Transit</div>
+                    <div className="p-4 bg-yellow-50 rounded-lg">
+                      <div className="text-2xl font-bold text-yellow-600">{parsedData.summary?.totalIntransit || 0}</div>
+                      <div className="text-sm text-yellow-600">In Transit</div>
                     </div>
                   </>
                 ) : selectedPlatform === 'amazon' ? (
@@ -1026,185 +1026,20 @@ export default function InventoryPage() {
           </Card>
 
           {/* Data Table - Scrollable */}
-          <Card className="flex-1 flex flex-col min-h-0 shadow-sm">
-            <CardHeader className="flex-shrink-0 pb-3">
-              <CardTitle className="text-lg flex items-center justify-between">
-                <span>Inventory Data Preview</span>
-                <span className="text-sm font-normal text-gray-500">
-                  {parsedData.items?.length || 0} records
-                </span>
-              </CardTitle>
-              <CardDescription className="text-sm">
-                Review all inventory records from your uploaded file
+          <Card className="flex-1 flex flex-col min-h-0">
+            <CardHeader className="flex-shrink-0">
+              <CardTitle className="text-lg">Inventory Data Preview</CardTitle>
+              <CardDescription>
+                All {parsedData.items?.length || 0} inventory records from your file
               </CardDescription>
             </CardHeader>
             <CardContent className="flex-1 p-0 overflow-hidden">
               {parsedData.items && parsedData.items.length > 0 && (
-                <>
-                  {/* Mobile Card View */}
-                  <div className="block lg:hidden h-full overflow-y-auto">
-                    <div className="p-4 space-y-3">
-                      {parsedData.items?.slice(0, 50).map((item: any, index: number) => (
-                        <div key={index} className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow">
-                          <div className="flex justify-between items-start mb-3">
-                            <div className="flex-1 min-w-0">
-                              <h3 className="font-medium text-sm text-gray-900 leading-tight">{
-                                item.product_name || item.title || item.name || item.sku_name || 'N/A'
-                              }</h3>
-                              <p className="text-xs text-gray-500 mt-1 font-mono">{
-                                item.sku || item.product_id || item.id || item.asin || item.sku_id || 'N/A'
-                              }</p>
-                            </div>
-                            <div className="ml-3 text-right">
-                              <span className="text-xs font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded">#{index + 1}</span>
-                            </div>
-                          </div>
-                          
-                          <div className="grid grid-cols-2 gap-3 text-xs">
-                            {selectedPlatform === 'jiomart' && (
-                              <>
-                                <div>
-                                  <span className="text-gray-500 font-medium">Status:</span>
-                                  <div className="mt-1">
-                                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                                      item.product_status === 'Active' 
-                                        ? 'bg-green-100 text-green-800 border border-green-200' 
-                                        : 'bg-gray-100 text-gray-800 border border-gray-200'
-                                    }`}>
-                                      {item.product_status}
-                                    </span>
-                                  </div>
-                                </div>
-                                <div>
-                                  <span className="text-gray-500 font-medium">Sellable:</span>
-                                  <div className="font-bold text-green-600 mt-1">{parseInt(item.total_sellable_inv || '0').toLocaleString()}</div>
-                                </div>
-                                <div>
-                                  <span className="text-gray-500 font-medium">Unsellable:</span>
-                                  <div className="font-bold text-red-600 mt-1">{parseInt(item.total_unsellable_inv || '0').toLocaleString()}</div>
-                                </div>
-                                <div>
-                                  <span className="text-gray-500 font-medium">In Transit:</span>
-                                  <div className="font-bold text-yellow-600 mt-1">{parseInt(item.mtd_fwd_intransit || '0').toLocaleString()}</div>
-                                </div>
-                              </>
-                            )}
-                            
-                            {selectedPlatform === 'amazon' && (
-                              <>
-                                <div>
-                                  <span className="text-gray-500 font-medium">Available:</span>
-                                  <div className="font-bold text-blue-600 mt-1">{parseInt(item.units_available || '0').toLocaleString()}</div>
-                                </div>
-                                <div>
-                                  <span className="text-gray-500 font-medium">Condition:</span>
-                                  <div className="font-medium mt-1">{item.condition}</div>
-                                </div>
-                                <div>
-                                  <span className="text-gray-500 font-medium">Inbound:</span>
-                                  <div className="font-bold text-green-600 mt-1">{parseInt(item.inbound_quantity || '0').toLocaleString()}</div>
-                                </div>
-                                <div>
-                                  <span className="text-gray-500 font-medium">Value:</span>
-                                  <div className="font-bold text-green-600 mt-1">{item.total_value ? `₹${parseFloat(item.total_value).toLocaleString()}` : '₹0'}</div>
-                                </div>
-                              </>
-                            )}
-                            
-                            {selectedPlatform === 'bigbasket' && (
-                              <>
-                                <div>
-                                  <span className="text-gray-500 font-medium">Brand:</span>
-                                  <div className="font-medium mt-1 truncate">{item.brand_name}</div>
-                                </div>
-                                <div>
-                                  <span className="text-gray-500 font-medium">SOH:</span>
-                                  <div className="font-bold text-blue-600 mt-1">{parseFloat(item.soh || '0').toLocaleString()}</div>
-                                </div>
-                                <div>
-                                  <span className="text-gray-500 font-medium">SOH Value:</span>
-                                  <div className="font-bold text-green-600 mt-1">₹{parseFloat(item.soh_value || '0').toLocaleString()}</div>
-                                </div>
-                                <div>
-                                  <span className="text-gray-500 font-medium">Category:</span>
-                                  <div className="font-medium mt-1 text-xs truncate">{item.top_category_name}</div>
-                                </div>
-                              </>
-                            )}
-                            
-                            {selectedPlatform === 'blinkit' && (
-                              <>
-                                <div>
-                                  <span className="text-gray-500 font-medium">Brand:</span>
-                                  <div className="font-medium mt-1">{item.brand}</div>
-                                </div>
-                                <div>
-                                  <span className="text-gray-500 font-medium">Size:</span>
-                                  <div className="font-medium mt-1">{item.size}</div>
-                                </div>
-                              </>
-                            )}
-                            
-                            {selectedPlatform === 'flipkart' && (
-                              <>
-                                <div>
-                                  <span className="text-gray-500 font-medium">Price:</span>
-                                  <div className="font-bold text-green-600 mt-1">₹{parseInt(item.flipkartSellingPrice || '0').toLocaleString()}</div>
-                                </div>
-                                <div>
-                                  <span className="text-gray-500 font-medium">Warehouse:</span>
-                                  <div className="font-medium mt-1">{item.warehouseId}</div>
-                                </div>
-                                <div>
-                                  <span className="text-gray-500 font-medium">Live:</span>
-                                  <div className="font-bold text-blue-600 mt-1">{parseInt(item.liveOnWebsite || '0').toLocaleString()}</div>
-                                </div>
-                                <div>
-                                  <span className="text-gray-500 font-medium">Sales 7D:</span>
-                                  <div className="font-bold text-green-600 mt-1">{parseInt(item.sales7D || '0').toLocaleString()}</div>
-                                </div>
-                              </>
-                            )}
-                            
-                            {selectedPlatform === 'zepto' && (
-                              <>
-                                <div>
-                                  <span className="text-gray-500 font-medium">Units:</span>
-                                  <div className="font-bold text-blue-600 mt-1">{item.units || 0}</div>
-                                </div>
-                                <div>
-                                  <span className="text-gray-500 font-medium">MRP:</span>
-                                  <div className="font-bold text-green-600 mt-1">₹{parseFloat(item.mrp || '0').toLocaleString()}</div>
-                                </div>
-                                <div>
-                                  <span className="text-gray-500 font-medium">Selling Price:</span>
-                                  <div className="font-bold text-blue-600 mt-1">₹{parseFloat(item.sellingPrice || '0').toLocaleString()}</div>
-                                </div>
-                                <div>
-                                  <span className="text-gray-500 font-medium">Category:</span>
-                                  <div className="font-medium mt-1 text-xs truncate">{item.category}</div>
-                                </div>
-                              </>
-                            )}
-                          </div>
-                        </div>
-                      ))}
-                      {parsedData.totalItems > 50 && (
-                        <div className="text-center py-4 text-sm text-gray-500 bg-gray-50 rounded-lg border border-gray-200">
-                          📊 Showing first 50 items of {parsedData.totalItems} total records
-                          <div className="text-xs mt-1">All records will be imported to database</div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                  
-                  {/* Desktop Table View */}
-                  <div className="hidden lg:block h-full">
-                    <div className="h-full border rounded-lg overflow-hidden">
-                      <div className="h-full overflow-y-auto">
-                        <Table>
-                        <TableHeader className="sticky top-0 bg-white z-10 border-b shadow-sm">
-                          <TableRow className="bg-gray-50">
+                <div className="h-full border rounded-lg overflow-hidden">
+                  <div className="h-full overflow-y-auto">
+                    <Table>
+                      <TableHeader className="sticky top-0 bg-white z-10 border-b">
+                        <TableRow>
                           {selectedPlatform === 'jiomart' && <TableHead className="w-32 border-r">RFC ID</TableHead>}
                           <TableHead className="w-40 border-r">
                             {selectedPlatform === 'amazon' ? 'ASIN' : 
@@ -1509,11 +1344,9 @@ export default function InventoryPage() {
                           </TableRow>
                         ))}
                       </TableBody>
-                        </Table>
-                      </div>
-                    </div>
+                    </Table>
                   </div>
-                </>
+                </div>
               )}
             </CardContent>
           </Card>
