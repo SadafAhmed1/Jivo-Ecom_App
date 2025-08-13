@@ -1,0 +1,506 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-Commerce PO Management System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#1976D2',
+                        secondary: '#388E3C',
+                        accent: '#FF9800',
+                        'gray-50': '#FAFAFA',
+                        'gray-900': '#333333',
+                        'gray-600': '#666666'
+                    },
+                    fontFamily: {
+                        'inter': ['Inter', 'sans-serif']
+                    }
+                }
+            }
+        };
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-50 font-inter">
+    <!-- @COMPONENT: AppLayout -->
+    <div class="flex h-screen overflow-hidden">
+        <!-- @COMPONENT: Sidebar -->
+        <div class="w-64 bg-white shadow-lg border-r border-gray-200 flex flex-col">
+            <!-- Logo Section -->
+            <div class="p-6 border-b border-gray-200">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
+                        <i class="fas fa-store text-white text-lg"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-semibold text-gray-900">PO Manager</h1>
+                        <p class="text-sm text-gray-600">E-Commerce Platform</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Navigation Menu -->
+            <nav class="flex-1 p-4">
+                <div class="space-y-2">
+                    <!-- Dashboard -->
+                    <a href="#" class="flex items-center space-x-3 px-4 py-3 text-gray-600 hover:bg-gray-50 hover:text-primary rounded-lg transition-colors duration-200">
+                        <i class="fas fa-chart-line w-5"></i>
+                        <span class="font-medium">Dashboard</span>
+                    </a>
+
+                    <!-- Platform PO Module - Active -->
+                    <div class="bg-blue-50 border border-blue-200 rounded-lg">
+                        <a href="#" class="flex items-center space-x-3 px-4 py-3 text-primary font-medium">
+                            <i class="fas fa-shopping-cart w-5"></i>
+                            <span>Platform PO</span>
+                        </a>
+                        <div class="pl-12 pb-2 space-y-1">
+                            <a href="#" class="block px-2 py-1 text-sm text-blue-700 hover:bg-blue-100 rounded">Create PO</a>
+                            <a href="#" class="block px-2 py-1 text-sm text-gray-600 hover:bg-blue-100 rounded">View POs</a>
+                        </div>
+                    </div>
+
+                    <!-- Coming Soon Modules -->
+                    <div class="space-y-2 opacity-50">
+                        <a href="#" class="flex items-center justify-between px-4 py-3 text-gray-400 cursor-not-allowed">
+                            <div class="flex items-center space-x-3">
+                                <i class="fas fa-truck w-5"></i>
+                                <span class="font-medium">Distributor PO</span>
+                            </div>
+                            <span class="text-xs bg-gray-200 px-2 py-1 rounded-full">Soon</span>
+                        </a>
+                        <a href="#" class="flex items-center justify-between px-4 py-3 text-gray-400 cursor-not-allowed">
+                            <div class="flex items-center space-x-3">
+                                <i class="fas fa-upload w-5"></i>
+                                <span class="font-medium">Secondary Sales</span>
+                            </div>
+                            <span class="text-xs bg-gray-200 px-2 py-1 rounded-full">Soon</span>
+                        </a>
+                        <a href="#" class="flex items-center justify-between px-4 py-3 text-gray-400 cursor-not-allowed">
+                            <div class="flex items-center space-x-3">
+                                <i class="fas fa-boxes w-5"></i>
+                                <span class="font-medium">Inventory</span>
+                            </div>
+                            <span class="text-xs bg-gray-200 px-2 py-1 rounded-full">Soon</span>
+                        </a>
+                    </div>
+                </div>
+            </nav>
+
+            <!-- User Profile -->
+            <div class="p-4 border-t border-gray-200">
+                <div class="flex items-center space-x-3">
+                    <div class="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center">
+                        <i class="fas fa-user text-gray-600 text-sm"></i>
+                    </div>
+                    <div>
+                        <p class="text-sm font-medium text-gray-900" data-bind="user.name">Admin User</p>
+                        <p class="text-xs text-gray-500" data-bind="user.role">System Administrator</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- @END_COMPONENT: Sidebar -->
+
+        <!-- @COMPONENT: MainContent -->
+        <div class="flex-1 flex flex-col overflow-hidden">
+            <!-- Header -->
+            <header class="bg-white shadow-sm border-b border-gray-200 px-6 py-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h2 class="text-2xl font-semibold text-gray-900">Platform Purchase Order</h2>
+                        <p class="text-gray-600 mt-1">Create and manage purchase orders for e-commerce platforms</p>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <!-- Search -->
+                        <div class="relative">
+                            <input type="text" placeholder="Search POs..." class="w-64 pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none">
+                            <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                        </div>
+                        <!-- Notifications -->
+                        <button class="relative p-2 text-gray-400 hover:text-gray-600 transition-colors">
+                            <i class="fas fa-bell text-xl"></i>
+                            <span class="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">3</span>
+                        </button>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Content Area -->
+            <main class="flex-1 overflow-y-auto p-6">
+                <!-- @COMPONENT: POForm -->
+                <div class="max-w-6xl mx-auto">
+                    <!-- Form Header -->
+                    <div class="bg-white rounded-lg shadow-sm border border-gray-200 mb-6">
+                        <div class="px-6 py-4 border-b border-gray-200">
+                            <div class="flex items-center justify-between">
+                                <h3 class="text-lg font-semibold text-gray-900">Create New Purchase Order</h3>
+                                <div class="flex items-center space-x-3">
+                                    <button class="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+                                        <i class="fas fa-times mr-2"></i>Cancel
+                                    </button>
+                                    <button class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors">
+                                        <i class="fas fa-save mr-2"></i>Save Draft
+                                    </button>
+                                    <button class="px-6 py-2 bg-primary text-white rounded-lg hover:bg-blue-700 transition-colors" data-event="click:handleSubmit">
+                                        <i class="fas fa-check mr-2"></i>Create PO
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- PO Basic Information -->
+                        <div class="p-6">
+                            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                                <!-- PO Number -->
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">PO Number *</label>
+                                    <input type="text" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none" placeholder="Enter PO number" data-bind="po.number">
+                                </div>
+
+                                <!-- Platform Selection -->
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Platform *</label>
+                                    <select class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none" data-bind="po.platform_id">
+                                        <option value="">Select Platform</option>
+                                        <option value="1" data-mock="true">Blinkit</option>
+                                        <option value="2" data-mock="true">Swiggy Instamart</option>
+                                        <option value="3" data-mock="true">Zepto</option>
+                                        <option value="4" data-mock="true">Flipkart Grocery</option>
+                                        <option value="5" data-mock="true">Zomato Hyperpure</option>
+                                        <option value="6" data-mock="true">Citymall</option>
+                                        <option value="7" data-mock="true">Dealshare</option>
+                                        <option value="8" data-mock="true">RK World (Amazon)</option>
+                                    </select>
+                                </div>
+
+                                <!-- Status -->
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Status *</label>
+                                    <select class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none" data-bind="po.status">
+                                        <option value="Open">Open</option>
+                                        <option value="Closed">Closed</option>
+                                        <option value="Cancelled">Cancelled</option>
+                                        <option value="Expired">Expired</option>
+                                        <option value="Duplicate">Duplicate</option>
+                                    </select>
+                                </div>
+
+                                <!-- Order Date -->
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Order Date *</label>
+                                    <input type="date" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none" data-bind="po.order_date">
+                                </div>
+
+                                <!-- Expiry Date -->
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Expiry Date</label>
+                                    <input type="date" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none" data-bind="po.expiry_date">
+                                </div>
+
+                                <!-- Appointment Date -->
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Appointment Date</label>
+                                    <input type="date" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none" data-bind="po.appointment_date">
+                                </div>
+
+                                <!-- Region -->
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Region *</label>
+                                    <select class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none" data-bind="po.region">
+                                        <option value="">Select Region</option>
+                                        <option value="North India" data-mock="true">North India</option>
+                                        <option value="South India" data-mock="true">South India</option>
+                                        <option value="East India" data-mock="true">East India</option>
+                                        <option value="West India" data-mock="true">West India</option>
+                                    </select>
+                                </div>
+
+                                <!-- State -->
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">State *</label>
+                                    <select class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none" data-bind="po.state">
+                                        <option value="">Select State</option>
+                                        <option value="Punjab" data-mock="true">Punjab</option>
+                                        <option value="Delhi" data-mock="true">Delhi</option>
+                                        <option value="Karnataka" data-mock="true">Karnataka</option>
+                                        <option value="Maharashtra" data-mock="true">Maharashtra</option>
+                                        <option value="West Bengal" data-mock="true">West Bengal</option>
+                                    </select>
+                                </div>
+
+                                <!-- City -->
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">City *</label>
+                                    <select class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none" data-bind="po.city">
+                                        <option value="">Select City</option>
+                                        <option value="Chandigarh" data-mock="true">Chandigarh</option>
+                                        <option value="New Delhi" data-mock="true">New Delhi</option>
+                                        <option value="Bangalore" data-mock="true">Bangalore</option>
+                                        <option value="Mumbai" data-mock="true">Mumbai</option>
+                                        <option value="Kolkata" data-mock="true">Kolkata</option>
+                                    </select>
+                                </div>
+
+                                <!-- Area -->
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Area</label>
+                                    <input type="text" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none" placeholder="Enter area/locality" data-bind="po.area">
+                                </div>
+
+                                <!-- Serving Distributor -->
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Serving Distributor</label>
+                                    <input type="text" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none" placeholder="Enter distributor name" data-bind="po.serving_distributor">
+                                </div>
+
+                                <!-- Attachment -->
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Attachment</label>
+                                    <div class="relative">
+                                        <input type="file" class="hidden" id="attachment" data-bind="po.attachment">
+                                        <label for="attachment" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none cursor-pointer flex items-center justify-center space-x-2 hover:bg-gray-50 transition-colors">
+                                            <i class="fas fa-upload text-gray-400"></i>
+                                            <span class="text-gray-500">Choose file...</span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Line Items Section -->
+                    <div class="bg-white rounded-lg shadow-sm border border-gray-200">
+                        <div class="px-6 py-4 border-b border-gray-200">
+                            <div class="flex items-center justify-between">
+                                <h3 class="text-lg font-semibold text-gray-900">Order Items</h3>
+                                <button class="px-4 py-2 bg-secondary text-white rounded-lg hover:bg-green-600 transition-colors" data-event="click:addLineItem">
+                                    <i class="fas fa-plus mr-2"></i>Add Item
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Items Table -->
+                        <div class="overflow-x-auto">
+                            <table class="w-full">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Item Details</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">SAP Code</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantity</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Basic Rate</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">GST Rate</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Landing Rate</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-gray-200">
+                                    <!-- @MAP: orderItems.map(item => ( -->
+                                    <tr data-mock="true">
+                                        <td class="px-6 py-4">
+                                            <div class="relative">
+                                                <input type="text" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none" placeholder="Search items..." value="Maggi 2-Minute Noodles 70g" data-bind="item.name">
+                                                <!-- Search dropdown would appear here -->
+                                            </div>
+                                        </td>
+                                        <td class="px-6 py-4">
+                                            <input type="text" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none" value="MAGG001" data-bind="item.sap_code" readonly>
+                                        </td>
+                                        <td class="px-6 py-4">
+                                            <select class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none" data-bind="item.category">
+                                                <option value="Instant Noodles" data-mock="true">Instant Noodles</option>
+                                            </select>
+                                        </td>
+                                        <td class="px-6 py-4">
+                                            <input type="number" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none" value="100" data-bind="item.quantity">
+                                        </td>
+                                        <td class="px-6 py-4">
+                                            <input type="number" step="0.01" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none" value="12.50" data-bind="item.basic_rate">
+                                        </td>
+                                        <td class="px-6 py-4">
+                                            <input type="number" step="0.01" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none" value="18.00" data-bind="item.gst_rate">
+                                        </td>
+                                        <td class="px-6 py-4">
+                                            <input type="number" step="0.01" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none" value="14.75" data-bind="item.landing_rate" readonly>
+                                        </td>
+                                        <td class="px-6 py-4">
+                                            <button class="text-red-600 hover:text-red-800 transition-colors" data-event="click:removeLineItem">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <!-- @END_MAP )) -->
+                                    
+                                    <!-- Empty state for new items -->
+                                    <tr id="newItemTemplate" style="display: none;">
+                                        <td class="px-6 py-4">
+                                            <div class="relative">
+                                                <input type="text" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none" placeholder="Search and select item..." data-bind="item.name">
+                                                <!-- @FUNCTIONALITY: This should implement autocomplete search from pf_item_mst table -->
+                                            </div>
+                                        </td>
+                                        <td class="px-6 py-4">
+                                            <input type="text" class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50" data-bind="item.sap_code" readonly>
+                                        </td>
+                                        <td class="px-6 py-4">
+                                            <select class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none" data-bind="item.category">
+                                                <option value="">Select Category</option>
+                                            </select>
+                                        </td>
+                                        <td class="px-6 py-4">
+                                            <input type="number" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none" data-bind="item.quantity">
+                                        </td>
+                                        <td class="px-6 py-4">
+                                            <input type="number" step="0.01" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none" data-bind="item.basic_rate">
+                                        </td>
+                                        <td class="px-6 py-4">
+                                            <input type="number" step="0.01" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none" data-bind="item.gst_rate">
+                                        </td>
+                                        <td class="px-6 py-4">
+                                            <input type="number" step="0.01" class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50" data-bind="item.landing_rate" readonly>
+                                        </td>
+                                        <td class="px-6 py-4">
+                                            <button class="text-red-600 hover:text-red-800 transition-colors" data-event="click:removeLineItem">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Summary Section -->
+                        <div class="px-6 py-4 border-t border-gray-200 bg-gray-50">
+                            <div class="flex justify-between items-center">
+                                <div class="text-sm text-gray-600">
+                                    <span data-bind="orderItems.length">1</span> item(s) • Total Quantity: <span data-bind="totalQuantity">100</span>
+                                </div>
+                                <div class="text-lg font-semibold text-gray-900">
+                                    Total Value: ₹<span data-bind="totalValue">1,475.00</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="mt-6 flex justify-end space-x-4">
+                        <button class="px-6 py-3 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+                            Cancel
+                        </button>
+                        <button class="px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors">
+                            Save as Draft
+                        </button>
+                        <button class="px-8 py-3 bg-primary text-white rounded-lg hover:bg-blue-700 transition-colors font-medium" data-event="click:createPO">
+                            Create Purchase Order
+                        </button>
+                    </div>
+                </div>
+                <!-- @END_COMPONENT: POForm -->
+            </main>
+        </div>
+        <!-- @END_COMPONENT: MainContent -->
+    </div>
+    <!-- @END_COMPONENT: AppLayout -->
+
+    <!-- Loading Overlay -->
+    <!-- @STATE: isLoading:boolean = false -->
+    <div id="loadingOverlay" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" style="display: none;">
+        <div class="bg-white rounded-lg p-6 flex items-center space-x-4">
+            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            <span class="text-gray-700 font-medium">Processing...</span>
+        </div>
+    </div>
+
+    <!-- Success Toast -->
+    <div id="successToast" class="fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg transform translate-x-full transition-transform duration-300 z-50">
+        <div class="flex items-center space-x-2">
+            <i class="fas fa-check-circle"></i>
+            <span>Purchase order created successfully!</span>
+        </div>
+    </div>
+
+    <!-- Error Toast -->
+    <div id="errorToast" class="fixed top-4 right-4 bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg transform translate-x-full transition-transform duration-300 z-50">
+        <div class="flex items-center space-x-2">
+            <i class="fas fa-exclamation-circle"></i>
+            <span>Please fill all required fields!</span>
+        </div>
+    </div>
+
+    <script>
+        // TODO: Implement business logic, API calls, and state management
+        (function() {
+            // Demo interactions for mockup purposes only
+            
+            // Add item functionality
+            document.addEventListener('click', function(e) {
+                if (e.target.closest('[data-event="click:addLineItem"]')) {
+                    // TODO: Add new line item to the table
+                    console.log('Add line item clicked');
+                }
+                
+                if (e.target.closest('[data-event="click:removeLineItem"]')) {
+                    // TODO: Remove line item from table
+                    e.target.closest('tr').remove();
+                }
+                
+                if (e.target.closest('[data-event="click:createPO"]')) {
+                    // TODO: Validate form and submit to API
+                    showLoading();
+                    setTimeout(() => {
+                        hideLoading();
+                        showSuccessToast();
+                    }, 2000);
+                }
+            });
+
+            // Toast functions
+            function showSuccessToast() {
+                const toast = document.getElementById('successToast');
+                toast.classList.remove('translate-x-full');
+                setTimeout(() => {
+                    toast.classList.add('translate-x-full');
+                }, 3000);
+            }
+
+            function showErrorToast() {
+                const toast = document.getElementById('errorToast');
+                toast.classList.remove('translate-x-full');
+                setTimeout(() => {
+                    toast.classList.add('translate-x-full');
+                }, 3000);
+            }
+
+            function showLoading() {
+                document.getElementById('loadingOverlay').style.display = 'flex';
+            }
+
+            function hideLoading() {
+                document.getElementById('loadingOverlay').style.display = 'none';
+            }
+
+            // Auto-calculate landing rate
+            document.addEventListener('input', function(e) {
+                if (e.target.matches('[data-bind*="basic_rate"], [data-bind*="gst_rate"]')) {
+                    const row = e.target.closest('tr');
+                    const basicRate = parseFloat(row.querySelector('[data-bind*="basic_rate"]').value) || 0;
+                    const gstRate = parseFloat(row.querySelector('[data-bind*="gst_rate"]').value) || 0;
+                    const landingRate = basicRate + (basicRate * gstRate / 100);
+                    row.querySelector('[data-bind*="landing_rate"]').value = landingRate.toFixed(2);
+                }
+            });
+
+            // Mobile sidebar toggle
+            function toggleSidebar() {
+                // TODO: Implement mobile sidebar toggle
+            }
+        })();
+    </script>
+</body>
+</html>

@@ -1,15 +1,22 @@
-import { Pool, neonConfig } from '@neondatabase/serverless';
-import { drizzle } from 'drizzle-orm/neon-serverless';
-import ws from "ws";
+// server/db.ts
+import "dotenv/config";
+import { Pool } from "pg";
+import { drizzle } from "drizzle-orm/node-postgres";
 import * as schema from "@shared/schema";
 
-neonConfig.webSocketConstructor = ws;
+// Build a single connection string (prefer DATABASE_URL)
+const connectionString =
+  process.env.DATABASE_URL ??
+  `postgresql://${process.env.PGUSER}:${process.env.PGPASSWORD}` +
+  `@${process.env.PGHOST ?? "127.0.0.1"}:${process.env.PGPORT ?? "5432"}/${process.env.PGDATABASE}`;
 
-if (!process.env.DATABASE_URL) {
-  throw new Error(
-    "DATABASE_URL must be set. Did you forget to provision a database?",
-  );
-}
+// Optional flag to enable SSL only if your server actually supports it
+const sslEnabled = (process.env.DATABASE_SSL || "").toLowerCase() === "true";
 
-export const pool = new Pool({ connectionString: process.env.DATABASE_URL });
-export const db = drizzle({ client: pool, schema });
+export const pool = new Pool({
+  connectionString,
+  ssl: sslEnabled ? { rejectUnauthorized: false } : undefined,
+});
+
+// One Drizzle client for the whole app
+export const db = drizzle(pool, { schema });
