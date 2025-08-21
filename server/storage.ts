@@ -8,6 +8,8 @@ import {
   type InsertSapItemMst,
   type SapItemMstApi,
   type InsertSapItemMstApi,
+  type Items,
+  type InsertItems,
   type PfItemMst,
   type InsertPfItemMst,
   type PfPo,
@@ -60,16 +62,28 @@ import {
   type InsertScAmJmRange,
   type ZeptoSecondarySalesItem,
   type InsertZeptoSecondarySalesItem,
+  type ZeptoSecondarySalesRangeItem,
+  type InsertZeptoSecondarySalesRangeItem,
   type BlinkitSecondarySalesItem,
   type InsertBlinkitSecondarySalesItem,
+  type BlinkitSecondarySalesRangeItem,
+  type InsertBlinkitSecondarySalesRangeItem,
   type SwiggySecondarySalesItem,
   type InsertSwiggySecondarySalesItem,
+  type SwiggySecondarySalesRangeItem,
+  type InsertSwiggySecondarySalesRangeItem,
   type JioMartSaleSecondarySalesItem,
   type InsertJioMartSaleSecondarySalesItem,
+  type JioMartSaleSecondarySalesRangeItem,
+  type InsertJioMartSaleSecondarySalesRangeItem,
   type JioMartCancelSecondarySalesItem,
   type InsertJioMartCancelSecondarySalesItem,
+  type JioMartCancelSecondarySalesRangeItem,
+  type InsertJioMartCancelSecondarySalesRangeItem,
   type BigBasketSecondarySalesItem,
   type InsertBigBasketSecondarySalesItem,
+  type BigBasketSecondarySalesRangeItem,
+  type InsertBigBasketSecondarySalesRangeItem,
 
   type JioMartInventoryItem,
   type InsertJioMartInventoryItem,
@@ -79,6 +93,8 @@ import {
   type InsertBlinkitInventoryItem,
   type SwiggyInventoryItem,
   type InsertSwiggyInventoryItem,
+  type SwiggyInventoryRange,
+  type InsertSwiggyInventoryRange,
   type FlipkartInventoryDaily,
   type InsertFlipkartInventoryDaily,
   type FlipkartInventoryRange,
@@ -159,10 +175,39 @@ import {
 
   distributorMst,
   distributorPo,
-  distributorOrderItems
+  distributorOrderItems,
+  
+  poMaster,
+  poLines,
+  type PoMaster,
+  type InsertPoMaster,
+  type PoLines,
+  type InsertPoLines,
+  
+  statesMst,
+  districtsMst,
+  states,
+  districts,
+  distributors,
+  type StatesMst,
+  type InsertStatesMst,
+  type DistrictsMst,
+  type InsertDistrictsMst,
+  type States,
+  type Districts,
+  type Distributors,
+  
+  // Status tables
+  statuses,
+  statusItem,
+  type Statuses,
+  type StatusItem,
+  
+  // Items table
+  items
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, and, ilike, gte, lte } from "drizzle-orm";
+import { eq, desc, and, ilike, gte, lte, sql } from "drizzle-orm";
 
 export interface IStorage {
   // Enhanced user methods
@@ -194,6 +239,7 @@ export interface IStorage {
   // PO methods
   getAllPos(): Promise<(Omit<PfPo, 'platform'> & { platform: PfMst; orderItems: PfOrderItems[] })[]>;
   getPoById(id: number): Promise<(Omit<PfPo, 'platform'> & { platform: PfMst; orderItems: PfOrderItems[] }) | undefined>;
+  getRawPoData(id: number): Promise<any>; // DEBUG: Get raw database data
   createPo(po: InsertPfPo, items: InsertPfOrderItems[]): Promise<PfPo>;
   updatePo(id: number, po: Partial<InsertPfPo>, items?: InsertPfOrderItems[]): Promise<PfPo>;
   deletePo(id: number): Promise<void>;
@@ -201,6 +247,27 @@ export interface IStorage {
   // Order Items methods
   getAllOrderItems(): Promise<(PfOrderItems & { po_number: string; platform_name: string; order_date: Date; expiry_date: Date | null; platform: PfMst })[]>;
   updateOrderItemStatus(id: number, status: string): Promise<PfOrderItems>;
+  
+  // Status methods
+  getAllStatuses(): Promise<Statuses[]>;
+  getAllStatusItems(): Promise<StatusItem[]>;
+  
+  // Items methods
+  getAllItems(): Promise<any[]>;
+  searchItems(query: string): Promise<any[]>;
+  getItemByCode(itemcode: string): Promise<any | undefined>;
+  getItemByName(itemname: string): Promise<any | undefined>;
+  createItem(item: InsertItems): Promise<Items>;
+  updateItem(itemcode: string, item: Partial<InsertItems>): Promise<Items>;
+  syncItemsFromHana(hanaItems: any[]): Promise<number>;
+  
+  // Generic PO Master and Lines methods
+  getAllPoMasters(): Promise<(PoMaster & { platform: PfMst; poLines: PoLines[] })[]>;
+  getPoMasterById(id: number): Promise<(PoMaster & { platform: PfMst; poLines: PoLines[] }) | undefined>;
+  getPoMasterByNumber(poNumber: string): Promise<PoMaster | undefined>;
+  createPoMaster(master: InsertPoMaster, lines: InsertPoLines[]): Promise<PoMaster>;
+  updatePoMaster(id: number, master: Partial<InsertPoMaster>, lines?: InsertPoLines[]): Promise<PoMaster>;
+  deletePoMaster(id: number): Promise<void>;
 
   // Flipkart Grocery PO methods
   getAllFlipkartGroceryPos(): Promise<(FlipkartGroceryPoHeader & { poLines: FlipkartGroceryPoLines[] })[]>;
@@ -249,6 +316,11 @@ export interface IStorage {
   updateDistributor(id: number, distributor: Partial<InsertDistributorMst>): Promise<DistributorMst>;
   deleteDistributor(id: number): Promise<void>;
 
+  // State and District methods for dynamic dropdowns (using original tables)
+  getAllStates(): Promise<States[]>;
+  getDistrictsByStateId(stateId: number): Promise<Districts[]>;
+  getAllDistributors(): Promise<Distributors[]>;
+
   // Distributor PO methods
   getAllDistributorPos(): Promise<(Omit<DistributorPo, 'distributor_id'> & { distributor: DistributorMst; orderItems: DistributorOrderItems[] })[]>;
   getDistributorPoById(id: number): Promise<(Omit<DistributorPo, 'distributor_id'> & { distributor: DistributorMst; orderItems: DistributorOrderItems[] }) | undefined>;
@@ -290,17 +362,17 @@ export interface IStorage {
   
   // New secondary sales platforms
   createScZeptoJmDaily(items: InsertZeptoSecondarySalesItem[]): Promise<ZeptoSecondarySalesItem[]>;
-  createScZeptoJmRange(items: InsertZeptoSecondarySalesItem[]): Promise<ZeptoSecondarySalesItem[]>;
+  createScZeptoJmRange(items: InsertZeptoSecondarySalesRangeItem[]): Promise<ZeptoSecondarySalesRangeItem[]>;
   createScBlinkitJmDaily(items: InsertBlinkitSecondarySalesItem[]): Promise<BlinkitSecondarySalesItem[]>;
-  createScBlinkitJmRange(items: InsertBlinkitSecondarySalesItem[]): Promise<BlinkitSecondarySalesItem[]>;
+  createScBlinkitJmRange(items: InsertBlinkitSecondarySalesRangeItem[]): Promise<BlinkitSecondarySalesRangeItem[]>;
   createScSwiggyJmDaily(items: InsertSwiggySecondarySalesItem[]): Promise<SwiggySecondarySalesItem[]>;
-  createScSwiggyJmRange(items: InsertSwiggySecondarySalesItem[]): Promise<SwiggySecondarySalesItem[]>;
+  createScSwiggyJmRange(items: InsertSwiggySecondarySalesRangeItem[]): Promise<SwiggySecondarySalesRangeItem[]>;
   createScJioMartSaleJmDaily(items: InsertJioMartSaleSecondarySalesItem[]): Promise<JioMartSaleSecondarySalesItem[]>;
-  createScJioMartSaleJmRange(items: InsertJioMartSaleSecondarySalesItem[]): Promise<JioMartSaleSecondarySalesItem[]>;
+  createScJioMartSaleJmRange(items: InsertJioMartSaleSecondarySalesRangeItem[]): Promise<JioMartSaleSecondarySalesRangeItem[]>;
   createScJioMartCancelJmDaily(items: InsertJioMartCancelSecondarySalesItem[]): Promise<JioMartCancelSecondarySalesItem[]>;
-  createScJioMartCancelJmRange(items: InsertJioMartCancelSecondarySalesItem[]): Promise<JioMartCancelSecondarySalesItem[]>;
+  createScJioMartCancelJmRange(items: InsertJioMartCancelSecondarySalesRangeItem[]): Promise<JioMartCancelSecondarySalesRangeItem[]>;
   createScBigBasketJmDaily(items: InsertBigBasketSecondarySalesItem[]): Promise<BigBasketSecondarySalesItem[]>;
-  createScBigBasketJmRange(items: InsertBigBasketSecondarySalesItem[]): Promise<BigBasketSecondarySalesItem[]>;
+  createScBigBasketJmRange(items: InsertBigBasketSecondarySalesRangeItem[]): Promise<BigBasketSecondarySalesRangeItem[]>;
   getScAmJwDaily(dateStart?: string, dateEnd?: string): Promise<ScAmJwDaily[]>;
   getScAmJwRange(dateStart?: string, dateEnd?: string): Promise<ScAmJwRange[]>;
   getScAmJmDaily(dateStart?: string, dateEnd?: string): Promise<ScAmJmDaily[]>;
@@ -309,8 +381,8 @@ export interface IStorage {
   // Inventory Management methods
   getAllInventory(platform?: string, businessUnit?: string): Promise<any[]>;
   getInventoryById(id: number): Promise<any>;
-  createInventoryJioMartJmDaily(items: InsertInvJioMartJmDaily[]): Promise<InvJioMartJmDaily[]>;
-  createInventoryJioMartJmRange(items: InsertInvJioMartJmRange[]): Promise<InvJioMartJmRange[]>;
+  createInventoryJioMartJmDaily(items: InsertJioMartInventoryItem[]): Promise<JioMartInventoryItem[]>;
+  createInventoryJioMartJmRange(items: InsertJioMartInventoryRangeItem[]): Promise<JioMartInventoryRangeItem[]>;
   updateInventory(id: number, header: any, items: any): Promise<any>;
   deleteInventory(id: number): Promise<void>;
 
@@ -478,6 +550,8 @@ export class DatabaseStorage implements IStorage {
 
   // PO methods
   async getAllPos(): Promise<(Omit<PfPo, 'platform'> & { platform: PfMst; orderItems: PfOrderItems[] })[]> {
+    const result = [];
+    
     // Get regular POs from pf_po table
     const regularPos = await db
       .select({
@@ -488,9 +562,7 @@ export class DatabaseStorage implements IStorage {
       .leftJoin(pfMst, eq(pfPo.platform, pfMst.id))
       .orderBy(desc(pfPo.created_at));
 
-    const result = [];
-    
-    // Process regular POs
+    // Process regular POs from pf_po table
     for (const { po, platform } of regularPos) {
       const orderItems = await db
         .select()
@@ -505,13 +577,212 @@ export class DatabaseStorage implements IStorage {
       });
     }
 
+    // Also fetch POs from po_master table and convert them to the same format
+    const masterPos = await db
+      .select({
+        master: poMaster,
+        platform: pfMst,
+        distributor: distributorMst
+      })
+      .from(poMaster)
+      .leftJoin(pfMst, eq(poMaster.platform_id, pfMst.id))
+      .leftJoin(distributorMst, eq(poMaster.distributor_id, distributorMst.id))
+      .orderBy(desc(poMaster.create_on));
+
+    // Process POs from po_master table
+    for (const { master, platform, distributor } of masterPos) {
+      const lines = await db
+        .select({
+          line: poLines,
+          platformItem: pfItemMst
+        })
+        .from(poLines)
+        .leftJoin(pfItemMst, eq(poLines.platform_product_code_id, pfItemMst.id))
+        .where(eq(poLines.po_id, master.id));
+      
+      // Convert po_master format to pf_po format for compatibility
+      const convertedPo = {
+        id: master.id,
+        po_number: master.vendor_po_number,
+        platform: platform!,
+        serving_distributor: distributor?.distributor_name || null,
+        order_date: master.po_date,
+        expiry_date: master.expiry_date,
+        appointment_date: master.appointment_date,
+        city: master.area || '',
+        state: master.region || '',
+        status: master.status_id === 1 ? 'Open' : master.status_id === 2 ? 'Closed' : 'Cancelled',
+        attachment: null,
+        created_at: master.create_on,
+        updated_at: master.updated_on,
+        region: master.region || '',
+        area: master.area || '',
+        orderItems: lines.length > 0 ? lines.map(({ line, platformItem }) => ({
+          id: line.id,
+          po_id: master.id,
+          item_name: platformItem?.pf_itemname || `Product ID: ${line.platform_product_code_id}`,
+          quantity: parseInt(line.quantity || '0'),
+          sap_code: platformItem?.pf_itemcode || null,
+          category: null,
+          subcategory: null,
+          basic_rate: line.basic_amount?.toString() || '0',
+          gst_rate: line.tax?.toString() || '0',
+          landing_rate: line.landing_amount?.toString() || '0',
+          total_litres: line.total_liter?.toString() || null,
+          status: line.status ? 'Completed' : 'Pending',
+          hsn_code: null
+        })) : [
+          // If no lines exist, create a placeholder item to show PO exists
+          {
+            id: 0,
+            po_id: master.id,
+            item_name: `Items for PO ${master.vendor_po_number}`,
+            quantity: 1,
+            sap_code: null,
+            category: null,
+            subcategory: null,
+            basic_rate: '0.00',
+            gst_rate: '0.00',
+            landing_rate: '0.00',
+            total_litres: null,
+            status: 'Pending',
+            hsn_code: null
+          }
+        ]
+      };
+      
+      result.push(convertedPo);
+    }
+
+    // TODO: Add platform-specific table fetching here if needed
+    // For now, focus on getting unified po_master table working properly
+
     // Sort results by created_at descending  
     result.sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime());
 
     return result;
   }
 
+  // DEBUG: Get raw database data to understand structure  
+  async getRawPoData(id: number): Promise<any> {
+    // Get raw data from po_master table
+    const [masterResult] = await db
+      .select()
+      .from(poMaster)
+      .where(eq(poMaster.id, id))
+      .limit(1);
+
+    if (!masterResult) return null;
+
+    // Get raw data from po_lines table
+    const linesResult = await db
+      .select()
+      .from(poLines)
+      .where(eq(poLines.po_id, id));
+
+    return {
+      po_master: masterResult,
+      po_lines: linesResult,
+      summary: {
+        total_fields_in_po_master: Object.keys(masterResult).length,
+        po_master_fields: Object.keys(masterResult),
+        total_lines: linesResult.length,
+        po_lines_sample_fields: linesResult.length > 0 ? Object.keys(linesResult[0]) : []
+      }
+    };
+  }
+
   async getPoById(id: number): Promise<(Omit<PfPo, 'platform'> & { platform: PfMst; orderItems: PfOrderItems[] }) | undefined> {
+    // First try to find in po_master table (new structure)
+    const masterPoResult = await db
+      .select({
+        master: poMaster,
+        platform: pfMst,
+        distributor: distributors,
+        state: states,
+        district: districts
+      })
+      .from(poMaster)
+      .leftJoin(pfMst, eq(poMaster.platform_id, pfMst.id))
+      .leftJoin(distributors, eq(poMaster.distributor_id, distributors.id))
+      .leftJoin(states, eq(poMaster.state_id, states.id))
+      .leftJoin(districts, eq(poMaster.district_id, districts.id))
+      .where(eq(poMaster.id, id))
+      .limit(1);
+
+    if (masterPoResult.length > 0) {
+      const { master, platform, distributor, state, district } = masterPoResult[0];
+      if (!platform) return undefined;
+
+      // Get the line items for this PO
+      const lines = await db
+        .select({
+          line: poLines,
+          platformItem: pfItemMst
+        })
+        .from(poLines)
+        .leftJoin(pfItemMst, eq(poLines.platform_product_code_id, pfItemMst.id))
+        .where(eq(poLines.po_id, master.id));
+
+      // Convert po_master format to pf_po format for compatibility
+      const convertedPo = {
+        id: master.id,
+        po_number: master.vendor_po_number,
+        company: "JIVO MART", // Default company name
+        company_id: master.company_id, // Include company ID for editing
+        platform: platform,
+        serving_distributor: distributor?.name || null,
+        distributor_id: master.distributor_id, // Include distributor ID for editing
+        series: master.series, // Include series for editing (e.g., "PO")
+        po_date: master.po_date,
+        delivery_date: master.delivery_date, // Include delivery date for editing
+        expiry_date: master.expiry_date,
+        appointment_date: master.appointment_date,
+        region: master.region,
+        state: state?.statename || null,
+        state_id: master.state_id, // Include state ID for editing
+        city: district?.district || null,
+        district_id: master.district_id, // Include district ID for editing
+        area: master.area,
+        dispatch_from: master.dispatch_from,
+        ware_house: master.ware_house,
+        warehouse: master.ware_house,
+        status: master.status_id === 1 ? "OPEN" : master.status_id === 2 ? "INVOICED" : "OPEN", // Map status_id to status string
+        status_id: master.status_id, // Include status ID for editing
+        created_by: master.created_by, // Include created_by for editing
+        comments: null, // Not stored in po_master currently
+        created_at: master.create_on,
+        updated_at: master.updated_on,
+        order_date: master.po_date,
+        orderItems: lines.length > 0 ? lines.map(({ line, platformItem }) => ({
+          id: line.id,
+          po_id: line.po_id,
+          item_name: platformItem?.pf_itemname || `Product ID: ${line.platform_product_code_id}`,
+          quantity: parseInt(line.quantity || '0'),
+          sap_code: platformItem?.pf_itemcode || '',
+          platform_code: platformItem?.pf_itemcode || '',
+          uom: line.uom || 'PCS',
+          basic_rate: line.basic_amount || '0.00',
+          gst_rate: line.tax || '0.00',
+          landing_rate: line.landing_amount || '0.00',
+          boxes: line.boxes,
+          unit_size_ltrs: parseFloat(line.total_liter || '0'),
+          loose_qty: null,
+          total_ltrs: parseFloat(line.total_liter || '0'),
+          hsn_code: null,
+          status: 'Pending',
+          // Invoice fields from po_lines
+          invoice_date: line.invoice_date,
+          invoice_litre: line.invoice_litre ? parseFloat(line.invoice_litre) : null,
+          invoice_amount: line.invoice_amount ? parseFloat(line.invoice_amount) : null,
+          invoice_qty: line.invoice_qty ? parseFloat(line.invoice_qty) : null
+        })) : []
+      };
+
+      return convertedPo as any;
+    }
+
+    // Fallback to original pf_po table lookup
     const [result] = await db
       .select({
         po: pfPo,
@@ -646,6 +917,100 @@ export class DatabaseStorage implements IStorage {
     }
     
     return updatedItem;
+  }
+
+  // Generic PO Master and Lines methods
+  async getAllPoMasters(): Promise<(PoMaster & { platform: PfMst; poLines: PoLines[] })[]> {
+    const masters = await db.select().from(poMaster).orderBy(desc(poMaster.create_on));
+    
+    const result = [];
+    for (const master of masters) {
+      // Get platform information
+      const platform = await db.select().from(pfMst).where(eq(pfMst.id, master.platform_id)).limit(1);
+      
+      // Get associated po lines
+      const lines = await db.select().from(poLines).where(eq(poLines.po_id, master.id));
+      
+      result.push({
+        ...master,
+        platform: platform[0],
+        poLines: lines
+      });
+    }
+    
+    return result;
+  }
+  
+  async getPoMasterById(id: number): Promise<(PoMaster & { platform: PfMst; poLines: PoLines[] }) | undefined> {
+    const master = await db.select().from(poMaster).where(eq(poMaster.id, id)).limit(1);
+    if (!master[0]) return undefined;
+    
+    // Get platform information
+    const platform = await db.select().from(pfMst).where(eq(pfMst.id, master[0].platform_id)).limit(1);
+    
+    // Get associated po lines
+    const lines = await db.select().from(poLines).where(eq(poLines.po_id, id));
+    
+    return {
+      ...master[0],
+      platform: platform[0],
+      poLines: lines
+    };
+  }
+  
+  async getPoMasterByNumber(poNumber: string): Promise<PoMaster | undefined> {
+    const masters = await db.select().from(poMaster).where(eq(poMaster.vendor_po_number, poNumber)).limit(1);
+    return masters[0];
+  }
+  
+  async createPoMaster(master: InsertPoMaster, lines: InsertPoLines[]): Promise<PoMaster> {
+    return await db.transaction(async (tx) => {
+      const [createdMaster] = await tx.insert(poMaster).values(master).returning();
+      
+      if (lines.length > 0) {
+        const linesWithMasterId = lines.map((line) => ({
+          ...line,
+          po_id: createdMaster.id
+        }));
+        await tx.insert(poLines).values(linesWithMasterId);
+      }
+      
+      return createdMaster;
+    });
+  }
+  
+  async updatePoMaster(id: number, master: Partial<InsertPoMaster>, lines?: InsertPoLines[]): Promise<PoMaster> {
+    return await db.transaction(async (tx) => {
+      const [updatedMaster] = await tx
+        .update(poMaster)
+        .set({ ...master, updated_on: new Date() })
+        .where(eq(poMaster.id, id))
+        .returning();
+      
+      if (!updatedMaster) {
+        throw new Error('PO Master not found');
+      }
+      
+      if (lines) {
+        // Delete existing lines
+        await tx.delete(poLines).where(eq(poLines.po_id, id));
+        
+        // Insert new lines
+        if (lines.length > 0) {
+          const linesWithMasterId = lines.map((line) => ({
+            ...line,
+            po_id: id
+          }));
+          await tx.insert(poLines).values(linesWithMasterId);
+        }
+      }
+      
+      return updatedMaster;
+    });
+  }
+  
+  async deletePoMaster(id: number): Promise<void> {
+    await db.delete(poMaster).where(eq(poMaster.id, id));
   }
 
   // Flipkart Grocery PO methods
@@ -1067,6 +1432,319 @@ export class DatabaseStorage implements IStorage {
     await db.delete(distributorMst).where(eq(distributorMst.id, id));
   }
 
+  // State and District methods for dynamic dropdowns (using original tables)
+  async getAllStates(): Promise<States[]> {
+    return await db.select().from(states).orderBy(states.statename);
+  }
+
+  async getDistrictsByStateId(stateId: number): Promise<Districts[]> {
+    return await db.select().from(districts).where(eq(districts.state_id, stateId)).orderBy(districts.district);
+  }
+
+  async getAllDistributorsFromOriginalTable(): Promise<Distributors[]> {
+    return await db.select().from(distributors).orderBy(distributors.name);
+  }
+
+  // Status methods
+  async getAllStatuses(): Promise<Statuses[]> {
+    return await db.select().from(statuses).where(eq(statuses.is_active, true)).orderBy(statuses.status_name);
+  }
+
+  async getAllStatusItems(): Promise<StatusItem[]> {
+    return await db.select().from(statusItem).where(eq(statusItem.is_active, true)).orderBy(statusItem.status_name);
+  }
+
+  // Items methods - using raw SQL to match actual table structure
+  async getAllItems(): Promise<any[]> {
+    const result = await db.execute(sql`
+      SELECT itemcode, itemname, itmsgrpnam, u_type, u_variety, 
+             u_sub_group, u_brand, invntryuom, salpackun, u_islitre, u_tax_rate
+      FROM items 
+      ORDER BY itemname
+    `);
+    return result.rows;
+  }
+
+  async searchItems(query: string): Promise<any[]> {
+    const result = await db.execute(sql`
+      SELECT itemcode, itemname, itmsgrpnam, u_type, u_variety, 
+             u_sub_group, u_brand, invntryuom, salpackun, u_islitre, u_tax_rate
+      FROM items 
+      WHERE itemname ILIKE ${`%${query}%`}
+      ORDER BY itemname
+      LIMIT 100
+    `);
+    return result.rows;
+  }
+
+  async getItemByCode(itemcode: string): Promise<any | undefined> {
+    const result = await db.execute(sql`
+      SELECT itemcode, itemname, itmsgrpnam, u_type, u_variety, 
+             u_sub_group, u_brand, invntryuom, salpackun, u_islitre, u_tax_rate
+      FROM items 
+      WHERE itemcode = ${itemcode}
+      LIMIT 1
+    `);
+    return result.rows[0];
+  }
+
+  async getItemByName(itemname: string): Promise<any | undefined> {
+    const result = await db.execute(sql`
+      SELECT itemcode, itemname, itmsgrpnam, u_type, u_variety, 
+             u_sub_group, u_brand, invntryuom, salpackun, u_islitre, u_tax_rate
+      FROM items 
+      WHERE itemname ILIKE ${itemname}
+      LIMIT 1
+    `);
+    return result.rows[0];
+  }
+
+  async createItem(item: InsertItems): Promise<Items> {
+    const result = await db.insert(items).values(item).returning();
+    return result[0];
+  }
+
+  async updateItem(itemcode: string, item: Partial<InsertItems>): Promise<Items> {
+    const result = await db.update(items)
+      .set({ ...item, updated_at: new Date() })
+      .where(eq(items.itemcode, itemcode))
+      .returning();
+    return result[0];
+  }
+
+  async syncItemsFromHana(hanaItems: any[]): Promise<number> {
+    let syncedCount = 0;
+    
+    for (const hanaItem of hanaItems) {
+      try {
+        // Map HANA fields to our items table structure
+        const itemData: InsertItems = {
+          itemcode: hanaItem.ItemCode || '',
+          itemname: hanaItem.ItemName || '',
+          itemgroup: hanaItem.ItmsGrpNam || hanaItem.ItemGroup || null,
+          type: hanaItem.U_TYPE || null,
+          variety: hanaItem.U_Variety || null,
+          subgroup: hanaItem.U_Sub_Group || hanaItem.SubGroup || null,
+          brand: hanaItem.U_Brand || hanaItem.Brand || null,
+          uom: hanaItem.InvntryUom || hanaItem.UOM || hanaItem.UnitOfMeasure || null,
+          taxrate: hanaItem.U_Tax_Rate ? parseFloat(hanaItem.U_Tax_Rate) : (hanaItem.TaxRate ? parseFloat(hanaItem.TaxRate.toString()) : null),
+          unitsize: hanaItem.U_IsLitre || hanaItem.UnitSize?.toString() || null,
+          is_litre: hanaItem.U_IsLitre === 'Y' || hanaItem.IsLitre === true || false,
+          case_pack: hanaItem.SalPackUn || hanaItem.CasePack || null,
+          basic_rate: hanaItem.BasicRate ? hanaItem.BasicRate.toString() : null,
+          landing_rate: hanaItem.LandingRate ? hanaItem.LandingRate.toString() : null,
+          mrp: hanaItem.MRP ? hanaItem.MRP.toString() : null,
+          last_synced: new Date()
+        };
+
+        // Check if item already exists
+        const existingItem = await this.getItemByCode(itemData.itemcode);
+        
+        if (existingItem) {
+          // Update existing item
+          await this.updateItem(itemData.itemcode, itemData);
+        } else {
+          // Create new item
+          await this.createItem(itemData);
+        }
+        
+        syncedCount++;
+      } catch (error) {
+        console.error(`Error syncing item ${hanaItem.ItemCode}:`, error);
+      }
+    }
+    
+    return syncedCount;
+  }
+
+  async seedStatusTables(): Promise<void> {
+    try {
+      // Seed PO statuses
+      const poStatusData = [
+        { status_name: 'OPEN', description: 'Purchase order is open and active', is_active: true },
+        { status_name: 'CLOSED', description: 'Purchase order is closed/completed', is_active: true },
+        { status_name: 'CANCELLED', description: 'Purchase order has been cancelled', is_active: true },
+        { status_name: 'EXPIRED', description: 'Purchase order has expired', is_active: true },
+        { status_name: 'DUPLICATE', description: 'Purchase order is marked as duplicate', is_active: true },
+        { status_name: 'INVOICED', description: 'Purchase order has been invoiced', is_active: true }
+      ];
+
+      for (const status of poStatusData) {
+        try {
+          await db.insert(statuses).values(status);
+        } catch (error: any) {
+          if (error.code !== '23505') { // Ignore unique constraint violations
+            throw error;
+          }
+        }
+      }
+
+      // Seed item statuses
+      const itemStatusData = [
+        { 
+          status_name: 'PENDING', 
+          description: 'Item is pending processing', 
+          requires_invoice_fields: false, 
+          requires_dispatch_date: false, 
+          requires_delivery_date: false, 
+          is_active: true 
+        },
+        { 
+          status_name: 'DISPATCHED', 
+          description: 'Item has been dispatched', 
+          requires_invoice_fields: false, 
+          requires_dispatch_date: true, 
+          requires_delivery_date: false, 
+          is_active: true 
+        },
+        { 
+          status_name: 'DELIVERED', 
+          description: 'Item has been delivered', 
+          requires_invoice_fields: false, 
+          requires_dispatch_date: true, 
+          requires_delivery_date: true, 
+          is_active: true 
+        },
+        { 
+          status_name: 'INVOICED', 
+          description: 'Item has been invoiced', 
+          requires_invoice_fields: true, 
+          requires_dispatch_date: false, 
+          requires_delivery_date: false, 
+          is_active: true 
+        },
+        { 
+          status_name: 'CANCELLED', 
+          description: 'Item has been cancelled', 
+          requires_invoice_fields: false, 
+          requires_dispatch_date: false, 
+          requires_delivery_date: false, 
+          is_active: true 
+        },
+        { 
+          status_name: 'STOCK_ISSUE', 
+          description: 'Item has stock issues', 
+          requires_invoice_fields: false, 
+          requires_dispatch_date: false, 
+          requires_delivery_date: false, 
+          is_active: true 
+        },
+        { 
+          status_name: 'RECEIVED', 
+          description: 'Item has been received', 
+          requires_invoice_fields: false, 
+          requires_dispatch_date: false, 
+          requires_delivery_date: false, 
+          is_active: true 
+        },
+        { 
+          status_name: 'PARTIAL', 
+          description: 'Item partially fulfilled', 
+          requires_invoice_fields: false, 
+          requires_dispatch_date: false, 
+          requires_delivery_date: false, 
+          is_active: true 
+        }
+      ];
+
+      for (const status of itemStatusData) {
+        try {
+          await db.insert(statusItem).values(status);
+        } catch (error: any) {
+          if (error.code !== '23505') { // Ignore unique constraint violations
+            throw error;
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error seeding status tables:', error);
+      throw error;
+    }
+  }
+
+  async createStatusTables(): Promise<void> {
+    try {
+      // Create statuses table with raw SQL
+      await db.execute(sql`
+        CREATE TABLE IF NOT EXISTS statuses (
+          id SERIAL PRIMARY KEY,
+          status_name VARCHAR(50) NOT NULL UNIQUE,
+          description TEXT,
+          is_active BOOLEAN DEFAULT TRUE,
+          created_at TIMESTAMP DEFAULT NOW(),
+          updated_at TIMESTAMP DEFAULT NOW()
+        )
+      `);
+
+      // Create status_item table with raw SQL
+      await db.execute(sql`
+        CREATE TABLE IF NOT EXISTS status_item (
+          id SERIAL PRIMARY KEY,
+          status_name VARCHAR(50) NOT NULL UNIQUE,
+          description TEXT,
+          requires_invoice_fields BOOLEAN DEFAULT FALSE,
+          requires_dispatch_date BOOLEAN DEFAULT FALSE,
+          requires_delivery_date BOOLEAN DEFAULT FALSE,
+          is_active BOOLEAN DEFAULT TRUE,
+          created_at TIMESTAMP DEFAULT NOW(),
+          updated_at TIMESTAMP DEFAULT NOW()
+        )
+      `);
+
+      // Seed the data
+      await this.seedStatusTables();
+    } catch (error) {
+      console.error('Error creating status tables:', error);
+      throw error;
+    }
+  }
+
+  async checkTableStructure(): Promise<any> {
+    try {
+      // Check if statuses table exists and its structure
+      const statusesInfo = await db.execute(sql`
+        SELECT column_name, data_type, is_nullable 
+        FROM information_schema.columns 
+        WHERE table_name = 'statuses' AND table_schema = 'public'
+        ORDER BY ordinal_position
+      `);
+
+      // Check if status_item table exists and its structure  
+      const statusItemInfo = await db.execute(sql`
+        SELECT column_name, data_type, is_nullable 
+        FROM information_schema.columns 
+        WHERE table_name = 'status_item' AND table_schema = 'public'
+        ORDER BY ordinal_position
+      `);
+
+      // Check if status_items table exists (plural form)
+      const statusItemsInfo = await db.execute(sql`
+        SELECT column_name, data_type, is_nullable 
+        FROM information_schema.columns 
+        WHERE table_name = 'status_items' AND table_schema = 'public'
+        ORDER BY ordinal_position
+      `);
+
+      return {
+        statuses: {
+          exists: statusesInfo.rows.length > 0,
+          columns: statusesInfo.rows
+        },
+        status_item: {
+          exists: statusItemInfo.rows.length > 0,
+          columns: statusItemInfo.rows
+        },
+        status_items: {
+          exists: statusItemsInfo.rows.length > 0,
+          columns: statusItemsInfo.rows
+        }
+      };
+    } catch (error) {
+      console.error('Error checking table structure:', error);
+      throw error;
+    }
+  }
+
   // Distributor PO methods
   async getAllDistributorPos(): Promise<(Omit<DistributorPo, 'distributor_id'> & { distributor: DistributorMst; orderItems: DistributorOrderItems[] })[]> {
     const pos = await db.select().from(distributorPo).orderBy(desc(distributorPo.created_at));
@@ -1194,12 +1872,35 @@ export class DatabaseStorage implements IStorage {
   }
 
   // BigBasket PO methods
-  async getAllBigbasketPos(): Promise<BigbasketPoHeader[]> {
-    return await db.select().from(bigbasketPoHeader).orderBy(desc(bigbasketPoHeader.created_at));
+  async getAllBigbasketPos(): Promise<(BigbasketPoHeader & { poLines: BigbasketPoLines[] })[]> {
+    const pos = await db.select().from(bigbasketPoHeader).orderBy(desc(bigbasketPoHeader.created_at));
+    
+    const result = [];
+    for (const po of pos) {
+      const poLines = await db.select().from(bigbasketPoLines).where(eq(bigbasketPoLines.po_id, po.id));
+      result.push({
+        ...po,
+        poLines
+      });
+    }
+    
+    return result;
   }
 
-  async getBigbasketPoById(id: number): Promise<BigbasketPoHeader | undefined> {
+  async getBigbasketPoById(id: number): Promise<(BigbasketPoHeader & { poLines: BigbasketPoLines[] }) | undefined> {
     const [po] = await db.select().from(bigbasketPoHeader).where(eq(bigbasketPoHeader.id, id));
+    if (!po) return undefined;
+    
+    const poLines = await db.select().from(bigbasketPoLines).where(eq(bigbasketPoLines.po_id, po.id));
+    
+    return {
+      ...po,
+      poLines
+    };
+  }
+
+  async getBigbasketPoByNumber(poNumber: string): Promise<BigbasketPoHeader | undefined> {
+    const [po] = await db.select().from(bigbasketPoHeader).where(eq(bigbasketPoHeader.po_number, poNumber));
     return po || undefined;
   }
 
@@ -1216,13 +1917,27 @@ export class DatabaseStorage implements IStorage {
     });
   }
 
-  async updateBigbasketPo(id: number, po: Partial<InsertBigbasketPoHeader>): Promise<BigbasketPoHeader | undefined> {
-    const [updated] = await db
-      .update(bigbasketPoHeader)
-      .set({ ...po, updated_at: new Date() })
-      .where(eq(bigbasketPoHeader.id, id))
-      .returning();
-    return updated;
+  async updateBigbasketPo(id: number, header: Partial<InsertBigbasketPoHeader>, lines?: InsertBigbasketPoLines[]): Promise<BigbasketPoHeader> {
+    return await db.transaction(async (tx) => {
+      // Update header
+      const [updated] = await tx
+        .update(bigbasketPoHeader)
+        .set({ ...header, updated_at: new Date() })
+        .where(eq(bigbasketPoHeader.id, id))
+        .returning();
+      
+      // If lines are provided, replace all existing lines
+      if (lines && lines.length > 0) {
+        // Delete existing lines
+        await tx.delete(bigbasketPoLines).where(eq(bigbasketPoLines.po_id, id));
+        
+        // Insert new lines
+        const linesWithPoId = lines.map(line => ({ ...line, po_id: id }));
+        await tx.insert(bigbasketPoLines).values(linesWithPoId);
+      }
+      
+      return updated;
+    });
   }
 
   async deleteBigbasketPo(id: number): Promise<void> {
@@ -1566,7 +2281,7 @@ export class DatabaseStorage implements IStorage {
     return await db.insert(scZeptoJmDaily).values(items).returning();
   }
 
-  async createScZeptoJmRange(items: InsertZeptoSecondarySalesItem[]): Promise<ZeptoSecondarySalesItem[]> {
+  async createScZeptoJmRange(items: InsertZeptoSecondarySalesRangeItem[]): Promise<ZeptoSecondarySalesRangeItem[]> {
     return await db.insert(scZeptoJmRange).values(items).returning();
   }
 
@@ -1574,7 +2289,7 @@ export class DatabaseStorage implements IStorage {
     return await db.insert(scBlinkitJmDaily).values(items).returning();
   }
 
-  async createScBlinkitJmRange(items: InsertBlinkitSecondarySalesItem[]): Promise<BlinkitSecondarySalesItem[]> {
+  async createScBlinkitJmRange(items: InsertBlinkitSecondarySalesRangeItem[]): Promise<BlinkitSecondarySalesRangeItem[]> {
     return await db.insert(scBlinkitJmRange).values(items).returning();
   }
 
@@ -1582,7 +2297,7 @@ export class DatabaseStorage implements IStorage {
     return await db.insert(scSwiggyJmDaily).values(items).returning();
   }
 
-  async createScSwiggyJmRange(items: InsertSwiggySecondarySalesItem[]): Promise<SwiggySecondarySalesItem[]> {
+  async createScSwiggyJmRange(items: InsertSwiggySecondarySalesRangeItem[]): Promise<SwiggySecondarySalesRangeItem[]> {
     return await db.insert(scSwiggyJmRange).values(items).returning();
   }
 
@@ -1590,7 +2305,7 @@ export class DatabaseStorage implements IStorage {
     return await db.insert(scJioMartSaleJmDaily).values(items).returning();
   }
 
-  async createScJioMartSaleJmRange(items: InsertJioMartSaleSecondarySalesItem[]): Promise<JioMartSaleSecondarySalesItem[]> {
+  async createScJioMartSaleJmRange(items: InsertJioMartSaleSecondarySalesRangeItem[]): Promise<JioMartSaleSecondarySalesRangeItem[]> {
     return await db.insert(scJioMartSaleJmRange).values(items).returning();
   }
 
@@ -1598,7 +2313,7 @@ export class DatabaseStorage implements IStorage {
     return await db.insert(scJioMartCancelJmDaily).values(items).returning();
   }
 
-  async createScJioMartCancelJmRange(items: InsertJioMartCancelSecondarySalesItem[]): Promise<JioMartCancelSecondarySalesItem[]> {
+  async createScJioMartCancelJmRange(items: InsertJioMartCancelSecondarySalesRangeItem[]): Promise<JioMartCancelSecondarySalesRangeItem[]> {
     return await db.insert(scJioMartCancelJmRange).values(items).returning();
   }
 
@@ -1606,7 +2321,7 @@ export class DatabaseStorage implements IStorage {
     return await db.insert(scBigBasketJmDaily).values(items).returning();
   }
 
-  async createScBigBasketJmRange(items: InsertBigBasketSecondarySalesItem[]): Promise<BigBasketSecondarySalesItem[]> {
+  async createScBigBasketJmRange(items: InsertBigBasketSecondarySalesRangeItem[]): Promise<BigBasketSecondarySalesRangeItem[]> {
     return await db.insert(scBigBasketJmRange).values(items).returning();
   }
 
@@ -1632,11 +2347,11 @@ export class DatabaseStorage implements IStorage {
     return undefined;
   }
 
-  async createInventoryJioMartJmDaily(items: InsertInvJioMartJmDaily[]): Promise<InvJioMartJmDaily[]> {
+  async createInventoryJioMartJmDaily(items: InsertJioMartInventoryItem[]): Promise<JioMartInventoryItem[]> {
     return await db.insert(invJioMartJmDaily).values(items).returning();
   }
 
-  async createInventoryJioMartJmRange(items: InsertInvJioMartJmRange[]): Promise<InvJioMartJmRange[]> {
+  async createInventoryJioMartJmRange(items: InsertJioMartInventoryRangeItem[]): Promise<JioMartInventoryRangeItem[]> {
     return await db.insert(invJioMartJmRange).values(items).returning();
   }
 
@@ -1671,7 +2386,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Swiggy Inventory JM Range
-  async createInventorySwiggyJmRange(items: any[]): Promise<SwiggyInventoryItem[]> {
+  async createInventorySwiggyJmRange(items: any[]): Promise<SwiggyInventoryRange[]> {
     return await db.insert(invSwiggyJmRange).values(items).returning();
   }
 
@@ -1715,6 +2430,361 @@ export class DatabaseStorage implements IStorage {
     // Try to delete from both tables
     await db.delete(invJioMartJmDaily).where(eq(invJioMartJmDaily.id, id));
     await db.delete(invJioMartJmRange).where(eq(invJioMartJmRange.id, id));
+  }
+
+  // Helper method to map item status string to status ID
+  private mapItemStatusToId(status?: string): number {
+    if (!status) return 1; // Default to PENDING
+    
+    const statusMap: Record<string, number> = {
+      'PENDING': 1,
+      'INVOICED': 2,
+      'DISPATCHED': 3,
+      'DELIVERED': 4
+    };
+    
+    return statusMap[status.toUpperCase()] || 1;
+  }
+
+  // Method to update PO in existing po_master and po_lines tables
+  async updatePoInExistingTables(poId: number, masterData: any, linesData: any[]): Promise<any> {
+    return await db.transaction(async (tx) => {
+      // Build update object with only provided fields
+      const updateData: any = {
+        updated_on: new Date()
+      };
+      
+      if (masterData.platform_id !== undefined) updateData.platform_id = masterData.platform_id;
+      if (masterData.po_number) updateData.vendor_po_number = masterData.po_number;
+      
+      // Handle distributor mapping - convert name to ID if serving_distributor is provided
+      if (masterData.serving_distributor !== undefined) {
+        if (masterData.serving_distributor) {
+          try {
+            const distributor = await tx
+              .select({ id: distributorMst.id })
+              .from(distributorMst)
+              .where(eq(distributorMst.distributor_name, masterData.serving_distributor))
+              .limit(1);
+            
+            if (distributor.length > 0) {
+              updateData.distributor_id = distributor[0].id;
+              console.log(`🔍 UPDATE: Found distributor ID ${distributor[0].id} for name "${masterData.serving_distributor}"`);
+            } else {
+              console.log(`⚠️ UPDATE WARNING: Distributor "${masterData.serving_distributor}" not found, keeping existing distributor`);
+            }
+          } catch (error) {
+            console.error("Error looking up distributor during update:", error);
+          }
+        } else {
+          // If serving_distributor is explicitly null/empty, set to default
+          updateData.distributor_id = 1;
+        }
+      } else if (masterData.distributor_id !== undefined) {
+        updateData.distributor_id = masterData.distributor_id;
+      }
+      if (masterData.po_date) updateData.po_date = new Date(masterData.po_date);
+      // Handle status mapping - accept both status string and status_id
+      if (masterData.status_id !== undefined) {
+        updateData.status_id = masterData.status_id;
+      } else if (masterData.status) {
+        // Map status strings to status_id
+        updateData.status_id = masterData.status === "INVOICED" ? 2 : 1;
+      }
+      if (masterData.region) updateData.region = masterData.region;
+      if (masterData.area) updateData.area = masterData.area;
+      if (masterData.state_id !== undefined) updateData.state_id = masterData.state_id;
+      if (masterData.district_id !== undefined) updateData.district_id = masterData.district_id;
+      if (masterData.dispatch_from !== undefined) updateData.dispatch_from = masterData.dispatch_from;
+      if (masterData.warehouse !== undefined) updateData.ware_house = masterData.warehouse;
+      if (masterData.appointment_date !== undefined) {
+        updateData.appointment_date = masterData.appointment_date ? new Date(masterData.appointment_date) : null;
+      }
+      if (masterData.expiry_date !== undefined) {
+        updateData.expiry_date = masterData.expiry_date ? new Date(masterData.expiry_date) : null;
+      }
+      
+      // Update po_master table
+      const [updatedMaster] = await tx
+        .update(poMaster)
+        .set(updateData)
+        .where(eq(poMaster.id, poId))
+        .returning();
+      
+      // Delete existing po_lines for this PO
+      await tx.delete(poLines).where(eq(poLines.po_id, poId));
+      
+      // Insert updated lines
+      if (linesData.length > 0) {
+        const mappedLines = [];
+        
+        for (const line of linesData) {
+          let platformProductCodeId = 1; // Default fallback
+          
+          // Try to find the platform item by platform_code or sap_code
+          if (line.platform_code || line.sap_code) {
+            const platformItem = await tx
+              .select({ id: pfItemMst.id })
+              .from(pfItemMst)
+              .where(
+                line.platform_code 
+                  ? eq(pfItemMst.pf_itemcode, line.platform_code)
+                  : eq(pfItemMst.pf_itemcode, line.sap_code)
+              )
+              .limit(1);
+            
+            if (platformItem.length > 0) {
+              platformProductCodeId = platformItem[0].id;
+            }
+          }
+          
+          mappedLines.push({
+            po_id: updatedMaster.id,
+            platform_product_code_id: platformProductCodeId,
+            quantity: line.quantity.toString(),
+            basic_amount: line.basic_amount.toString(),
+            tax: line.tax_percent ? (parseFloat(line.basic_amount.toString()) * parseFloat(line.tax_percent.toString()) / 100).toString() : "0",
+            landing_amount: line.landing_amount ? line.landing_amount.toString() : null,
+            total_amount: line.total_amount.toString(),
+            uom: line.uom || null,
+            total_liter: line.total_ltrs ? line.total_ltrs.toString() : null,
+            boxes: line.boxes ? Math.floor(parseFloat(line.boxes.toString())) : null,
+            // Invoice fields
+            invoice_date: line.invoice_date || null,
+            invoice_litre: line.invoice_litre ? line.invoice_litre.toString() : null,
+            invoice_amount: line.invoice_amount ? line.invoice_amount.toString() : null,
+            invoice_qty: line.invoice_qty ? line.invoice_qty.toString() : null,
+            remark: `${line.item_name} - Platform Code: ${line.platform_code} - SAP Code: ${line.sap_code} - Tax Rate: ${line.tax_percent || 0}%`,
+            status: this.mapItemStatusToId(line.status),
+            delete: false,
+            deleted: false
+          });
+        }
+        
+        console.log("🔍 DEBUG mappedLines before insert:", JSON.stringify(mappedLines, null, 2));
+        
+        // Log tax rate preservation for each line
+        mappedLines.forEach((line, index) => {
+          console.log(`✅ Tax rate preserved for line ${index + 1}: included in remark, calculated tax = ${line.tax}`);
+        });
+        
+        await tx.insert(poLines).values(mappedLines);
+        
+        // Check if all items are delivered and auto-close PO if needed
+        const allItemsDelivered = linesData.every(line => {
+          const status = line.status || "PENDING";
+          return status.toUpperCase() === "DELIVERED";
+        });
+        
+        console.log(`🔍 DEBUG: Checking automatic PO closure - All items delivered: ${allItemsDelivered}`);
+        
+        if (allItemsDelivered && linesData.length > 0) {
+          console.log("✅ All items are delivered, automatically closing PO");
+          // Update PO status to CLOSED (assuming status_id 5 is "CLOSED")
+          const [autoClosedMaster] = await tx
+            .update(poMaster)
+            .set({ 
+              status_id: 5, // CLOSED status
+              updated_on: new Date() 
+            })
+            .where(eq(poMaster.id, poId))
+            .returning();
+          
+          return autoClosedMaster;
+        }
+      }
+      
+      return updatedMaster;
+    });
+  }
+
+  // Method to create PO in existing po_master and po_lines tables
+  async createPoInExistingTables(masterData: any, linesData: any[]): Promise<any> {
+    console.log("🔍 DEBUG createPoInExistingTables - masterData received:", masterData);
+    console.log("🔍 DEBUG state_id:", masterData.state_id, "district_id:", masterData.district_id);
+    
+    return await db.transaction(async (tx) => {
+      // Find distributor ID by name if serving_distributor is provided
+      let distributorId = 1; // Default distributor ID
+      if (masterData.serving_distributor) {
+        try {
+          const distributor = await tx
+            .select({ id: distributors.id })
+            .from(distributors)
+            .where(eq(distributors.name, masterData.serving_distributor))
+            .limit(1);
+          
+          if (distributor.length > 0) {
+            distributorId = distributor[0].id;
+            console.log(`🔍 DEBUG: Found distributor ID ${distributorId} for name "${masterData.serving_distributor}"`);
+          } else {
+            // Check if distributor exists in distributor_mst and create it in distributors table
+            console.log(`⚠️ WARNING: Distributor "${masterData.serving_distributor}" not found in distributors table`);
+            
+            const distributorMstEntry = await tx
+              .select({ id: distributorMst.id, name: distributorMst.distributor_name })
+              .from(distributorMst)
+              .where(eq(distributorMst.distributor_name, masterData.serving_distributor))
+              .limit(1);
+            
+            if (distributorMstEntry.length > 0) {
+              console.log(`🔍 DEBUG: Found distributor in distributor_mst with ID ${distributorMstEntry[0].id}, creating in distributors table`);
+              
+              // Create the distributor in distributors table with the same ID
+              const [createdDistributor] = await tx
+                .insert(distributors)
+                .values({
+                  id: distributorMstEntry[0].id,
+                  name: distributorMstEntry[0].name
+                })
+                .returning();
+              
+              distributorId = createdDistributor.id;
+              console.log(`✅ Created distributor "${masterData.serving_distributor}" in distributors table with ID ${distributorId}`);
+            } else {
+              console.log(`⚠️ WARNING: Distributor "${masterData.serving_distributor}" not found in either table, using default ID 1`);
+            }
+          }
+        } catch (error) {
+          console.error("Error looking up distributor:", error);
+        }
+      }
+
+      // Insert into existing po_master table with mapping
+      const insertValues = {
+        platform_id: masterData.platform_id,
+        vendor_po_number: masterData.po_number,
+        distributor_id: distributorId,
+        series: "PO", // Default series
+        company_id: 6, // Jivo Mart company ID  
+        po_date: new Date(masterData.po_date),
+        status_id: 1, // Default status ID for "OPEN"
+        region: masterData.region,
+        area: masterData.area,
+        state_id: masterData.state_id || null,
+        district_id: masterData.district_id || null,
+        dispatch_from: masterData.dispatch_from || null,
+        ware_house: masterData.warehouse || null,
+        appointment_date: masterData.appointment_date ? new Date(masterData.appointment_date) : null,
+        expiry_date: masterData.expiry_date ? new Date(masterData.expiry_date) : null,
+        created_by: null // Temporary fix: set to null to avoid foreign key constraint error
+      };
+      
+      console.log("🔍 DEBUG insertValues:", insertValues);
+      console.log("🔍 DEBUG specifically - state_id:", insertValues.state_id, "district_id:", insertValues.district_id);
+      
+      const [createdMaster] = await tx.insert(poMaster).values(insertValues).returning();
+      
+      // Insert lines into existing po_lines table with proper item mapping
+      if (linesData.length > 0) {
+        const mappedLines = [];
+        
+        for (const line of linesData) {
+          let platformProductCodeId = 1; // Default fallback
+          
+          // Debug: Log the entire line object
+          console.log(`🔍 DEBUG: Processing line item:`, JSON.stringify(line, null, 2));
+          console.log(`🔍 DEBUG: line.platform_code = "${line.platform_code}", line.sap_code = "${line.sap_code}"`);
+          
+          // Try to find the platform item by platform_code or sap_code
+          if (line.platform_code || line.sap_code) {
+            const searchCode = line.platform_code || line.sap_code;
+            const platformItem = await tx
+              .select({ id: pfItemMst.id })
+              .from(pfItemMst)
+              .where(eq(pfItemMst.pf_itemcode, searchCode))
+              .limit(1);
+            
+            if (platformItem.length > 0) {
+              platformProductCodeId = platformItem[0].id;
+            } else {
+              // Item not found in pf_item_mst, create a new entry
+              console.log(`🔍 Item not found in pf_item_mst for code: ${searchCode}, creating new entry`);
+              
+              // Store full itemcode string directly in sap_id column
+              let sapId = null;
+              console.log(`🔍 DEBUG: About to process sap_code: "${line.sap_code}" (type: ${typeof line.sap_code})`);
+              if (line.sap_code) {
+                // Store the full itemcode string directly
+                sapId = line.sap_code;
+                console.log(`✅ Using full itemcode as sap_id: "${sapId}"`);
+              } else {
+                console.log(`⚠️ No sap_code provided, using default SAP ID: "DEFAULT"`);
+                sapId = "DEFAULT"; // Default fallback SAP ID
+              }
+              
+              console.log(`🔍 DEBUG: Final sapId (full itemcode): "${sapId}"`);
+              
+              // Create new entry in pf_item_mst
+              const newPfItem = {
+                pf_itemcode: line.platform_code || line.sap_code || `ITEM_${Date.now()}`,
+                pf_itemname: line.item_name,
+                pf_id: masterData.platform_id, // Platform ID from master data
+                sap_id: sapId // This now contains the integer representation of the itemcode
+              };
+              
+              console.log(`🚀 Creating new pf_item_mst entry:`, JSON.stringify(newPfItem, null, 2));
+              console.log(`🔍 DEBUG: Original itemcode "${line.sap_code}" stored as sap_id: ${sapId} (type: ${typeof sapId})`);
+              
+              try {
+                const [createdPfItem] = await tx
+                  .insert(pfItemMst)
+                  .values(newPfItem)
+                  .returning({ id: pfItemMst.id });
+                
+                platformProductCodeId = createdPfItem.id;
+                console.log(`✅ Created new pf_item_mst entry with ID: ${platformProductCodeId}`);
+                
+                // Verify the insertion
+                const verification = await tx
+                  .select()
+                  .from(pfItemMst)
+                  .where(eq(pfItemMst.id, platformProductCodeId))
+                  .limit(1);
+                console.log(`🔍 VERIFICATION: pf_item_mst record:`, JSON.stringify(verification[0], null, 2));
+                console.log(`✅ SUCCESS: Full itemcode "${line.sap_code}" is now stored as sap_id = "${verification[0]?.sap_id}"`);
+              } catch (pfItemError) {
+                console.error(`❌ Error creating pf_item_mst entry:`, pfItemError);
+                throw pfItemError; // Re-throw to see the full error
+              }
+            }
+          }
+          
+          mappedLines.push({
+            po_id: createdMaster.id,
+            platform_product_code_id: platformProductCodeId,
+            quantity: line.quantity.toString(),
+            basic_amount: line.basic_amount.toString(),
+            tax: line.tax_percent ? (parseFloat(line.basic_amount.toString()) * parseFloat(line.tax_percent.toString()) / 100).toString() : "0",
+            landing_amount: line.landing_amount ? line.landing_amount.toString() : null,
+            total_amount: line.total_amount.toString(),
+            uom: line.uom || null,
+            total_liter: line.total_ltrs ? line.total_ltrs.toString() : null,
+            boxes: line.boxes ? Math.floor(parseFloat(line.boxes.toString())) : null,
+            // Invoice fields
+            invoice_date: line.invoice_date || null,
+            invoice_litre: line.invoice_litre ? line.invoice_litre.toString() : null,
+            invoice_amount: line.invoice_amount ? line.invoice_amount.toString() : null,
+            invoice_qty: line.invoice_qty ? line.invoice_qty.toString() : null,
+            remark: `${line.item_name} - Platform Code: ${line.platform_code} - SAP Code: ${line.sap_code} - Tax Rate: ${line.tax_percent || 0}%`,
+            status: 1, // Default status ID for pending
+            delete: false,
+            deleted: false
+          });
+        }
+        
+        console.log("🔍 DEBUG mappedLines before insert:", JSON.stringify(mappedLines, null, 2));
+        
+        // Log tax rate preservation for each line
+        mappedLines.forEach((line, index) => {
+          console.log(`✅ Tax rate preserved for line ${index + 1}: included in remark, calculated tax = ${line.tax}`);
+        });
+        
+        await tx.insert(poLines).values(mappedLines);
+      }
+      
+      return createdMaster;
+    });
   }
 
 }

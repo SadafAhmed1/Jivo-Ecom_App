@@ -57,10 +57,7 @@ export default function CityMallPoUpload() {
 
   const savePoMutation = useMutation({
     mutationFn: async (data: ParsedCityMallPO) => {
-      return await apiRequest('/api/city-mall-pos', {
-        method: 'POST',
-        body: JSON.stringify(data)
-      });
+      return await apiRequest('POST', '/api/city-mall-pos', data);
     },
     onSuccess: () => {
       toast({

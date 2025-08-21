@@ -80,7 +80,7 @@ export default function ViewBlinkitPos() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               <div className="space-y-2">
                 <p className="text-sm font-medium text-muted-foreground">Status</p>
-                <Badge className={getStatusColor(selectedPo.status)}>{selectedPo.status}</Badge>
+                <Badge className={getStatusColor(selectedPo.status || 'unknown')}>{selectedPo.status || 'Unknown'}</Badge>
               </div>
               
               <div className="space-y-2">
@@ -241,7 +241,7 @@ export default function ViewBlinkitPos() {
                   <div className="space-y-2">
                     <div className="flex items-center gap-3">
                       <h3 className="text-lg font-semibold">{po.po_number}</h3>
-                      <Badge className={getStatusColor(po.status)}>{po.status}</Badge>
+                      <Badge className={getStatusColor(po.status || 'unknown')}>{po.status || 'Unknown'}</Badge>
                     </div>
                     
                     <div className="flex items-center gap-6 text-sm text-muted-foreground">

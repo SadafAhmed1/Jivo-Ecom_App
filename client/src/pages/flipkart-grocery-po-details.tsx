@@ -23,15 +23,16 @@ import {
   ShoppingCart
 } from "lucide-react";
 import { Link } from "wouter";
+import type { FlipkartGroceryPO, FlipkartGroceryPoLines } from "@/types";
 
 export default function FlipkartGroceryPODetails() {
   const { id } = useParams();
 
-  const { data: po, isLoading, error } = useQuery({
+  const { data: po, isLoading, error } = useQuery<FlipkartGroceryPO>({
     queryKey: [`/api/flipkart-grocery-pos/${id}`],
   });
 
-  const { data: lines, isLoading: linesLoading } = useQuery({
+  const { data: lines, isLoading: linesLoading } = useQuery<FlipkartGroceryPoLines[]>({
     queryKey: [`/api/flipkart-grocery-pos/${id}/lines`],
   });
 
@@ -304,7 +305,7 @@ export default function FlipkartGroceryPODetails() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {lines.map((line: any) => (
+                  {lines.map((line: FlipkartGroceryPoLines) => (
                     <TableRow key={line.id}>
                       <TableCell>
                         <div>

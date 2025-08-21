@@ -20,13 +20,34 @@ async function getPool() {
   return poolPromise;
 }
 
-export async function callSpGetItemDetails(): Promise<any[]> {
+export async function callSpGetItemDetails(itemName?: string): Promise<any[]> {
   try {
     const pool = await getPool();
-    const result = await pool.request().execute("dbo.SP_GET_ITEM_DETAILS");
+    const request = pool.request();
+    
+    // Add parameter if provided
+    if (itemName) {
+      request.input('ItemName', sql.NVarChar(255), itemName);
+    }
+    
+    const result = await request.execute("dbo.SP_GET_ITEM_DETAILS");
     return result.recordset ?? [];
   } catch (error) {
     console.error("Error calling SP_GET_ITEM_DETAILS:", error);
+    throw error;
+  }
+}
+
+// Get all item names for search dropdown
+export async function callSpGetItemNames(): Promise<any[]> {
+  try {
+    const pool = await getPool();
+    const request = pool.request();
+    
+    const result = await request.execute("dbo.SP_GET_ITEM_DETAILS1");
+    return result.recordset ?? [];
+  } catch (error) {
+    console.error("Error calling SP_GET_ITEM_DETAILS1:", error);
     throw error;
   }
 }

@@ -16,6 +16,7 @@ interface DistributorOrderItemWithDetails extends DistributorOrderItems {
   po_number: string;
   distributor_name: string;
   order_date: Date;
+
   expiry_date: Date | null;
   distributor: DistributorMst;
 }
@@ -346,6 +347,7 @@ export function DistributorOrderItemsListView() {
                     <th className="text-left p-4 font-medium">Order Date</th>
                   </tr>
                 </thead>
+                
                 <tbody>
                   {filteredOrderItems.map((item) => {
                     const itemTotal = parseFloat(item.landing_rate || '0') * item.quantity;

@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, integer, decimal, timestamp, boolean, serial } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, integer, decimal, timestamp, boolean, serial, date } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 import { relations } from "drizzle-orm";
@@ -55,6 +55,29 @@ export const sapItemMstApi = pgTable("sap_item_mst_api", {
   updated_at: timestamp("updated_at").defaultNow()
 });
 
+// Items Master Table (unified items from HANA)
+export const items = pgTable("items", {
+  id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
+  itemcode: varchar("itemcode", { length: 50 }).notNull().unique(),
+  itemname: text("itemname").notNull(),
+  itemgroup: varchar("itemgroup", { length: 100 }),
+  type: varchar("type", { length: 50 }),
+  variety: varchar("variety", { length: 100 }),
+  subgroup: varchar("subgroup", { length: 100 }),
+  brand: varchar("brand", { length: 100 }),
+  uom: varchar("uom", { length: 20 }),
+  taxrate: decimal("taxrate", { precision: 5, scale: 2 }),
+  unitsize: varchar("unitsize", { length: 50 }),
+  is_litre: boolean("is_litre").default(false),
+  case_pack: integer("case_pack"),
+  basic_rate: decimal("basic_rate", { precision: 12, scale: 2 }),
+  landing_rate: decimal("landing_rate", { precision: 12, scale: 2 }),
+  mrp: decimal("mrp", { precision: 12, scale: 2 }),
+  last_synced: timestamp("last_synced").defaultNow(),
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow()
+});
+
 // Platform Master Table
 export const pfMst = pgTable("pf_mst", {
   id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
@@ -67,7 +90,7 @@ export const pfItemMst = pgTable("pf_item_mst", {
   pf_itemcode: varchar("pf_itemcode", { length: 100 }).notNull(),
   pf_itemname: text("pf_itemname").notNull(),
   pf_id: integer("pf_id").notNull().references(() => pfMst.id),
-  sap_id: integer("sap_id").notNull().references(() => sapItemMst.id)
+  sap_id: varchar("sap_id", { length: 50 }).notNull() // Changed to varchar to store itemcode directly
 });
 
 // Platform PO Table
@@ -83,6 +106,8 @@ export const pfPo = pgTable("pf_po", {
   state: varchar("state", { length: 50 }),
   city: varchar("city", { length: 100 }),
   area: varchar("area", { length: 100 }),
+  state_id: integer("state_id").references(() => states.id),
+  district_id: integer("district_id").references(() => districts.id),
   status: varchar("status", { length: 20 }).notNull().default('Open'),
   attachment: text("attachment"),
   created_at: timestamp("created_at").defaultNow(),
@@ -103,7 +128,12 @@ export const pfOrderItems = pgTable("pf_order_items", {
   landing_rate: decimal("landing_rate", { precision: 10, scale: 2 }).notNull(),
   total_litres: decimal("total_litres", { precision: 10, scale: 3 }),
   status: varchar("status", { length: 50 }).default('Pending'),
-  hsn_code: varchar("hsn_code", { length: 20 })
+  hsn_code: varchar("hsn_code", { length: 20 }),
+  // Invoice fields
+  invoice_date: date("invoice_date"),
+  invoice_litre: decimal("invoice_litre", { precision: 14, scale: 2 }),
+  invoice_amount: decimal("invoice_amount", { precision: 14, scale: 2 }),
+  invoice_qty: decimal("invoice_qty", { precision: 14, scale: 2 })
 });
 
 // Distributor Master Table (for managing distributor information)
@@ -128,6 +158,7 @@ export const distributorPo = pgTable("distributor_po", {
   id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
   po_number: varchar("po_number", { length: 100 }).notNull().unique(),
   distributor_id: integer("distributor_id").notNull().references(() => distributorMst.id),
+  serving_distributor: varchar("serving_distributor", { length: 200 }),
   order_date: timestamp("order_date").notNull(),
   expiry_date: timestamp("expiry_date"),
   appointment_date: timestamp("appointment_date"),
@@ -194,6 +225,14 @@ export const pfPoRelations = relations(pfPo, ({ one, many }) => ({
     fields: [pfPo.platform],
     references: [pfMst.id]
   }),
+  state: one(states, {
+    fields: [pfPo.state_id],
+    references: [states.id]
+  }),
+  district: one(districts, {
+    fields: [pfPo.district_id],
+    references: [districts.id]
+  }),
   orderItems: many(pfOrderItems)
 }));
 
@@ -234,6 +273,8 @@ export const insertPfOrderItemsSchema = createInsertSchema(pfOrderItems).omit({ 
 // Types
 export type SapItemMst = typeof sapItemMst.$inferSelect;
 export type InsertSapItemMst = z.infer<typeof insertSapItemMstSchema>;
+export type Items = typeof items.$inferSelect;
+export type InsertItems = typeof items.$inferInsert;
 export type PfMst = typeof pfMst.$inferSelect;
 export type InsertPfMst = z.infer<typeof insertPfMstSchema>;
 export type PfItemMst = typeof pfItemMst.$inferSelect;
@@ -1282,15 +1323,40 @@ export const insertSwiggySecondarySalesItemSchema = createInsertSchema(scSwiggyJ
   updated_at: true
 });
 
+// Insert schemas for range tables
+export const insertZeptoSecondarySalesRangeSchema = createInsertSchema(scZeptoJmRange).omit({
+  id: true,
+  created_at: true,
+  updated_at: true
+});
+
+export const insertBlinkitSecondarySalesRangeSchema = createInsertSchema(scBlinkitJmRange).omit({
+  id: true,
+  created_at: true,
+  updated_at: true
+});
+
+export const insertSwiggySecondarySalesRangeSchema = createInsertSchema(scSwiggyJmRange).omit({
+  id: true,
+  created_at: true,
+  updated_at: true
+});
+
 // Types for new secondary sales tables
 export type ZeptoSecondarySalesItem = typeof scZeptoJmDaily.$inferSelect;
 export type InsertZeptoSecondarySalesItem = z.infer<typeof insertZeptoSecondarySalesItemSchema>;
+export type ZeptoSecondarySalesRangeItem = typeof scZeptoJmRange.$inferSelect;
+export type InsertZeptoSecondarySalesRangeItem = z.infer<typeof insertZeptoSecondarySalesRangeSchema>;
 
 export type BlinkitSecondarySalesItem = typeof scBlinkitJmDaily.$inferSelect;
 export type InsertBlinkitSecondarySalesItem = z.infer<typeof insertBlinkitSecondarySalesItemSchema>;
+export type BlinkitSecondarySalesRangeItem = typeof scBlinkitJmRange.$inferSelect;
+export type InsertBlinkitSecondarySalesRangeItem = z.infer<typeof insertBlinkitSecondarySalesRangeSchema>;
 
 export type SwiggySecondarySalesItem = typeof scSwiggyJmDaily.$inferSelect;
 export type InsertSwiggySecondarySalesItem = z.infer<typeof insertSwiggySecondarySalesItemSchema>;
+export type SwiggySecondarySalesRangeItem = typeof scSwiggyJmRange.$inferSelect;
+export type InsertSwiggySecondarySalesRangeItem = z.infer<typeof insertSwiggySecondarySalesRangeSchema>;
 
 // Flipkart Grocery secondary sales tables (2-month range only)
 export const scFlipkartJm2Month = pgTable("SC_FlipKart_JM_2Month", {
@@ -1421,9 +1487,18 @@ export const insertJioMartSaleSecondarySalesItemSchema = createInsertSchema(scJi
   updated_at: true
 });
 
+// Insert schema for Jio Mart Sale Range
+export const insertJioMartSaleSecondarySalesRangeSchema = createInsertSchema(scJioMartSaleJmRange).omit({
+  id: true,
+  created_at: true,
+  updated_at: true
+});
+
 // Types for Jio Mart Sale
 export type JioMartSaleSecondarySalesItem = typeof scJioMartSaleJmDaily.$inferSelect;
 export type InsertJioMartSaleSecondarySalesItem = z.infer<typeof insertJioMartSaleSecondarySalesItemSchema>;
+export type JioMartSaleSecondarySalesRangeItem = typeof scJioMartSaleJmRange.$inferSelect;
+export type InsertJioMartSaleSecondarySalesRangeItem = z.infer<typeof insertJioMartSaleSecondarySalesRangeSchema>;
 
 // Jio Mart Cancel Secondary Sales Tables
 export const scJioMartCancelJmDaily = pgTable("SC_JioMartCancel_JM_Daily", {
@@ -1474,9 +1549,18 @@ export const insertJioMartCancelSecondarySalesItemSchema = createInsertSchema(sc
   updated_at: true
 });
 
+// Insert schema for Jio Mart Cancel Range
+export const insertJioMartCancelSecondarySalesRangeSchema = createInsertSchema(scJioMartCancelJmRange).omit({
+  id: true,
+  created_at: true,
+  updated_at: true
+});
+
 // Types for Jio Mart Cancel
 export type JioMartCancelSecondarySalesItem = typeof scJioMartCancelJmDaily.$inferSelect;
 export type InsertJioMartCancelSecondarySalesItem = z.infer<typeof insertJioMartCancelSecondarySalesItemSchema>;
+export type JioMartCancelSecondarySalesRangeItem = typeof scJioMartCancelJmRange.$inferSelect;
+export type InsertJioMartCancelSecondarySalesRangeItem = z.infer<typeof insertJioMartCancelSecondarySalesRangeSchema>;
 
 // BigBasket Secondary Sales Tables
 export const scBigBasketJmDaily = pgTable("SC_BigBasket_JM_Daily", {
@@ -1527,9 +1611,18 @@ export const insertBigBasketSecondarySalesItemSchema = createInsertSchema(scBigB
   updated_at: true
 });
 
+// Insert schema for BigBasket Range
+export const insertBigBasketSecondarySalesRangeSchema = createInsertSchema(scBigBasketJmRange).omit({
+  id: true,
+  created_at: true,
+  updated_at: true
+});
+
 // Types for BigBasket
 export type BigBasketSecondarySalesItem = typeof scBigBasketJmDaily.$inferSelect;
 export type InsertBigBasketSecondarySalesItem = z.infer<typeof insertBigBasketSecondarySalesItemSchema>;
+export type BigBasketSecondarySalesRangeItem = typeof scBigBasketJmRange.$inferSelect;
+export type InsertBigBasketSecondarySalesRangeItem = z.infer<typeof insertBigBasketSecondarySalesRangeSchema>;
 
 
 
@@ -1596,9 +1689,18 @@ export const insertJioMartInventoryItemSchema = createInsertSchema(invJioMartJmD
   updated_at: true
 });
 
+// Insert schema for Jio Mart Inventory Range
+export const insertInvJioMartJmRangeSchema = createInsertSchema(invJioMartJmRange).omit({
+  id: true,
+  created_at: true,
+  updated_at: true
+});
+
 // Types for Jio Mart Inventory
 export type JioMartInventoryItem = typeof invJioMartJmDaily.$inferSelect;
 export type InsertJioMartInventoryItem = z.infer<typeof insertJioMartInventoryItemSchema>;
+export type JioMartInventoryRangeItem = typeof invJioMartJmRange.$inferSelect;
+export type InsertJioMartInventoryRangeItem = z.infer<typeof insertInvJioMartJmRangeSchema>;
 
 // Blinkit Inventory Tables
 export const invBlinkitJmDaily = pgTable("INV_Blinkit_JM_Daily", {
@@ -1936,9 +2038,17 @@ export const insertSwiggyInventoryItemSchema = createInsertSchema(invSwiggyJmDai
   updated_at: true
 });
 
+export const insertSwiggyInventoryRangeSchema = createInsertSchema(invSwiggyJmRange).omit({
+  id: true,
+  created_at: true,
+  updated_at: true
+});
+
 // Types for Swiggy Inventory
 export type SwiggyInventoryItem = typeof invSwiggyJmDaily.$inferSelect;
 export type InsertSwiggyInventoryItem = z.infer<typeof insertSwiggyInventoryItemSchema>;
+export type SwiggyInventoryRange = typeof invSwiggyJmRange.$inferSelect;
+export type InsertSwiggyInventoryRange = z.infer<typeof insertSwiggyInventoryRangeSchema>;
 
 // Insert schemas for FlipKart Inventory
 export const insertFlipkartInventoryDailySchema = createInsertSchema(invFlipkartJmDaily).omit({
@@ -2076,5 +2186,191 @@ export type BigBasketInventoryDaily = typeof invBigBasketJmDaily.$inferSelect;
 export type InsertBigBasketInventoryDaily = z.infer<typeof insertBigBasketInventoryDailySchema>;
 export type BigBasketInventoryRange = typeof invBigBasketJmRange.$inferSelect;
 export type InsertBigBasketInventoryRange = z.infer<typeof insertBigBasketInventoryRangeSchema>;
+
+// PO Master table - matches existing database structure
+export const poMaster = pgTable("po_master", {
+  id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
+  platform_id: integer("platform_id").notNull(),
+  vendor_po_number: varchar("vendor_po_number", { length: 256 }).notNull(),
+  distributor_id: integer("distributor_id").notNull(),
+  series: varchar("series", { length: 250 }).notNull(),
+  company_id: integer("company_id").notNull(),
+  po_date: timestamp("po_date").notNull(),
+  delivery_date: timestamp("delivery_date"),
+  create_on: timestamp("create_on").notNull().defaultNow(),
+  updated_on: timestamp("updated_on").notNull().defaultNow(),
+  status_id: integer("status_id").notNull(),
+  dispatch_date: timestamp("dispatch_date"),
+  created_by: varchar("created_by", { length: 150 }),
+  dispatch_from: varchar("dispatch_from", { length: 256 }),
+  state_id: integer("state_id"),
+  district_id: integer("district_id"),
+  region: text("region"),
+  area: text("area"),
+  ware_house: varchar("ware_house", { length: 50 }),
+  invoice_date: timestamp("invoice_date"),
+  appointment_date: timestamp("appointment_date"),
+  expiry_date: timestamp("expiry_date")
+});
+
+// Generic PO Lines table for unified purchase order items
+export const poLines = pgTable("po_lines", {
+  id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
+  po_id: integer("po_id").notNull(),
+  platform_product_code_id: integer("platform_product_code_id").notNull(),
+  quantity: decimal("quantity", { precision: 12, scale: 2 }).notNull(),
+  basic_amount: decimal("basic_amount", { precision: 14, scale: 2 }).notNull(),
+  tax: decimal("tax", { precision: 14, scale: 2 }),
+  landing_amount: decimal("landing_amount", { precision: 14, scale: 2 }),
+  total_amount: decimal("total_amount", { precision: 14, scale: 2 }).notNull(),
+  uom: varchar("uom", { length: 50 }),
+  total_liter: decimal("total_liter", { precision: 14, scale: 2 }),
+  boxes: integer("boxes"),
+  remark: text("remark"),
+  invoice_date: date("invoice_date"),
+  invoice_litre: decimal("invoice_litre", { precision: 14, scale: 2 }),
+  invoice_amount: decimal("invoice_amount", { precision: 14, scale: 2 }),
+  invoice_qty: decimal("invoice_qty", { precision: 14, scale: 2 }),
+  dispatch_date: date("dispatch_date"),
+  delivery_date: date("delivery_date"),
+  status: integer("status"),
+  delete: boolean("delete").default(false),
+  deleted: boolean("deleted").default(false)
+});
+
+// Relations for PO Master and Lines (existing tables structure)
+export const poMasterRelations = relations(poMaster, ({ many }) => ({
+  poLines: many(poLines),
+}));
+
+export const poLinesRelations = relations(poLines, ({ one }) => ({
+  poMaster: one(poMaster, {
+    fields: [poLines.po_id],
+    references: [poMaster.id]
+  })
+}));
+
+// Insert schemas for existing PO Master and Lines tables
+export const insertPoMasterSchema = createInsertSchema(poMaster).omit({
+  id: true,
+  create_on: true,
+  updated_on: true
+});
+
+export const insertPoLinesSchema = createInsertSchema(poLines).omit({
+  id: true,
+  po_id: true,  // Auto-generated by backend
+  delete: true,
+  deleted: true
+});
+
+// Types for PO Master and Lines
+export type PoMaster = typeof poMaster.$inferSelect;
+export type InsertPoMaster = z.infer<typeof insertPoMasterSchema>;
+export type PoLines = typeof poLines.$inferSelect;
+export type InsertPoLines = z.infer<typeof insertPoLinesSchema>;
+
+// States Master Table
+export const statesMst = pgTable("states_mst", {
+  id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
+  state_name: varchar("state_name", { length: 100 }).notNull().unique(),
+  state_code: varchar("state_code", { length: 10 }).unique(),
+  region: varchar("region", { length: 50 }),
+  status: varchar("status", { length: 20 }).notNull().default('Active'),
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow()
+});
+
+// Districts Master Table
+export const districtsMst = pgTable("districts_mst", {
+  id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
+  district_name: varchar("district_name", { length: 100 }).notNull(),
+  state_id: integer("state_id").notNull().references(() => statesMst.id),
+  district_code: varchar("district_code", { length: 10 }),
+  status: varchar("status", { length: 20 }).notNull().default('Active'),
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow()
+});
+
+// Status tables
+export const statuses = pgTable("statuses", {
+  id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
+  status_name: varchar("status_name", { length: 50 }).notNull().unique(),
+  description: text("description"),
+  is_active: boolean("is_active").default(true),
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow()
+});
+
+export const statusItem = pgTable("status_item", {
+  id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
+  status_name: varchar("status_name", { length: 50 }).notNull().unique(),
+  description: text("description"),
+  requires_invoice_fields: boolean("requires_invoice_fields").default(false),
+  requires_dispatch_date: boolean("requires_dispatch_date").default(false),
+  requires_delivery_date: boolean("requires_delivery_date").default(false),
+  is_active: boolean("is_active").default(true),
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow()
+});
+
+// Original tables (existing data)
+export const states = pgTable("states", {
+  id: integer("id").primaryKey(),
+  statename: text("statename").notNull(),
+});
+
+export const districts = pgTable("districts", {
+  id: integer("id").primaryKey(),
+  district: text("district").notNull(),
+  state_id: integer("state_id").notNull().references(() => states.id),
+});
+
+export const distributors = pgTable("distributors", {
+  id: integer("id").primaryKey(),
+  name: text("name").notNull(),
+});
+
+// Relations for States and Districts
+export const statesMstRelations = relations(statesMst, ({ many }) => ({
+  districts: many(districtsMst),
+}));
+
+export const districtsMstRelations = relations(districtsMst, ({ one }) => ({
+  state: one(statesMst, {
+    fields: [districtsMst.state_id],
+    references: [statesMst.id]
+  })
+}));
+
+// Insert schemas
+export const insertStatesMstSchema = createInsertSchema(statesMst).omit({
+  id: true,
+  created_at: true,
+  updated_at: true
+});
+
+export const insertDistrictsMstSchema = createInsertSchema(districtsMst).omit({
+  id: true,
+  created_at: true,
+  updated_at: true
+});
+
+// Types
+export type StatesMst = typeof statesMst.$inferSelect;
+export type InsertStatesMst = z.infer<typeof insertStatesMstSchema>;
+export type DistrictsMst = typeof districtsMst.$inferSelect;
+export type InsertDistrictsMst = z.infer<typeof insertDistrictsMstSchema>;
+
+// Types for status tables
+export type Statuses = typeof statuses.$inferSelect;
+export type InsertStatuses = typeof statuses.$inferInsert;
+export type StatusItem = typeof statusItem.$inferSelect;
+export type InsertStatusItem = typeof statusItem.$inferInsert;
+
+// Types for original tables
+export type States = typeof states.$inferSelect;
+export type Districts = typeof districts.$inferSelect;  
+export type Distributors = typeof distributors.$inferSelect;
 
 

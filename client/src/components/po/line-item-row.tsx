@@ -5,10 +5,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useDebounce } from "@/hooks/use-debounce";
+import { sqlService, sqlQueryKeys } from "@/services/sql-service";
 import type { PfItemMst, SapItemMst, PfMst, InsertPfOrderItems } from "@shared/schema";
 
 interface LineItem extends InsertPfOrderItems {
   tempId: string;
+  platform_code?: string;
 }
 
 interface LineItemRowProps {
@@ -16,6 +18,27 @@ interface LineItemRowProps {
   platformId?: number;
   onUpdate: (updates: Partial<LineItem>) => void;
   onRemove: () => void;
+}
+
+interface HanaItem {
+  ItemCode: string;
+  ItemName: string;
+  ItemGroup?: string;
+  ItmsGrpNam?: string;
+  SubGroup?: string;
+  U_Sub_Group?: string;
+  Brand?: string;
+  U_Brand?: string;
+  UOM?: string;
+  InvntryUom?: string;
+  TaxRate?: number;
+  U_Tax_Rate?: string;
+  UnitSize?: string;
+  SalPackUn?: number;
+  CasePack?: number;
+  U_TYPE?: string;
+  U_Variety?: string;
+  U_IsLitre?: string;
 }
 
 interface PlatformItemWithDetails extends PfItemMst {
@@ -49,22 +72,31 @@ export function LineItemRow({ item, platformId, onUpdate, onRemove }: LineItemRo
   // Debounce the search term to avoid too many API calls
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
 
-  // Fetch platform items for search
-  const { data: platformItems = [], isLoading } = useQuery<PlatformItemWithDetails[]>({
-    queryKey: ["/api/platform-items", platformId, debouncedSearchTerm],
+  // Fetch item names for search dropdown
+  const { data: itemNamesResponse, isLoading } = useQuery({
+    queryKey: ['item-names', debouncedSearchTerm],
     queryFn: async () => {
-      const params = new URLSearchParams();
-      if (platformId) params.append('platformId', platformId.toString());
-      if (debouncedSearchTerm) params.append('search', debouncedSearchTerm);
-      
-      const response = await fetch(`/api/platform-items?${params.toString()}`);
-      if (!response.ok) {
-        throw new Error('Failed to fetch platform items');
+      if (!debouncedSearchTerm || debouncedSearchTerm.length < 2) {
+        return [];
       }
-      return response.json();
+      
+      // Use the item-names API to get list of item names
+      const response = await fetch(`/api/item-names?search=${encodeURIComponent(debouncedSearchTerm)}`, {
+        credentials: "include",
+      });
+      
+      if (!response.ok) {
+        console.error('Failed to fetch item names:', response.status);
+        return [];
+      }
+      
+      const data = await response.json();
+      return data || [];
     },
-    enabled: !!platformId && debouncedSearchTerm.length > 0 && isSearching
+    enabled: debouncedSearchTerm.length > 1 && isSearching
   });
+
+  const itemNames = Array.isArray(itemNamesResponse) ? itemNamesResponse : [];
 
   // Handle clicking outside of dropdown
   useEffect(() => {
@@ -97,15 +129,35 @@ export function LineItemRow({ item, platformId, onUpdate, onRemove }: LineItemRo
     }
   }, [item.basic_rate, item.gst_rate, item.landing_rate, onUpdate]);
 
-  const handleItemSelect = (selectedItem: PlatformItemWithDetails) => {
-    onUpdate({
-      item_name: selectedItem.pf_itemname,
-      sap_code: selectedItem.sapItem.itemcode,
-      category: selectedItem.sapItem.itemgroup || "",
-      subcategory: selectedItem.sapItem.subgroup || "",
-      gst_rate: selectedItem.sapItem.taxrate?.toString() || "0"
-    });
-    setSearchTerm(selectedItem.pf_itemname);
+  const handleItemSelect = async (itemName: string) => {
+    // Fetch full item details when an item is selected
+    try {
+      const response = await fetch(`/api/item-details?itemName=${encodeURIComponent(itemName)}`, {
+        credentials: "include",
+      });
+      
+      if (response.ok) {
+        const itemDetails = await response.json();
+        if (itemDetails && itemDetails.length > 0) {
+          const selectedItem = itemDetails[0];
+          
+          // Update all fields with fetched data
+          onUpdate({
+            item_name: itemName,
+            sap_code: selectedItem.ItemCode || "",
+            category: selectedItem.ItmsGrpNam || selectedItem.ItemGroup || "",
+            subcategory: selectedItem.U_Sub_Group || selectedItem.SubGroup || "",
+            gst_rate: selectedItem.U_Tax_Rate || selectedItem.TaxRate?.toString() || "0",
+            // Don't update basic_rate - let user enter it
+            // basic_rate: selectedItem.BasicRate?.toString() || "0",
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching item details:', error);
+    }
+    
+    setSearchTerm(itemName);
     setShowDropdown(false);
     setIsSearching(false);
   };
@@ -121,155 +173,256 @@ export function LineItemRow({ item, platformId, onUpdate, onRemove }: LineItemRo
     setShowDropdown(value.length > 0);
   };
 
+  const itemIndex = parseInt(item.tempId.split('-')[1]) || 1;
+
   return (
-    <tr className="hover:bg-gray-50 dark:hover:bg-gray-900/50 transition-colors">
-      <td className="px-4 py-4">
+    <div className="bg-white border border-slate-200 rounded-lg p-6 shadow-sm hover:shadow-md transition-all duration-300">
+      {/* Header with Item Number and Remove Button */}
+      <div className="flex items-center justify-between mb-6">
+        <div className="bg-blue-500 text-white px-4 py-2 rounded-full text-sm font-semibold">
+          Item #{itemIndex}
+        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={onRemove}
+          className="text-red-500 hover:text-red-700 hover:bg-red-50 border-red-200 hover:border-red-300"
+        >
+          Remove
+        </Button>
+      </div>
+
+      {/* Item Name Search - Full Width */}
+      <div className="mb-6">
+        <label className="block text-sm font-medium text-slate-700 mb-2">
+          ITEM NAME *
+        </label>
         <div className="relative w-full">
           <div className="relative">
             <Input
               ref={inputRef}
               value={searchTerm}
               onChange={(e) => handleSearchInputChange(e.target.value)}
-              placeholder="Search and select item..."
+              placeholder="SEARCH ITEM..."
               onFocus={() => {
                 if (searchTerm.length > 0) {
                   setIsSearching(true);
                   setShowDropdown(true);
                 }
               }}
-              className="w-full pr-8 text-sm"
+              className="w-full pr-10 text-sm border-2 border-slate-200 hover:border-blue-400 focus:border-blue-500 transition-all duration-300 rounded-lg bg-white h-12"
             />
             {isSearching && (
-              <Search className="absolute right-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-blue-500 animate-pulse" />
             )}
           </div>
           
           {showDropdown && (
             <div 
               ref={dropdownRef}
-              className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-xl max-h-60 overflow-y-auto"
+              className="absolute z-50 w-full mt-2 bg-white border border-slate-200 rounded-xl shadow-2xl max-h-64 overflow-y-auto"
             >
-              {isLoading ? (
-                <div className="px-4 py-3 text-center text-gray-500">
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary mx-auto"></div>
-                  <p className="mt-2 text-sm">Searching...</p>
+              {platformId && (
+                <div className="px-4 py-2 bg-blue-50 border-b border-blue-100">
+                  <div className="text-xs font-medium text-blue-600">
+                    Platform-specific catalog (Platform ID: {platformId})
+                  </div>
                 </div>
-              ) : platformItems.length > 0 ? (
-                platformItems.map((platformItem) => (
+              )}
+              {!platformId && (
+                <div className="px-4 py-2 bg-gray-50 border-b border-gray-100">
+                  <div className="text-xs font-medium text-gray-600">
+                    Searching all items from HANA database
+                  </div>
+                </div>
+              )}
+              {isLoading ? (
+                <div className="px-6 py-4 text-center text-blue-600">
+                  <div className="animate-spin rounded-full h-5 w-5 border-2 border-blue-500 border-t-transparent mx-auto"></div>
+                  <p className="mt-2 text-sm font-medium">Searching HANA items...</p>
+                </div>
+              ) : itemNames && itemNames.length > 0 ? (
+                itemNames.map((item, index) => (
                   <div
-                    key={platformItem.id}
-                    className="px-4 py-3 hover:bg-blue-50 cursor-pointer border-b border-gray-100 last:border-b-0 transition-colors"
-                    onClick={() => handleItemSelect(platformItem)}
+                    key={`item-${index}`}
+                    className="px-6 py-4 hover:bg-blue-50 cursor-pointer border-b border-slate-100 last:border-b-0 transition-all duration-200"
+                    onClick={() => handleItemSelect(item.ItemName)}
                   >
-                    <div className="font-medium text-gray-900">{platformItem.pf_itemname}</div>
-                    <div className="text-sm text-gray-600 mt-1">
-                      <span className="font-medium">SAP:</span> {platformItem.sapItem.itemcode} | 
-                      <span className="ml-2">{platformItem.sapItem.itemgroup}</span>
-                      {platformItem.sapItem.taxrate && (
-                        <span className="ml-2 text-green-600">GST: {platformItem.sapItem.taxrate}%</span>
-                      )}
-                    </div>
+                    <div className="font-semibold text-slate-900 text-sm">{item.ItemName}</div>
                   </div>
                 ))
-              ) : debouncedSearchTerm.length > 0 ? (
-                <div className="px-4 py-3 text-center text-gray-500">
-                  No items found for "{debouncedSearchTerm}"
+              ) : debouncedSearchTerm.length > 1 ? (
+                <div className="px-6 py-8 text-center text-slate-500">
+                  <div className="text-sm">No items found for "<span className="font-medium text-slate-700">{debouncedSearchTerm}</span>"</div>
+                  <div className="text-xs mt-1 text-slate-400">
+                    {platformId ? `Platform-specific catalog (ID: ${platformId})` : 'All items'} • HANA DB
+                  </div>
+                </div>
+              ) : debouncedSearchTerm.length === 1 ? (
+                <div className="px-6 py-4 text-center text-slate-400">
+                  <div className="text-sm">Type at least 2 characters to search</div>
                 </div>
               ) : null}
             </div>
           )}
         </div>
-      </td>
-      
-      <td className="px-4 py-4">
-        <Input 
-          value={item.sap_code || ""} 
-          readOnly 
-          className="w-full bg-gray-50 text-sm font-mono"
-        />
-      </td>
-      
-      <td className="px-4 py-4">
-        <Input
-          value={item.category || ""}
-          onChange={(e) => handleInputChange("category", e.target.value)}
-          placeholder="Category"
-          readOnly
-          className="w-full bg-gray-50 text-sm"
-        />
-      </td>
-      
-      <td className="px-4 py-4">
-        <Input
-          type="number"
-          min="1"
-          value={item.quantity || ""}
-          onChange={(e) => handleInputChange("quantity", parseInt(e.target.value) || 0)}
-          placeholder="Qty"
-          className="w-full text-sm text-center"
-        />
-      </td>
-      
-      <td className="px-4 py-4">
-        <Input
-          type="number"
-          step="0.01"
-          value={item.basic_rate || ""}
-          onChange={(e) => handleInputChange("basic_rate", e.target.value)}
-          placeholder="0.00"
-          className="w-full text-sm text-right"
-        />
-      </td>
-      
-      <td className="px-4 py-4">
-        <Input
-          type="number"
-          step="0.01"
-          value={item.gst_rate || ""}
-          onChange={(e) => handleInputChange("gst_rate", e.target.value)}
-          placeholder="18"
-          className="w-full text-sm text-center"
-        />
-      </td>
-      
-      <td className="px-4 py-4">
-        <Input
-          type="number"
-          step="0.01"
-          value={item.landing_rate || ""}
-          readOnly
-          className="w-full bg-gray-50 text-sm text-right font-medium text-green-600"
-        />
-      </td>
-      
-      <td className="px-4 py-4">
-        <div className="flex items-center justify-center space-x-1">
-          <Select
-            value={item.status || "Pending"}
-            onValueChange={(value) => handleInputChange("status", value)}
-          >
-            <SelectTrigger className="w-24 text-xs">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {itemStatusOptions.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onRemove}
-            className="text-red-600 hover:text-red-800 hover:bg-red-50 p-1 h-8 w-8"
-          >
-            <Trash2 size={14} />
-          </Button>
+      </div>
+
+      {/* Row 1: Platform Code, SAP Code, UOM, Quantity */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-2">
+            PLATFORM CODE
+          </label>
+          <Input 
+            value={item.platform_code || ""} 
+            readOnly 
+            className="w-full bg-slate-50 text-sm border-2 border-slate-200 h-12 rounded-lg cursor-not-allowed"
+            title="This field is auto-filled"
+          />
         </div>
-      </td>
-    </tr>
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-2">
+            SAP CODE
+          </label>
+          <Input 
+            value={item.sap_code || ""} 
+            readOnly 
+            className="w-full bg-slate-50 text-sm border-2 border-slate-200 h-12 rounded-lg cursor-not-allowed"
+            title="This field is auto-filled from item selection"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-2">
+            UOM
+          </label>
+          <Input 
+            value={item.category || ""} 
+            readOnly 
+            className="w-full bg-slate-50 text-sm border-2 border-slate-200 h-12 rounded-lg cursor-not-allowed"
+            title="This field is auto-filled from item selection"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-2">
+            QUANTITY *
+          </label>
+          <Input
+            type="number"
+            min="1"
+            value={item.quantity || ""}
+            onChange={(e) => handleInputChange("quantity", parseInt(e.target.value) || 0)}
+            placeholder="Enter quantity"
+            className="w-full text-sm border-2 border-blue-300 hover:border-blue-400 focus:border-blue-500 h-12 rounded-lg transition-all duration-300 bg-blue-50"
+            required
+          />
+        </div>
+      </div>
+
+      {/* Row 2: Boxes, Unit Size, Loose Qty, Basic Amount */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-2">
+            BOXES
+          </label>
+          <Input 
+            type="number"
+            value=""
+            placeholder="0"
+            className="w-full text-sm border-2 border-slate-200 hover:border-blue-400 focus:border-blue-500 h-12 rounded-lg transition-all duration-300"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-2">
+            UNIT SIZE (LTRS)
+          </label>
+          <Input 
+            type="number"
+            value=""
+            placeholder="0"
+            className="w-full text-sm border-2 border-slate-200 hover:border-blue-400 focus:border-blue-500 h-12 rounded-lg transition-all duration-300"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-2">
+            LOOSE QTY
+          </label>
+          <Input 
+            type="number"
+            value=""
+            placeholder="0"
+            className="w-full text-sm border-2 border-slate-200 hover:border-blue-400 focus:border-blue-500 h-12 rounded-lg transition-all duration-300"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-2">
+            BASIC AMOUNT *
+          </label>
+          <Input
+            type="number"
+            step="0.01"
+            value={item.basic_rate || ""}
+            onChange={(e) => handleInputChange("basic_rate", e.target.value)}
+            placeholder="Enter basic amount"
+            className="w-full text-sm border-2 border-blue-300 hover:border-blue-400 focus:border-blue-500 h-12 rounded-lg transition-all duration-300 bg-blue-50"
+            required
+          />
+        </div>
+      </div>
+
+      {/* Row 3: Tax, Landing Amount, Total Amount, Total Ltrs */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-2">
+            TAX (%)
+          </label>
+          <Input
+            type="number"
+            step="0.01"
+            value={item.gst_rate || ""}
+            readOnly
+            placeholder="0"
+            className="w-full text-sm border-2 border-slate-200 bg-slate-50 h-12 rounded-lg cursor-not-allowed"
+            title="This field is auto-filled from item selection"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-2">
+            LANDING AMOUNT
+          </label>
+          <Input
+            type="number"
+            step="0.01"
+            value={item.landing_rate || ""}
+            readOnly
+            className="w-full bg-green-50 text-sm font-semibold text-green-700 border-2 border-green-200 h-12 rounded-lg cursor-not-allowed"
+            title="Automatically calculated: Basic Amount + (Basic Amount × Tax%)"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-2">
+            TOTAL AMOUNT
+          </label>
+          <Input 
+            type="number"
+            value={(parseFloat(item.landing_rate || "0") * (item.quantity || 0)).toFixed(2)}
+            readOnly
+            className="w-full bg-slate-50 text-sm border-2 border-slate-200 h-12 rounded-lg cursor-not-allowed font-semibold"
+            title="Total = Quantity × Landing Amount"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-2">
+            TOTAL LTRS
+          </label>
+          <Input 
+            type="number"
+            value=""
+            readOnly
+            className="w-full bg-slate-50 text-sm border-2 border-slate-200 h-12 rounded-lg"
+          />
+        </div>
+      </div>
+    </div>
   );
 }

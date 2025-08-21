@@ -61,7 +61,7 @@ interface ParsedInventoryData {
     totalOpenPoQty?: number;
     totalPotentialGmvLoss?: number;
     uniqueFacilities?: number;
-    uniqueCities?: number;
+    uniqueSwigCities?: number;
     // FlipKart specific fields
     totalLiveOnWebsite?: number;
     totalSales7D?: number;
@@ -71,7 +71,7 @@ interface ParsedInventoryData {
     // Zepto specific fields
     totalRecords?: number;
     totalUnits?: number;
-    uniqueCities?: number;
+    uniqueZeptoCities?: number;
     uniqueSKUs?: number;
     // BigBasket specific fields
     totalSOH?: number;
@@ -997,7 +997,7 @@ export default function InventoryPage() {
                       <div className="text-xs sm:text-sm text-green-600">Total Units</div>
                     </div>
                     <div className="p-3 sm:p-4 bg-blue-50 rounded-lg">
-                      <div className="text-xl sm:text-2xl font-bold text-blue-600">{parsedData.summary?.uniqueCities || 0}</div>
+                      <div className="text-xl sm:text-2xl font-bold text-blue-600">{parsedData.summary?.uniqueZeptoCities || 0}</div>
                       <div className="text-xs sm:text-sm text-blue-600">Cities</div>
                     </div>
                     <div className="p-3 sm:p-4 bg-purple-50 rounded-lg">

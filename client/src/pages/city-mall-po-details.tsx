@@ -68,8 +68,9 @@ export default function CityMallPoDetails() {
     }).format(Number(amount));
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-IN', {
+  const formatDate = (date: Date | string) => {
+    const dateObj = typeof date === 'string' ? new Date(date) : date;
+    return dateObj.toLocaleDateString('en-IN', {
       year: 'numeric',
       month: 'long',
       day: 'numeric',
@@ -156,7 +157,7 @@ export default function CityMallPoDetails() {
               <Calendar className="h-4 w-4 text-orange-600" />
               <span className="text-sm text-gray-600">Created</span>
             </div>
-            <p className="text-lg font-bold text-gray-900">{formatDate(po.created_at || '')}</p>
+            <p className="text-lg font-bold text-gray-900">{po.created_at ? formatDate(po.created_at) : 'N/A'}</p>
           </CardContent>
         </Card>
       </div>
@@ -198,11 +199,11 @@ export default function CityMallPoDetails() {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="text-sm font-medium text-gray-600">Created Date</label>
-                <p className="font-semibold">{formatDate(po.created_at || '')}</p>
+                <p className="font-semibold">{po.created_at ? formatDate(po.created_at) : 'N/A'}</p>
               </div>
               <div>
                 <label className="text-sm font-medium text-gray-600">Last Updated</label>
-                <p className="font-semibold">{formatDate(po.updated_at || '')}</p>
+                <p className="font-semibold">{po.updated_at ? formatDate(po.updated_at) : 'N/A'}</p>
               </div>
             </div>
           </CardContent>

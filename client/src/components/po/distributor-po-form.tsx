@@ -15,11 +15,13 @@ import { CalendarIcon, Trash2, Plus, Save } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import type { DistributorMst, SapItemMst } from "@shared/schema";
+import { useLocation } from "wouter";
+import type { DistributorMst } from "@shared/schema";
 
 const formSchema = z.object({
   po_number: z.string().min(1, "PO number is required"),
   distributor_id: z.string().min(1, "Distributor is required"),
+  serving_distributor: z.string().optional(),
   order_date: z.date({ required_error: "Order date is required" }),
   expiry_date: z.date().optional(),
   appointment_date: z.date().optional(),
@@ -52,6 +54,7 @@ export function DistributorPOForm() {
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [, setLocation] = useLocation();
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -68,17 +71,11 @@ export function DistributorPOForm() {
     queryKey: ["/api/distributors"]
   });
 
-  // Fetch SAP items for autocomplete
-  const { data: sapItems = [] } = useQuery<SapItemMst[]>({
-    queryKey: ["/api/sap-items"]
-  });
+  // All items now come from HANA SQL Server via stored procedure
 
   const createPOMutation = useMutation({
     mutationFn: async (data: { header: FormData & { distributor_id: number }; items: OrderItem[] }) => {
-      return await apiRequest('/api/distributor-pos', {
-        method: 'POST',
-        body: JSON.stringify(data)
-      });
+      return await apiRequest('POST', '/api/distributor-pos', data);
     },
     onSuccess: () => {
       toast({
@@ -86,6 +83,10 @@ export function DistributorPOForm() {
         description: "Distributor purchase order created successfully"
       });
       queryClient.invalidateQueries({ queryKey: ["/api/distributor-pos"] });
+      
+      // Navigate to the platform PO list page after successful creation
+      setLocation("/platform-po");
+      
       form.reset();
       setOrderItems([{ item_name: "", sap_code: "", quantity: 1, basic_rate: "", gst_rate: "", landing_rate: "" }]);
     },
@@ -137,11 +138,13 @@ export function DistributorPOForm() {
       return;
     }
 
+    const header = {
+      ...data,
+      distributor_id: parseInt(data.distributor_id)
+    } as FormData & { distributor_id: number };
+    
     createPOMutation.mutate({
-      header: {
-        ...data,
-        distributor_id: parseInt(data.distributor_id)
-      },
+      header,
       items: validItems.map(item => ({
         ...item,
         landing_rate: calculateLandingRate(item.basic_rate, item.gst_rate)
@@ -190,6 +193,15 @@ export function DistributorPOForm() {
               {form.formState.errors.distributor_id && (
                 <p className="text-sm text-red-600">{form.formState.errors.distributor_id.message}</p>
               )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="serving_distributor">Serving Distributor</Label>
+              <Input
+                id="serving_distributor"
+                placeholder="Enter serving distributor (optional)"
+                {...form.register("serving_distributor")}
+              />
             </div>
 
             <div className="space-y-2">

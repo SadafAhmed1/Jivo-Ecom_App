@@ -72,8 +72,9 @@ export default function CityMallPOs() {
     }).format(Number(amount));
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-IN', {
+  const formatDate = (date: Date | string) => {
+    const dateObj = typeof date === 'string' ? new Date(date) : date;
+    return dateObj.toLocaleDateString('en-IN', {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
@@ -192,7 +193,7 @@ export default function CityMallPOs() {
                     </CardTitle>
                     <CardDescription className="flex items-center space-x-1 mt-1">
                       <Calendar className="h-3 w-3" />
-                      <span>{formatDate(po.created_at || '')}</span>
+                      <span>{po.created_at ? formatDate(po.created_at) : 'N/A'}</span>
                     </CardDescription>
                   </div>
                   <Badge variant={getStatusVariant(po.status || '')}>

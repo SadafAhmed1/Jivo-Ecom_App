@@ -36,7 +36,7 @@ export function parseSwiggyPO(fileBuffer: Buffer, uploadedBy: string): ParsedSwi
     let expectedDeliveryDate: Date | undefined;
     let poExpiryDate: Date | undefined;
     let paymentTerms = '';
-    let vendorName = '';
+    let vendorName: string | null = '';
     let vendorAddress = '';
     let vendorGstin = '';
     let billingAddress = '';
@@ -251,8 +251,7 @@ export function parseSwiggyPO(fileBuffer: Buffer, uploadedBy: string): ParsedSwi
             cess_rate: parseDecimal(row[19]?.toString()),
             cess_amount: parseDecimal(row[20]?.toString()),
             additional_cess: parseDecimal(row[21]?.toString()),
-            line_total: parseDecimal(row[22]?.toString()),
-            created_by: uploadedBy
+            line_total: parseDecimal(row[22]?.toString())
           };
 
           lines.push(line);
@@ -307,7 +306,7 @@ export function parseSwiggyPO(fileBuffer: Buffer, uploadedBy: string): ParsedSwi
       total_taxable_value: totalTaxableValue > 0 ? totalTaxableValue.toString() : null,
       total_tax_amount: totalTaxAmount > 0 ? totalTaxAmount.toString() : null,
       grand_total: totalAmount > 0 ? totalAmount.toString() : null,
-      unique_hsn_codes: Array.from(new Set(filteredLines.map(line => line.hsn_code).filter(Boolean))),
+      unique_hsn_codes: Array.from(new Set(filteredLines.map(line => line.hsn_code).filter((hsn): hsn is string => Boolean(hsn)))),
       status: 'pending',
       created_by: uploadedBy
     };
@@ -318,8 +317,8 @@ export function parseSwiggyPO(fileBuffer: Buffer, uploadedBy: string): ParsedSwi
   }
 }
 
-function parseSwiggyDate(dateStr: string | undefined): string | null {
-  if (!dateStr) return null;
+function parseSwiggyDate(dateStr: string | undefined): Date | undefined {
+  if (!dateStr) return undefined;
   
   try {
     const cleanDateStr = dateStr.toString().trim();
@@ -328,13 +327,13 @@ function parseSwiggyDate(dateStr: string | undefined): string | null {
     const date = new Date(cleanDateStr);
     
     if (!isNaN(date.getTime())) {
-      return date.toISOString().split('T')[0]; // Return YYYY-MM-DD format
+      return date;
     }
     
-    return null;
+    return undefined;
   } catch (error) {
     console.warn('Error parsing Swiggy date:', dateStr, error);
-    return null;
+    return undefined;
   }
 }
 

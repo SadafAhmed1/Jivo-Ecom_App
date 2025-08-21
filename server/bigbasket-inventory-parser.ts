@@ -31,21 +31,22 @@ export function parseBigBasketInventoryCsv(csvContent: string): BigBasketInvento
     const items: BigBasketInventoryItem[] = [];
     
     for (const record of records) {
+      const row = record as Record<string, string>;
       // Parse numeric values safely
-      const soh = parseFloat(record.soh) || 0;
-      const soh_value = parseFloat(record.soh_value) || 0;
+      const soh = parseFloat(row.soh) || 0;
+      const soh_value = parseFloat(row.soh_value) || 0;
       
       const item: BigBasketInventoryItem = {
-        city: record.city || '',
-        sku_id: record.sku_id || '',
-        brand_name: record.brand_name || '',
-        sku_name: record.sku_name || '',
-        sku_weight: record.sku_weight || '',
-        sku_pack_type: record.sku_pack_type || '',
-        sku_description: record.sku_description || '',
-        top_category_name: record.top_category_name || '',
-        mid_category_name: record.mid_category_name || '',
-        leaf_category_name: record.leaf_category_name || '',
+        city: row.city || '',
+        sku_id: row.sku_id || '',
+        brand_name: row.brand_name || '',
+        sku_name: row.sku_name || '',
+        sku_weight: row.sku_weight || '',
+        sku_pack_type: row.sku_pack_type || '',
+        sku_description: row.sku_description || '',
+        top_category_name: row.top_category_name || '',
+        mid_category_name: row.mid_category_name || '',
+        leaf_category_name: row.leaf_category_name || '',
         soh,
         soh_value
       };

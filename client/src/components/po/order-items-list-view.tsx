@@ -20,7 +20,6 @@ interface OrderItemWithDetails extends PfOrderItems {
   order_date: Date;
   expiry_date: Date | null;
   platform: PfMst;
-  hsn_code?: string | null;
 }
 
 export function OrderItemsListView() {
@@ -76,7 +75,15 @@ export function OrderItemsListView() {
     }
   });
 
-  const handleStatusUpdate = (itemId: number, newStatus: string) => {
+  const handleStatusUpdate = (itemId: number | undefined, newStatus: string) => {
+    if (!itemId) {
+      toast({
+        title: "Error",
+        description: "Unable to update status: Item ID is missing",
+        variant: "destructive"
+      });
+      return;
+    }
     updateStatusMutation.mutate({ itemId, status: newStatus });
   };
 
@@ -457,8 +464,8 @@ export function OrderItemsListView() {
         </Card>
       ) : (
         <div className="space-y-4">
-          {filteredOrderItems.map((item) => (
-            <Card key={item.id} className="shadow-lg border-0 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm hover:shadow-xl transition-all duration-300 hover:scale-[1.01]">
+          {filteredOrderItems.map((item, index) => (
+            <Card key={item.id || `order-item-${index}`} className="shadow-lg border-0 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm hover:shadow-xl transition-all duration-300 hover:scale-[1.01]">
               <CardHeader className="pb-4 bg-gradient-to-r from-slate-50 to-gray-50 dark:from-gray-800 dark:to-gray-900 border-b border-gray-100 dark:border-gray-700">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-4">
@@ -474,7 +481,7 @@ export function OrderItemsListView() {
                           variant="outline" 
                           size="sm"
                           className="flex items-center space-x-2 px-3 py-1"
-                          disabled={updateStatusMutation.isPending}
+                          disabled={updateStatusMutation.isPending || !item.id}
                         >
                           <Badge 
                             variant={getStatusBadgeVariant(item.status || 'pending')}
@@ -487,7 +494,11 @@ export function OrderItemsListView() {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="w-52 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg [&>*]:text-gray-900 [&>*]:dark:text-gray-100">
                         <DropdownMenuItem 
-                          onClick={() => handleStatusUpdate(item.id, 'Pending')}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            handleStatusUpdate(item.id, 'Pending');
+                          }}
                           className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 px-3 py-2 font-medium"
                           style={{ color: '#111827' }}
                         >
@@ -495,7 +506,11 @@ export function OrderItemsListView() {
                           <span style={{ color: '#111827' }}>Pending</span>
                         </DropdownMenuItem>
                         <DropdownMenuItem 
-                          onClick={() => handleStatusUpdate(item.id, 'Invoiced')}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            handleStatusUpdate(item.id, 'Invoiced');
+                          }}
                           className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 px-3 py-2 font-medium"
                           style={{ color: '#111827' }}
                         >
@@ -503,7 +518,11 @@ export function OrderItemsListView() {
                           <span style={{ color: '#111827' }}>Invoiced</span>
                         </DropdownMenuItem>
                         <DropdownMenuItem 
-                          onClick={() => handleStatusUpdate(item.id, 'Dispatched')}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            handleStatusUpdate(item.id, 'Dispatched');
+                          }}
                           className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 px-3 py-2 font-medium"
                           style={{ color: '#111827' }}
                         >
@@ -511,7 +530,11 @@ export function OrderItemsListView() {
                           <span style={{ color: '#111827' }}>Dispatched</span>
                         </DropdownMenuItem>
                         <DropdownMenuItem 
-                          onClick={() => handleStatusUpdate(item.id, 'Delivered')}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            handleStatusUpdate(item.id, 'Delivered');
+                          }}
                           className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 px-3 py-2 font-medium"
                           style={{ color: '#111827' }}
                         >
@@ -519,7 +542,11 @@ export function OrderItemsListView() {
                           <span style={{ color: '#111827' }}>Delivered</span>
                         </DropdownMenuItem>
                         <DropdownMenuItem 
-                          onClick={() => handleStatusUpdate(item.id, 'Price Difference')}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            handleStatusUpdate(item.id, 'Price Difference');
+                          }}
                           className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 px-3 py-2 font-medium"
                           style={{ color: '#111827' }}
                         >
@@ -527,7 +554,11 @@ export function OrderItemsListView() {
                           <span style={{ color: '#111827' }}>Price Difference</span>
                         </DropdownMenuItem>
                         <DropdownMenuItem 
-                          onClick={() => handleStatusUpdate(item.id, 'MOV Issue')}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            handleStatusUpdate(item.id, 'MOV Issue');
+                          }}
                           className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 px-3 py-2 font-medium"
                           style={{ color: '#111827' }}
                         >
@@ -535,7 +566,11 @@ export function OrderItemsListView() {
                           <span style={{ color: '#111827' }}>MOV Issue</span>
                         </DropdownMenuItem>
                         <DropdownMenuItem 
-                          onClick={() => handleStatusUpdate(item.id, 'Stock Issue')}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            handleStatusUpdate(item.id, 'Stock Issue');
+                          }}
                           className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 px-3 py-2 font-medium"
                           style={{ color: '#111827' }}
                         >
@@ -543,7 +578,11 @@ export function OrderItemsListView() {
                           <span style={{ color: '#111827' }}>Stock Issue</span>
                         </DropdownMenuItem>
                         <DropdownMenuItem 
-                          onClick={() => handleStatusUpdate(item.id, 'Cancelled')}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            handleStatusUpdate(item.id, 'Cancelled');
+                          }}
                           className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 px-3 py-2 font-medium"
                           style={{ color: '#111827' }}
                         >
@@ -551,7 +590,11 @@ export function OrderItemsListView() {
                           <span style={{ color: '#111827' }}>Cancelled</span>
                         </DropdownMenuItem>
                         <DropdownMenuItem 
-                          onClick={() => handleStatusUpdate(item.id, 'Expired')}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            handleStatusUpdate(item.id, 'Expired');
+                          }}
                           className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 px-3 py-2 font-medium"
                           style={{ color: '#111827' }}
                         >
@@ -559,7 +602,11 @@ export function OrderItemsListView() {
                           <span style={{ color: '#111827' }}>Expired</span>
                         </DropdownMenuItem>
                         <DropdownMenuItem 
-                          onClick={() => handleStatusUpdate(item.id, 'Hold')}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            handleStatusUpdate(item.id, 'Hold');
+                          }}
                           className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 px-3 py-2 font-medium"
                           style={{ color: '#111827' }}
                         >
@@ -567,7 +614,11 @@ export function OrderItemsListView() {
                           <span style={{ color: '#111827' }}>Hold</span>
                         </DropdownMenuItem>
                         <DropdownMenuItem 
-                          onClick={() => handleStatusUpdate(item.id, 'CN')}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            handleStatusUpdate(item.id, 'CN');
+                          }}
                           className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 px-3 py-2 font-medium"
                           style={{ color: '#111827' }}
                         >
@@ -575,7 +626,11 @@ export function OrderItemsListView() {
                           <span style={{ color: '#111827' }}>CN</span>
                         </DropdownMenuItem>
                         <DropdownMenuItem 
-                          onClick={() => handleStatusUpdate(item.id, 'RTV')}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            handleStatusUpdate(item.id, 'RTV');
+                          }}
                           className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 px-3 py-2 font-medium"
                           style={{ color: '#111827' }}
                         >

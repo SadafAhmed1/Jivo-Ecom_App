@@ -102,9 +102,6 @@ export function setupAuth(app: Express) {
       const user = await storage.createUser({
         ...validatedData,
         password: await hashPassword(validatedData.password),
-        created_at: new Date(),
-        updated_at: new Date(),
-        last_login: new Date(),
       });
 
       // Login the user

@@ -151,7 +151,9 @@ export function UnifiedUploadComponent({ onComplete }: UnifiedUploadComponentPro
 
       return response.json();
     },
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
+      console.log("🔍 Upload response data:", data);
+      
       // Handle both single PO response and multi-PO response
       if (data.results && Array.isArray(data.results)) {
         // Multi-PO response (Blinkit)
@@ -162,18 +164,75 @@ export function UnifiedUploadComponent({ onComplete }: UnifiedUploadComponentPro
           title: "PO import completed",
           description: `Successfully imported ${successfulImports.length} of ${data.results.length} POs${failedImports.length > 0 ? `. ${failedImports.length} failed.` : ''}`,
         });
+        
+        // For multi-PO imports, just update the list instead of redirecting to edit
+        if (successfulImports.length > 0) {
+          console.log("✅ Multi-PO upload successful, updating PO list");
+          // Invalidate and refetch queries immediately to ensure POs appear in list
+          console.log("🔄 Aggressively refreshing all queries...");
+          await Promise.all([
+            queryClient.invalidateQueries({ queryKey: [selectedPlatformData!.queryKey] }),
+            queryClient.invalidateQueries({ queryKey: ["/api/pos"] }),
+            queryClient.invalidateQueries({ queryKey: ["/api/order-items"] })
+          ]);
+          
+          // Clear the cache completely and refetch
+          await queryClient.refetchQueries({ queryKey: ["/api/pos"] });
+          
+          // Show additional success information
+          setTimeout(() => {
+            toast({
+              title: "POs added to system",
+              description: `${successfulImports.length} PO${successfulImports.length > 1 ? 's are' : ' is'} now available in your PO list.`,
+              duration: 4000,
+            });
+          }, 1500);
+        }
       } else {
         // Single PO response
         toast({
           title: "PO imported successfully",
-          description: `PO ${data.po_number} has been created`,
+          description: `PO ${data.po_number || data.po?.po_number || 'Unknown'} has been created`,
         });
+        
+        // Extract PO ID and redirect to edit if callback provided
+        // Handle multiple response formats: direct ID, nested po.id, or other structures
+        let poId = data.id || data.po?.id || data.poId || data.po_id;
+        console.log("🔍 Extracted PO ID:", poId, "from data:", data);
+        console.log("🔍 Data keys:", Object.keys(data));
+        console.log("🔍 Data.po keys:", data.po ? Object.keys(data.po) : "no po object");
+        
+        // Instead of redirecting to edit (which has ID issues), just update the list
+        console.log("✅ Upload successful, updating PO list");
+        // Invalidate and refetch queries immediately to ensure PO appears in list
+        console.log("🔄 Single PO: Aggressively refreshing all queries...");
+        await Promise.all([
+          queryClient.invalidateQueries({ queryKey: [selectedPlatformData!.queryKey] }),
+          queryClient.invalidateQueries({ queryKey: ["/api/pos"] }),
+          queryClient.invalidateQueries({ queryKey: ["/api/order-items"] })
+        ]);
+        
+        // Clear the cache completely and refetch
+        await queryClient.refetchQueries({ queryKey: ["/api/pos"] });
+        
+        // Show additional success information
+        setTimeout(() => {
+          toast({
+            title: "PO added to system",
+            description: "The PO is now available in your PO list. You can edit it from the View POs tab.",
+            duration: 4000,
+          });
+        }, 1500);
       }
       
       resetForm();
-      queryClient.invalidateQueries({
-        queryKey: [selectedPlatformData!.queryKey],
-      });
+      // Invalidate both platform-specific and unified PO queries
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: [selectedPlatformData!.queryKey] }),
+        queryClient.invalidateQueries({ queryKey: ["/api/pos"] }),
+        queryClient.invalidateQueries({ queryKey: ["/api/order-items"] }),
+        queryClient.refetchQueries({ queryKey: ["/api/pos"] })
+      ]);
       onComplete?.();
     },
     onError: (error: Error) => {

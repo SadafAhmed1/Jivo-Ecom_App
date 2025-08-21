@@ -1,10 +1,40 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { callSpGetItemDetails } from "./sqlserver";
+import { callSpGetItemDetails, callSpGetItemNames } from "./sqlserver";
+import { sqlServerService } from "./sql-service";
 import { setupAuth } from "./auth";
+import { 
+  createPurchaseOrderAgent,
+  getPlatformsAgent,
+  getDistributorsAgent,
+  searchPlatformItemsAgent,
+  getOrderAnalyticsAgent,
+  healthCheckAgent,
+  validatePOAgent
+} from "./agent-routes";
+import {
+  sqlHealthCheck,
+  getSqlStatus,
+  getItemDetails,
+  getHanaItems,
+  searchHanaItems,
+  searchItems,
+  getPlatformItems,
+  executeQuery,
+  executeStoredProcedure,
+  getTableInfo,
+  getPerformanceStats
+} from "./sql-routes";
+import {
+  testHanaConnection,
+  testStoredProcedure,
+  getHanaItems as getHanaItemsTest,
+  searchHanaItems as searchHanaItemsTest,
+  executeRawProcedure
+} from "./hana-test-routes";
 
-import { insertPfPoSchema, insertPfOrderItemsSchema, insertFlipkartGroceryPoHeaderSchema, insertFlipkartGroceryPoLinesSchema, insertDistributorMstSchema, insertDistributorPoSchema, insertDistributorOrderItemsSchema } from "@shared/schema";
+import { insertPfPoSchema, insertPfOrderItemsSchema, insertFlipkartGroceryPoHeaderSchema, insertFlipkartGroceryPoLinesSchema, insertDistributorMstSchema, insertDistributorPoSchema, insertDistributorOrderItemsSchema, insertPoMasterSchema, insertPoLinesSchema, distributors } from "@shared/schema";
 import { z } from "zod";
 import { seedTestData } from "./seed-data";
 import { parseFlipkartGroceryPO, parseZeptoPO, parseCityMallPO, parseBlinkitPO } from "./csv-parser";
@@ -26,7 +56,7 @@ import { parseAmazonInventoryFile } from "./amazon-inventory-parser";
 import { parseFlipkartInventoryCSV } from "./flipkart-inventory-parser";
 import { parseZeptoInventory } from "./zepto-inventory-parser";
 import { db } from "./db";
-import { sql } from "drizzle-orm";
+import { sql, eq } from "drizzle-orm";
 import { 
   scAmJwDaily, scAmJwRange, scAmJmDaily, scAmJmRange,
   scZeptoJmDaily, scZeptoJmRange, 
@@ -75,6 +105,27 @@ const updatePoSchema = z.object({
   items: z.array(insertPfOrderItemsSchema).optional()
 });
 
+// Unified PO Master schema for the new system
+const createPoMasterSchema = z.object({
+  master: insertPoMasterSchema.extend({
+    po_date: z.string().transform(str => new Date(str)),
+    expiry_date: z.string().optional().transform(str => str ? new Date(str) : undefined),
+    appointment_date: z.string().optional().transform(str => str ? new Date(str) : undefined),
+    platform_id: z.number(),
+  }),
+  lines: z.array(insertPoLinesSchema)
+});
+
+const updatePoMasterSchema = z.object({
+  master: insertPoMasterSchema.partial().extend({
+    po_date: z.string().optional().transform(str => str ? new Date(str) : undefined),
+    expiry_date: z.string().optional().transform(str => str ? new Date(str) : undefined),
+    appointment_date: z.string().optional().transform(str => str ? new Date(str) : undefined),
+    platform_id: z.number().optional(),
+  }),
+  lines: z.array(insertPoLinesSchema).optional()
+});
+
 const createFlipkartGroceryPoSchema = z.object({
   header: insertFlipkartGroceryPoHeaderSchema.extend({
     order_date: z.string().transform(str => new Date(str)),
@@ -120,9 +171,6 @@ const upload = multer({
   limits: { fileSize: 5 * 1024 * 1024 } // 5MB limit
 });
 
-// Import crypto for file hashing
-import crypto from 'crypto';
-
 export async function registerRoutes(app: Express): Promise<Server> {
   // Setup authentication first
   setupAuth(app);
@@ -145,86 +193,148 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // SAP Items routes
-  app.get("/api/sap-items", async (_req, res) => {
+  // Get item details - SIMPLIFIED: Use local items table only
+  app.get("/api/item-details", async (req, res) => {
+    console.log("=== API /api/item-details called ===");
+    console.log("Query params:", req.query);
     try {
-      const items = await storage.getAllSapItems();
-      res.json(items);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to fetch SAP items" });
-    }
-  });
-
-  app.post("/api/sap-items", async (req, res) => {
-    try {
-      const item = await storage.createSapItem(req.body);
-      res.status(201).json(item);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to create SAP item" });
-    }
-  });
-
-  // Get all SAP items from API table
-  app.get("/api/sap-items-api", async (req, res) => {
-    try {
-      const items = await storage.getAllSapItemsApi();
-      res.json(items);
-    } catch (error) {
-      console.error("Error fetching SAP items from API:", error);
-      res.status(500).json({ error: "Failed to fetch SAP items from API" });
-    }
-  });
-
-  // Sync SAP items from SQL Server API
-  app.post("/api/sap-items-api/sync", async (req, res) => {
-    try {
-      console.log("Starting SAP items sync from SQL Server...");
+      const { itemName, itemCode } = req.query;
+      console.log("Getting item details for:", { itemName, itemCode });
       
-      // Call the SQL Server stored procedure
-      const sqlServerItems = await callSpGetItemDetails();
-      console.log(`Retrieved ${sqlServerItems.length} items from SQL Server`);
-
-      // Transform SQL Server data to match our schema
-      const transformedItems = sqlServerItems.map((item: any) => ({
-        itemcode: item.ItemCode || item.itemcode,
-        itemname: item.ItemName || item.itemname,
-        type: item.Type || item.type,
-        itemgroup: item.ItemGroup || item.itemgroup,
-        variety: item.Variety || item.variety,
-        subgroup: item.SubGroup || item.subgroup,
-        brand: item.Brand || item.brand,
-        uom: item.UOM || item.uom,
-        taxrate: item.TaxRate || item.taxrate,
-        unitsize: item.UnitSize || item.unitsize,
-        is_litre: item.IsLitre || item.is_litre || false,
-        case_pack: item.CasePack || item.case_pack
-      }));
-
-      // Sync to database
-      const syncedCount = await storage.syncSapItemsFromApi(transformedItems);
+      let localItem: any = null;
       
-      console.log(`Successfully synced ${syncedCount} SAP items`);
-      res.json({ 
-        success: true, 
-        message: `Successfully synced ${syncedCount} SAP items from SQL Server database`,
-        count: syncedCount 
-      });
-    } catch (error) {
-      console.error("Error syncing SAP items:", error);
-      
-      // Check if it's a connection error
-      if (error instanceof Error && error.message.includes('Failed to connect')) {
-        res.status(503).json({ 
-          error: "SQL Server Connection Failed", 
-          details: `Unable to connect to SQL Server at 103.89.44.240:1433. Please check if the server is accessible and VPN connection is active.`,
-          suggestion: "Contact your IT administrator to verify SQL Server connectivity from this environment."
-        });
-      } else {
-        res.status(500).json({ 
-          error: "Failed to sync SAP items", 
-          details: error instanceof Error ? error.message : "Unknown error" 
-        });
+      // First try to find by itemcode if provided
+      if (itemCode && typeof itemCode === 'string') {
+        localItem = await storage.getItemByCode(itemCode);
+        console.log("Search by itemcode result:", localItem ? "Found" : "Not found");
       }
+      
+      // If not found by code and itemName provided, search by name
+      if (!localItem && itemName && typeof itemName === 'string') {
+        localItem = await storage.getItemByName(itemName);
+        console.log("Search by itemname result:", localItem ? "Found" : "Not found");
+      }
+      
+      // Convert to expected format for backward compatibility
+      let itemDetails: any[] = [];
+      if (localItem) {
+        itemDetails = [{
+          ItemCode: localItem.itemcode,
+          ItemName: localItem.itemname,
+          ItmsGrpNam: localItem.itmsgrpnam || localItem.ItemGroup || null,
+          U_TYPE: localItem.u_type || null,
+          U_Variety: localItem.u_variety || null,
+          U_Sub_Group: localItem.u_sub_group || null,
+          U_Brand: localItem.u_brand || null,
+          InvntryUom: localItem.invntryuom || null,
+          U_Tax_Rate: localItem.u_tax_rate?.toString() || null,
+          U_IsLitre: localItem.u_islitre || 'N',
+          SalPackUn: localItem.salpackun || null,
+          // Additional fields that might be expected
+          ItemGroup: localItem.itmsgrpnam,
+          SubGroup: localItem.u_sub_group,
+          Brand: localItem.u_brand,
+          UnitOfMeasure: localItem.invntryuom,
+          UOM: localItem.invntryuom,
+          TaxRate: localItem.u_tax_rate ? parseFloat(localItem.u_tax_rate) : null,
+          CasePack: localItem.salpackun,
+          IsLitre: localItem.u_islitre === 'Y'
+        }];
+        console.log("Successfully formatted item details");
+      }
+      
+      res.json(itemDetails);
+    } catch (error: any) {
+      console.error("Error in /api/item-details:", error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Get all item names for search - SIMPLIFIED: Use local items table only
+  app.get("/api/item-names", async (req, res) => {
+    console.log("=== API /api/item-names called ===");
+    try {
+      const { search } = req.query;
+      console.log("Search term:", search);
+      
+      let filteredItems: any[] = [];
+      
+      if (search && typeof search === 'string' && search.length >= 2) {
+        // Search in PostgreSQL items table
+        console.log("Searching in PostgreSQL items table...");
+        const localItems = await storage.searchItems(search);
+        console.log(`Found ${localItems.length} items in local database`);
+        
+        // Convert to expected format for backward compatibility
+        filteredItems = localItems.map(item => ({
+          ItemName: item.itemname,
+          ItemCode: item.itemcode
+        }));
+      } else {
+        // For short queries, return empty array or get recent items
+        if (search && typeof search === 'string' && search.length > 0) {
+          filteredItems = [];
+        } else {
+          // Get some recent items if no search term
+          const recentItems = await storage.getAllItems();
+          filteredItems = recentItems.slice(0, 50).map(item => ({
+            ItemName: item.itemname,
+            ItemCode: item.itemcode
+          }));
+        }
+      }
+      
+      // Apply additional filtering and scoring if needed
+      if (search && typeof search === 'string' && search.length > 0) {
+        const searchTerm = search.toLowerCase().trim();
+        const searchWords = searchTerm.split(/\s+/);
+        
+        filteredItems = filteredItems
+          .filter(item => item.ItemName && item.ItemName.trim())
+          .map(item => {
+            const itemName = item.ItemName.toLowerCase();
+            let score = 0;
+            
+            // Exact match gets highest score
+            if (itemName === searchTerm) {
+              score = 1000;
+            }
+            // Starts with search term gets high score
+            else if (itemName.startsWith(searchTerm)) {
+              score = 800;
+            }
+            // All words found gets good score
+            else if (searchWords.every(word => itemName.includes(word))) {
+              score = 600;
+              // Bonus for consecutive words
+              if (itemName.includes(searchTerm)) {
+                score += 100;
+              }
+            }
+            // Some words found
+            else {
+              const foundWords = searchWords.filter(word => itemName.includes(word));
+              score = (foundWords.length / searchWords.length) * 400;
+            }
+            
+            // Boost shorter names (more likely to be relevant)
+            if (score > 0) {
+              const lengthBonus = Math.max(0, 50 - itemName.length);
+              score += lengthBonus;
+            }
+            
+            return { ...item, searchScore: score };
+          })
+          .filter(item => item.searchScore > 0)
+          .sort((a, b) => b.searchScore - a.searchScore)
+          .slice(0, 15); // Limit to 15 best results
+      }
+      
+      console.log("Retrieved item names:", filteredItems?.length || 0, "items");
+      res.json(filteredItems);
+    } catch (error: any) {
+      console.error("Error in /api/item-names:", error);
+      res.status(500).json({ error: error.message });
     }
   });
 
@@ -244,6 +354,229 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Distributors API
   app.get("/api/distributors", async (req, res) => {
+    try {
+      const distributors = await storage.getAllDistributors();
+      res.json(distributors);
+    } catch (error) {
+      console.error("Error fetching distributors:", error);
+      res.status(500).json({ error: "Failed to fetch distributors" });
+    }
+  });
+
+  // New dynamic dropdown endpoints
+  app.get("/api/states", async (_req, res) => {
+    try {
+      const states = await storage.getAllStates();
+      res.json(states);
+    } catch (error) {
+      console.error("Error fetching states:", error);
+      res.status(500).json({ error: "Failed to fetch states" });
+    }
+  });
+
+  app.get("/api/districts/:stateId", async (req, res) => {
+    try {
+      const stateId = parseInt(req.params.stateId);
+      if (isNaN(stateId)) {
+        return res.status(400).json({ error: "Invalid state ID" });
+      }
+      const districts = await storage.getDistrictsByStateId(stateId);
+      res.json(districts);
+    } catch (error) {
+      console.error("Error fetching districts:", error);
+      res.status(500).json({ error: "Failed to fetch districts" });
+    }
+  });
+
+  // Status endpoints
+  app.get("/api/statuses", async (_req, res) => {
+    try {
+      const statuses = await storage.getAllStatuses();
+      res.json(statuses);
+    } catch (error) {
+      console.error("Error fetching statuses:", error);
+      res.status(500).json({ error: "Failed to fetch statuses" });
+    }
+  });
+
+  app.get("/api/status-items", async (_req, res) => {
+    try {
+      const statusItems = await storage.getAllStatusItems();
+      res.json(statusItems);
+    } catch (error) {
+      console.error("Error fetching status items:", error);
+      res.status(500).json({ error: "Failed to fetch status items" });
+    }
+  });
+
+  // Items endpoints
+  app.get("/api/items", async (_req, res) => {
+    try {
+      const items = await storage.getAllItems();
+      res.json(items);
+    } catch (error) {
+      console.error("Error fetching items:", error);
+      res.status(500).json({ error: "Failed to fetch items" });
+    }
+  });
+
+  app.get("/api/items/search", async (req, res) => {
+    try {
+      const { query } = req.query;
+      if (!query || typeof query !== 'string') {
+        return res.status(400).json({ error: "Search query is required" });
+      }
+      
+      const items = await storage.searchItems(query);
+      res.json(items);
+    } catch (error) {
+      console.error("Error searching items:", error);
+      res.status(500).json({ error: "Failed to search items" });
+    }
+  });
+
+  app.get("/api/items/:itemcode", async (req, res) => {
+    try {
+      const { itemcode } = req.params;
+      const item = await storage.getItemByCode(itemcode);
+      
+      if (!item) {
+        return res.status(404).json({ error: "Item not found" });
+      }
+      
+      res.json(item);
+    } catch (error) {
+      console.error("Error fetching item:", error);
+      res.status(500).json({ error: "Failed to fetch item" });
+    }
+  });
+
+  app.post("/api/items/sync", async (_req, res) => {
+    try {
+      console.log("=== Starting items sync from HANA ===");
+      
+      // Get items from HANA via stored procedure
+      const hanaResult = await sqlServerService.getItemDetails();
+      
+      if (!hanaResult.success || !hanaResult.data) {
+        console.warn("Failed to get items from HANA, using local data");
+        return res.status(503).json({ 
+          error: "HANA service unavailable", 
+          syncedCount: 0 
+        });
+      }
+      
+      console.log(`Received ${hanaResult.data.length} items from HANA`);
+      
+      // Sync items to PostgreSQL
+      const syncedCount = await storage.syncItemsFromHana(hanaResult.data);
+      
+      console.log(`Successfully synced ${syncedCount} items`);
+      
+      res.json({ 
+        success: true, 
+        message: `Successfully synced ${syncedCount} items from HANA`,
+        syncedCount,
+        totalHanaItems: hanaResult.data.length
+      });
+      
+    } catch (error) {
+      console.error("Error syncing items:", error);
+      res.status(500).json({ error: "Failed to sync items from HANA" });
+    }
+  });
+
+  // Migration endpoint to populate items table initially
+  app.post("/api/migrate-items", async (_req, res) => {
+    try {
+      console.log("🔄 Starting complete items table migration from HANA...");
+      
+      // Clear existing items if any
+      console.log("🧹 Clearing existing items table...");
+      
+      // Get all items from HANA via stored procedure
+      console.log("📞 Calling SP_GET_ITEM_DETAILS stored procedure...");
+      const hanaResult = await sqlServerService.getItemDetails();
+      
+      if (!hanaResult.success || !hanaResult.data) {
+        console.error("❌ Failed to get items from HANA:", hanaResult.error);
+        return res.status(503).json({ 
+          success: false,
+          error: "HANA service unavailable", 
+          details: hanaResult.error
+        });
+      }
+      
+      console.log(`✅ Retrieved ${hanaResult.data.length} items from HANA`);
+      console.log(`⏱️ Query execution time: ${hanaResult.executionTime}ms`);
+      
+      // Sync all items to PostgreSQL
+      console.log("💾 Syncing all items to PostgreSQL items table...");
+      const syncedCount = await storage.syncItemsFromHana(hanaResult.data);
+      
+      console.log(`🎉 Successfully synced ${syncedCount} items to PostgreSQL`);
+      
+      // Get sample items to show in response
+      const sampleItems = await storage.getAllItems();
+      const samples = sampleItems.slice(0, 5).map(item => ({
+        itemcode: item.itemcode,
+        itemname: item.itemname,
+        brand: item.brand,
+        itemgroup: item.itemgroup
+      }));
+      
+      res.json({ 
+        success: true, 
+        message: `Items table migration completed successfully`,
+        totalHanaItems: hanaResult.data.length,
+        syncedCount,
+        executionTimeMs: hanaResult.executionTime,
+        sampleItems: samples,
+        timestamp: new Date().toISOString()
+      });
+      
+    } catch (error) {
+      console.error("❌ Error during items table migration:", error);
+      res.status(500).json({ 
+        success: false,
+        error: "Failed to populate items table",
+        details: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
+  app.post("/api/seed-status-tables", async (_req, res) => {
+    try {
+      await storage.seedStatusTables();
+      res.json({ message: "Status tables seeded successfully" });
+    } catch (error) {
+      console.error("Error seeding status tables:", error);
+      res.status(500).json({ error: "Failed to seed status tables" });
+    }
+  });
+
+  app.post("/api/create-status-tables", async (_req, res) => {
+    try {
+      // Create tables with raw SQL
+      await storage.createStatusTables();
+      res.json({ message: "Status tables created and seeded successfully" });
+    } catch (error) {
+      console.error("Error creating status tables:", error);
+      res.status(500).json({ error: "Failed to create status tables" });
+    }
+  });
+
+  app.get("/api/check-tables", async (_req, res) => {
+    try {
+      const result = await storage.checkTableStructure();
+      res.json(result);
+    } catch (error) {
+      console.error("Error checking tables:", error);
+      res.status(500).json({ error: "Failed to check tables" });
+    }
+  });
+
+  app.get("/api/distributors", async (_req, res) => {
     try {
       const distributors = await storage.getAllDistributors();
       res.json(distributors);
@@ -285,30 +618,97 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/pos", async (req, res) => {
+  // DEBUG: Get raw database data for understanding structure
+  app.get("/api/pos/:id/raw", async (req, res) => {
     try {
-      const validatedData = createPoSchema.parse(req.body);
-      const po = await storage.createPo(validatedData.po, validatedData.items);
-      res.status(201).json(po);
+      const id = parseInt(req.params.id);
+      const rawData = await storage.getRawPoData(id);
+      if (!rawData) {
+        return res.status(404).json({ message: "PO not found" });
+      }
+      res.json(rawData);
     } catch (error) {
+      res.status(500).json({ message: "Failed to fetch raw PO data", error: error instanceof Error ? error.message : String(error) });
+    }
+  });
+
+  app.post("/api/pos", async (req, res) => {
+    console.log("🚀 HIT THE NEW PO ROUTE!");
+    console.log("Method:", req.method);
+    console.log("URL:", req.url);
+    console.log("Headers:", req.headers);
+    console.log("Body keys:", Object.keys(req.body || {}));
+    console.log("Body:", JSON.stringify(req.body, null, 2));
+    
+    try {
+      // Debug: Check if we have the expected data structure
+      if (!req.body.master) {
+        console.log("❌ Missing 'master' field in request body");
+        console.log("Available fields:", Object.keys(req.body));
+        return res.status(400).json({ 
+          message: "Missing 'master' field in request body", 
+          received: Object.keys(req.body),
+          expected: ["master", "lines"]
+        });
+      }
+      
+      if (!req.body.lines) {
+        console.log("❌ Missing 'lines' field in request body");
+        return res.status(400).json({ 
+          message: "Missing 'lines' field in request body", 
+          received: Object.keys(req.body),
+          expected: ["master", "lines"]
+        });
+      }
+      
+      console.log("✅ Request has correct structure");
+      
+      // Use existing po_master and po_lines tables
+      const { master, lines } = req.body;
+      console.log("✅ Using po_master and po_lines tables for creation");
+      
+      const createdPo = await storage.createPoInExistingTables(master, lines);
+      res.status(201).json(createdPo);
+    } catch (error) {
+      console.error("❌ Error creating PO:", error);
       if (error instanceof z.ZodError) {
+        console.error("Validation errors:", error.errors);
         return res.status(400).json({ message: "Validation error", errors: error.errors });
       }
-      res.status(500).json({ message: "Failed to create PO" });
+      res.status(500).json({ message: "Failed to create purchase order", error: error instanceof Error ? error.message : String(error) });
     }
   });
 
   app.put("/api/pos/:id", async (req, res) => {
+    console.log("🚀 HIT THE PO UPDATE ROUTE!");
+    console.log("ID:", req.params.id);
+    console.log("Body keys:", Object.keys(req.body || {}));
+    console.log("Body:", JSON.stringify(req.body, null, 2));
+    
     try {
       const id = parseInt(req.params.id);
-      const validatedData = updatePoSchema.parse(req.body);
-      const po = await storage.updatePo(id, validatedData.po, validatedData.items);
-      res.json(po);
+      
+      // Check if this is the master/lines structure - use po_master and po_lines tables
+      if (req.body.master && req.body.lines) {
+        console.log("✅ Using po_master and po_lines tables for update");
+        const { master, lines } = req.body;
+        
+        const updatedPo = await storage.updatePoInExistingTables(id, master, lines);
+        res.json(updatedPo);
+      } else {
+        // Fall back to direct pf_po structure
+        console.log("⚠️ Using direct pf_po structure for update");
+        const validatedData = updatePoSchema.parse(req.body);
+        const po = await storage.updatePo(id, validatedData.po, validatedData.items);
+        res.json(po);
+      }
     } catch (error) {
+      console.error("❌ Error updating PO:", error);
       if (error instanceof z.ZodError) {
+        console.error("Validation errors:", error.errors);
         return res.status(400).json({ message: "Validation error", errors: error.errors });
       }
-      res.status(500).json({ message: "Failed to update PO" });
+      res.status(500).json({ message: "Failed to update purchase order", error: error instanceof Error ? error.message : String(error) });
     }
   });
 
@@ -862,7 +1262,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const uploadedBy = "system";
-      let parsedData;
+      let parsedData: any;
       let detectedVendor = "";
 
       // Check platform parameter first, then try to detect vendor from filename
@@ -1013,6 +1413,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const vendor = req.params.vendor;
       const { header, lines, poList } = req.body;
+      
+      // Validate vendor parameter
+      if (!vendor) {
+        return res.status(400).json({ error: "Vendor/platform parameter is required" });
+      }
+      
+      // Log incoming data for debugging
+      console.log("Import request:", {
+        vendor,
+        hasHeader: !!header,
+        hasLines: !!lines,
+        linesCount: lines?.length || 0,
+        hasPoList: !!poList,
+        poListCount: poList?.length || 0
+      });
 
       // Helper function to safely convert dates
       const safeConvertDate = (dateValue: any): Date | null => {
@@ -1171,131 +1586,84 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return cleanLine;
       });
 
-      let createdPo;
+      // Convert all platform data to unified format and use po_master table
+      const platformMap: Record<string, number> = {
+        'blinkit': 1,     // Blinkit
+        'swiggy': 2,      // Swiggy Instamart
+        'zepto': 3,       // Zepto
+        'flipkart': 4,    // Flipkart Grocery
+        'zomato': 15,     // Zomato (using ID 15 from database)
+        'amazon': 6,      // Amazon
+        'citymall': 7,    // Citymall
+        'dealshare': 8,   // Dealshare
+        'bigbasket': 12   // BigBasket
+      };
 
-      switch (vendor) {
-        case "flipkart":
-          try {
-            createdPo = await storage.createFlipkartGroceryPo(cleanHeader, cleanLines);
-          } catch (error: any) {
-            if (error.code === '23505' && error.constraint?.includes('po_number_unique')) {
-              return res.status(409).json({ 
-                error: `PO ${cleanHeader.po_number} already exists in Flipkart records`,
-                type: 'duplicate_po'
-              });
-            }
-            throw error;
-          }
-          break;
-        case "zepto":
-          try {
-            createdPo = await storage.createZeptoPo(cleanHeader, cleanLines);
-          } catch (error: any) {
-            if (error.code === '23505' && error.constraint?.includes('po_number_unique')) {
-              return res.status(409).json({ 
-                error: `PO ${cleanHeader.po_number} already exists in Zepto records`,
-                type: 'duplicate_po'
-              });
-            }
-            throw error;
-          }
-          break;
-        case "citymall":
-          try {
-            createdPo = await storage.createCityMallPo(cleanHeader, cleanLines);
-          } catch (error: any) {
-            if (error.code === '23505' && error.constraint?.includes('po_number_unique')) {
-              return res.status(409).json({ 
-                error: `PO ${cleanHeader.po_number} already exists in City Mall records`,
-                type: 'duplicate_po'
-              });
-            }
-            throw error;
-          }
-          break;
-        case "blinkit":
-          try {
-            createdPo = await storage.createBlinkitPo(cleanHeader, cleanLines);
-          } catch (error: any) {
-            if (error.code === '23505' && error.constraint?.includes('po_number_unique')) {
-              return res.status(409).json({ 
-                error: `PO ${cleanHeader.po_number} already exists in Blinkit records`,
-                type: 'duplicate_po'
-              });
-            }
-            throw error;
-          }
-          break;
-        case "swiggy":
-          try {
-            createdPo = await storage.createSwiggyPo(cleanHeader, cleanLines);
-          } catch (error: any) {
-            if (error.code === '23505' && error.constraint?.includes('po_number_unique')) {
-              return res.status(409).json({ 
-                error: `PO ${cleanHeader.po_number} already exists in Swiggy records`,
-                type: 'duplicate_po'
-              });
-            }
-            throw error;
-          }
-          break;
-        case "bigbasket":
-          try {
-            createdPo = await storage.createBigbasketPo(cleanHeader, cleanLines);
-          } catch (error: any) {
-            if (error.code === '23505' && error.constraint === 'bigbasket_po_header_po_number_unique') {
-              return res.status(409).json({ 
-                error: `PO ${cleanHeader.po_number} already exists in BigBasket records`,
-                type: 'duplicate_po'
-              });
-            }
-            throw error;
-          }
-          break;
-        case "zomato":
-          try {
-            createdPo = await storage.createZomatoPo(cleanHeader, cleanLines);
-          } catch (error: any) {
-            if (error.code === '23505' && error.constraint?.includes('po_number_unique')) {
-              return res.status(409).json({ 
-                error: `PO ${cleanHeader.po_number} already exists in Zomato records`,
-                type: 'duplicate_po'
-              });
-            }
-            throw error;
-          }
-          break;
-        case "dealshare":
-          try {
-            // Clean dates for Dealshare
-            const dealshareHeader = { ...cleanHeader };
-            const dateFields = ['po_created_date', 'po_delivery_date', 'po_expiry_date'];
-            dateFields.forEach(field => {
-              if (dealshareHeader[field]) {
-                dealshareHeader[field] = safeConvertDate(dealshareHeader[field]);
-              }
-            });
-            
-            createdPo = await storage.createDealsharePo(dealshareHeader, cleanLines);
-          } catch (error: any) {
-            console.error("Dealshare import error:", error);
-            if (error.code === '23505' && error.constraint?.includes('po_number_unique')) {
-              return res.status(409).json({ 
-                error: `PO ${cleanHeader.po_number} already exists in Dealshare records`,
-                type: 'duplicate_po'
-              });
-            }
-            throw error;
-          }
-          break;
-        default:
-          return res.status(400).json({ error: "Unsupported vendor" });
+      // Create unified master data structure
+      const masterData = {
+        platform_id: platformMap[vendor] || 1, // Default to Blinkit if unknown
+        po_number: cleanHeader.po_number,
+        po_date: cleanHeader.po_date || cleanHeader.order_date || new Date(),
+        expiry_date: cleanHeader.expiry_date || cleanHeader.po_expiry_date || null,
+        appointment_date: cleanHeader.appointment_date || null,
+        region: cleanHeader.region || 'DEFAULT',
+        area: cleanHeader.area || cleanHeader.city || 'DEFAULT',
+        state_id: null, // Will be populated if we have state mapping
+        district_id: null, // Will be populated if we have district mapping
+        dispatch_from: cleanHeader.dispatch_from || null,
+        warehouse: cleanHeader.warehouse || null,
+        created_by: null // Use NULL instead of 'IMPORT_SYSTEM' to avoid foreign key constraint
+      };
+
+      // Convert line items to unified format
+      const linesData = cleanLines.map((line: any) => ({
+        item_name: line.item_name || line.product_description || 'Unknown Item',
+        platform_code: line.platform_code || line.item_code || line.sku,
+        sap_code: line.sap_code || line.item_code || line.sku,
+        quantity: line.quantity || line.ordered_quantity || 0,
+        basic_amount: line.basic_amount || line.basic_rate || line.unit_rate || 0,
+        tax_percent: line.tax_percent || line.gst_rate || 0,
+        landing_amount: line.landing_amount || line.landing_rate || line.total_amount || 0,
+        total_amount: line.total_amount || line.net_amount || 0,
+        uom: line.uom || line.unit || 'PCS',
+        total_ltrs: line.total_ltrs || line.total_litres || null,
+        boxes: line.boxes || null
+      }));
+
+      let createdPo;
+      try {
+        // Use unified po_master table for all platforms
+        createdPo = await storage.createPoInExistingTables(masterData, linesData);
+      } catch (error: any) {
+        if (error.code === '23505') {
+          return res.status(409).json({ 
+            error: `PO ${cleanHeader.po_number} already exists`,
+            type: 'duplicate_po'
+          });
+        }
+        throw error;
       }
 
       res.status(201).json(createdPo);
     } catch (error) {
       console.error("Error importing PO:", error);
-      res.status(500).json({ error: "Failed to import PO data" });
+      console.error("Error details:", {
+        vendor: req.params.vendor,
+        poNumber: req.body.header?.po_number,
+        errorMessage: error instanceof Error ? error.message : String(error),
+        errorStack: error instanceof Error ? error.stack : undefined
+      });
+      
+      // Send more detailed error response
+      const errorMessage = error instanceof Error ? error.message : "Failed to import PO data";
+      res.status(500).json({ 
+        error: errorMessage,
+        details: process.env.NODE_ENV === 'development' ? {
+          vendor: req.params.vendor,
+          poNumber: req.body.header?.po_number,
+          errorType: error instanceof Error ? error.name : 'Unknown'
+        } : undefined
+      });
     }
   });
 
@@ -1584,7 +1952,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Period type must be either daily or date-range" });
       }
 
-      let parsedData;
+      let parsedData: any;
 
       try {
         if (platform === "amazon") {
@@ -1987,7 +2355,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Note: We don't check for duplicates in preview - users should be able to preview any file
 
-      let parsedData;
+      let parsedData: any;
 
       // Upload file to object storage first
       let attachmentPath = null;
@@ -2205,7 +2573,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           parsedData = parseFlipkartSecondaryData(req.file.buffer, periodType, businessUnit, startDate, endDate);
           
           // Add attachment path to all items
-          const itemsWithAttachment = parsedData.data.map(item => ({
+          const itemsWithAttachment = parsedData.data.map((item: any) => ({
             ...item,
             attachment_path: attachmentPath
           }));
@@ -2286,7 +2654,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             tableName = "SC_Zepto_JM_Daily";
           } else if (businessUnit === "jivo-mart" && periodType === "date-range") {
             // For date-range, also add period fields
-            const zeptoItemsWithPeriod = zeptoItemsWithDates.map(item => {
+            const zeptoItemsWithPeriod = zeptoItemsWithDates.map((item: any) => {
               let periodStart = new Date();
               let periodEnd = new Date();
               
@@ -2371,7 +2739,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             tableName = "SC_Blinkit_JM_Daily";
           } else if (businessUnit === "jivo-mart" && periodType === "date-range") {
             // For date-range, also add period_start and period_end
-            const blinkitItemsWithPeriod = blinkitItemsWithDates.map(item => {
+            const blinkitItemsWithPeriod = blinkitItemsWithDates.map((item: any) => {
               // Parse period dates safely
               let periodStart = new Date();
               let periodEnd = new Date();
@@ -2445,7 +2813,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             tableName = "SC_JioMartSale_JM_Daily";
           } else if (businessUnit === "jivo-mart" && periodType === "date-range") {
             // For date-range, also add period fields
-            const jioMartSaleItemsWithPeriod = jioMartSaleItemsWithDates.map(item => {
+            const jioMartSaleItemsWithPeriod = jioMartSaleItemsWithDates.map((item: any) => {
               let periodStart = new Date();
               let periodEnd = new Date();
               
@@ -2495,7 +2863,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             tableName = "SC_JioMartCancel_JM_Daily";
           } else if (businessUnit === "jivo-mart" && periodType === "date-range") {
             // For date-range, also add period fields
-            const jioMartCancelItemsWithPeriod = jioMartCancelItemsWithDates.map(item => {
+            const jioMartCancelItemsWithPeriod = jioMartCancelItemsWithDates.map((item: any) => {
               let periodStart = new Date();
               let periodEnd = new Date();
               
@@ -2728,7 +3096,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Store the file for attachment
       const attachmentPath = `uploads/${Date.now()}_${req.file.originalname}`;
 
-      let parsedData;
+      let parsedData: any;
 
       try {
         if (platform === "jiomart") {
@@ -2742,7 +3110,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           );
           
           // Add attachment path to all items
-          const itemsWithAttachment = parsedData.items.map(item => ({
+          const itemsWithAttachment = parsedData.items.map((item: any) => ({
             ...item,
             attachment_path: attachmentPath
           }));
@@ -2762,7 +3130,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           );
           
           // Add attachment path to all items
-          const itemsWithAttachment = parsedData.items.map(item => ({
+          const itemsWithAttachment = parsedData.items.map((item: any) => ({
             ...item,
             attachment_path: attachmentPath
           }));
@@ -2783,7 +3151,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           );
           
           // Add attachment path to all items
-          const itemsWithAttachment = parsedData.items.map(item => ({
+          const itemsWithAttachment = parsedData.items.map((item: any) => ({
             ...item,
             attachment_path: attachmentPath
           }));
@@ -2805,7 +3173,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           );
           
           // Add attachment path to all items
-          const itemsWithAttachment = parsedData.items.map(item => ({
+          const itemsWithAttachment = parsedData.items.map((item: any) => ({
             ...item,
             attachment_path: attachmentPath
           }));
@@ -2830,8 +3198,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             totalItems: flipkartItems.length,
             items: flipkartItems,
             summary: {
-              totalWarehouses: [...new Set(flipkartItems.map(item => item.warehouseId).filter(Boolean))].length,
-              totalBrands: [...new Set(flipkartItems.map(item => item.brand).filter(Boolean))].length,
+              totalWarehouses: Array.from(new Set(flipkartItems.map(item => item.warehouseId).filter(Boolean))).length,
+              totalBrands: Array.from(new Set(flipkartItems.map(item => item.brand).filter(Boolean))).length,
               totalLiveProducts: flipkartItems.filter(item => item.liveOnWebsite && item.liveOnWebsite > 0).length,
               totalSalesValue: flipkartItems.reduce((sum, item) => sum + (parseFloat(item.flipkartSellingPrice?.toString() || '0') * (item.sales30D || 0)), 0)
             }
@@ -2952,7 +3320,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Store the file for attachment
       const attachmentPath = `uploads/${Date.now()}_${req.file.originalname}`;
 
-      let parsedData;
+      let parsedData: any;
       const reportDate = new Date();
       // Fix timezone issue: Create dates without timezone conversion
       const periodStart = startDate ? createDateFromYMDString(startDate) : null;
@@ -3474,6 +3842,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     }
   });
+
+  // Master Agent Routes - Enhanced backend operations
+  app.post("/api/agent/purchase-orders", createPurchaseOrderAgent);
+  app.get("/api/agent/platforms", getPlatformsAgent);
+  app.get("/api/agent/distributors/:platformId", getDistributorsAgent);
+  app.get("/api/agent/platform-items", searchPlatformItemsAgent);
+  app.get("/api/agent/analytics", getOrderAnalyticsAgent);
+  app.get("/api/agent/health", healthCheckAgent);
+  app.post("/api/agent/validate-po", validatePOAgent);
+
+  // SQL Server Routes - Direct database operations
+  app.get("/api/sql/health", sqlHealthCheck);
+  app.get("/api/sql/status", getSqlStatus);
+  app.get("/api/sql/items", getItemDetails);
+  app.get("/api/sql/hana-items", getHanaItems);
+  app.post("/api/sql/search-hana-items", searchHanaItems);
+  app.post("/api/sql/search-items", searchItems);
+  app.get("/api/sql/platform-items", getPlatformItems);
+  app.post("/api/sql/query", executeQuery);
+  app.post("/api/sql/stored-procedure", executeStoredProcedure);
+  app.get("/api/sql/table-info", getTableInfo);
+  app.get("/api/sql/performance", getPerformanceStats);
+
+  // HANA Test Routes
+  app.get("/api/hana/test-connection", testHanaConnection);
+  app.get("/api/hana/test-procedure", testStoredProcedure);
+  app.get("/api/hana/items", getHanaItemsTest);
+  app.post("/api/hana/search", searchHanaItemsTest);
+  app.get("/api/hana/raw-procedure", executeRawProcedure);
 
   const httpServer = createServer(app);
   

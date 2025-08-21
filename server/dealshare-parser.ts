@@ -67,7 +67,7 @@ export async function parseDealsharePO(buffer: Buffer, uploadedBy: string) {
     ];
 
     for (const { row, field } of dateRows) {
-      if (row && row[0]) {
+      if (row && Array.isArray(row) && row[0]) {
         const dateValue = String(row[0]);
         const excelDate = parseFloat(dateValue);
         if (!isNaN(excelDate) && excelDate > 0 && excelDate < 100000) {
@@ -90,7 +90,7 @@ export async function parseDealsharePO(buffer: Buffer, uploadedBy: string) {
     const addressParts = [];
     const addressRows = [jsonData[3], jsonData[4], jsonData[5], jsonData[6]];
     for (const row of addressRows) {
-      if (row && row[1]) {
+      if (row && Array.isArray(row) && row[1]) {
         addressParts.push(String(row[1]).trim());
       }
     }
@@ -131,7 +131,7 @@ export async function parseDealsharePO(buffer: Buffer, uploadedBy: string) {
     // Combine Shipped To address
     const shippedToAddressParts = [];
     for (const row of addressRows) {
-      if (row && row[3]) {
+      if (row && Array.isArray(row) && row[3]) {
         shippedToAddressParts.push(String(row[3]).trim());
       }
     }
@@ -155,7 +155,7 @@ export async function parseDealsharePO(buffer: Buffer, uploadedBy: string) {
     // Combine Bill To address
     const billToAddressParts = [];
     for (const row of addressRows) {
-      if (row && row[7]) {
+      if (row && Array.isArray(row) && row[7]) {
         billToAddressParts.push(String(row[7]).trim());
       }
     }

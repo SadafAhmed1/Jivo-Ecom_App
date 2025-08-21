@@ -1,18 +1,22 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Plus, List, BarChart3, Upload, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { PlatformPOForm } from "./platform-po-form";
+import { ModernPOForm } from "./modern-po-form";
 import { POListView } from "./po-list-view";
 import { OrderItemsListView } from "./order-items-list-view";
 import { NewPODropdown } from "./new-po-dropdown";
 import { UnifiedUploadComponent } from "./unified-upload-component";
+import { useQueryClient } from "@tanstack/react-query";
 
 export function PlatformPOTabs() {
+  const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState("list");
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [showCreateForm, setShowCreateForm] = useState(false);
+  const [listKey, setListKey] = useState(0);
+
 
   return (
     <div className="max-w-7xl mx-auto space-y-6">
@@ -79,7 +83,7 @@ export function PlatformPOTabs() {
               <>
                 <TabsContent value="list" className="mt-0">
                   <div className="p-6">
-                    <POListView />
+                    <POListView key={listKey} />
                   </div>
                 </TabsContent>
 
@@ -109,16 +113,28 @@ export function PlatformPOTabs() {
                 </div>
                 <UnifiedUploadComponent 
                   onComplete={() => {
+                    console.log("🔄 Platform tabs: Upload completed, refreshing data...");
+                    // Aggressively invalidate all relevant queries
+                    queryClient.invalidateQueries({ queryKey: ["/api/pos"] });
+                    queryClient.invalidateQueries({ queryKey: ["/api/order-items"] });
+                    
                     setShowUploadModal(false);
                     setActiveTab("list");
+                    // Force component remount to ensure fresh data
+                    setListKey(prev => prev + 1);
+                    // Also dispatch event for other listeners
+                    setTimeout(() => {
+                      console.log("📡 Dispatching po-created event...");
+                      window.dispatchEvent(new Event('po-created'));
+                    }, 100);
                   }}
                 />
               </div>
             )}
 
             {showCreateForm && (
-              <div className="p-6">
-                <div className="flex items-center justify-between mb-6">
+              <div className="p-0">
+                <div className="p-6 border-b bg-white">
                   <div className="flex items-center space-x-3">
                     <Button
                       variant="outline"
@@ -132,9 +148,19 @@ export function PlatformPOTabs() {
                     <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Create New Purchase Order</h3>
                   </div>
                 </div>
-                <PlatformPOForm />
+                <ModernPOForm onSuccess={() => {
+                  setShowCreateForm(false);
+                  setActiveTab("list");
+                  // Force component remount to ensure fresh data
+                  setListKey(prev => prev + 1);
+                  // Also dispatch event for other listeners
+                  setTimeout(() => {
+                    window.dispatchEvent(new Event('po-created'));
+                  }, 100);
+                }} />
               </div>
             )}
+
           </CardContent>
         </Tabs>
       </Card>

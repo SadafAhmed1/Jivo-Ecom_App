@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import type { FlipkartGroceryPO } from "@/types";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,11 +26,11 @@ import { Link } from "wouter";
 export default function FlipkartGroceryPOs() {
   const [searchQuery, setSearchQuery] = useState("");
 
-  const { data: pos, isLoading } = useQuery({
+  const { data: pos, isLoading } = useQuery<FlipkartGroceryPO[]>({
     queryKey: ['/api/flipkart-grocery-pos'],
   });
 
-  const filteredPOs = pos?.filter((po: any) => 
+  const filteredPOs = pos?.filter((po: FlipkartGroceryPO) => 
     po.po_number?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     po.supplier_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     po.category?.toLowerCase().includes(searchQuery.toLowerCase())

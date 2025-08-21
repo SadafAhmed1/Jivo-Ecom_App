@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { format, isAfter, isBefore, isEqual, parseISO } from "date-fns";
 import { Search, Eye, Edit, Trash2, Filter, Download, RefreshCw, X, Calendar } from "lucide-react";
@@ -44,9 +44,31 @@ export function POListView() {
     queryKey: ["/api/pos"]
   });
 
+  // Debug logging for received data
+  useEffect(() => {
+    if (pos && pos.length > 0) {
+      console.log("🔍 DEBUG: Query data updated, received", pos.length, "POs");
+      console.log("🔍 DEBUG: All PO numbers:", pos.map(p => p.po_number));
+      console.log("🔍 DEBUG: First few PO structures:", pos.slice(0, 3));
+    }
+  }, [pos]);
+
   const { data: platforms = [] } = useQuery<PfMst[]>({
     queryKey: ["/api/platforms"]
   });
+
+  // Listen for PO creation events and refetch data
+  useEffect(() => {
+    const handlePOCreated = () => {
+      console.log("📡 PO List: Received po-created event, refetching...");
+      refetch();
+    };
+
+    window.addEventListener('po-created', handlePOCreated);
+    return () => {
+      window.removeEventListener('po-created', handlePOCreated);
+    };
+  }, [refetch]);
 
   const deletePOMutation = useMutation({
     mutationFn: (id: number) => apiRequest('DELETE', `/api/pos/${id}`),
@@ -71,12 +93,8 @@ export function POListView() {
   };
 
   const handleEdit = (po: POWithDetails) => {
-    // For Zepto POs, redirect to Zepto-specific edit page
-    if (po.platform.pf_name === "Zepto") {
-      setLocation(`/zepto-pos/edit/${po.id}`);
-    } else {
-      setLocation(`/po-edit/${po.id}`);
-    }
+    // All POs from the unified /api/pos endpoint use the modern edit route
+    setLocation(`/po-edit/${po.id}`);
   };
 
   const handleDelete = (po: POWithDetails) => {
@@ -86,6 +104,7 @@ export function POListView() {
   };
 
   const handleRefresh = () => {
+    console.log("🔄 Manual refresh triggered, refetching POs...");
     refetch();
     toast({
       title: "Refreshed",
@@ -182,19 +201,32 @@ export function POListView() {
 
   // Filter POs based on search term and filters
   const filteredPOs = pos.filter(po => {
+    // Safety check for required fields
+    if (!po || !po.po_number || !po.platform) {
+      console.warn("🚨 Invalid PO data:", po);
+      return false;
+    }
+    
     const matchesSearch = searchTerm === "" || 
-      po.po_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      po.platform.pf_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      po.status.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      `${po.city}, ${po.state}`.toLowerCase().includes(searchTerm.toLowerCase());
+      (po.po_number || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (po.platform?.pf_name || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (po.status || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+      `${po.city || ""}, ${po.state || ""}`.toLowerCase().includes(searchTerm.toLowerCase());
     
-    const matchesStatus = statusFilter === "all" || po.status.toLowerCase() === statusFilter.toLowerCase();
-    const matchesPlatform = platformFilter === "all" || po.platform.id.toString() === platformFilter;
+    const matchesStatus = statusFilter === "all" || (po.status || "").toLowerCase() === statusFilter.toLowerCase();
+    const matchesPlatform = platformFilter === "all" || (po.platform?.id || "").toString() === platformFilter;
     
-    // Date filters
-    const poOrderDate = new Date(po.order_date);
-    const matchesOrderDateFrom = orderDateFrom === "" || isAfter(poOrderDate, new Date(orderDateFrom)) || isEqual(poOrderDate, new Date(orderDateFrom));
-    const matchesOrderDateTo = orderDateTo === "" || isBefore(poOrderDate, new Date(orderDateTo)) || isEqual(poOrderDate, new Date(orderDateTo));
+    // Date filters with safety checks
+    let matchesOrderDateFrom = true;
+    let matchesOrderDateTo = true;
+    
+    if (po.order_date) {
+      const poOrderDate = new Date(po.order_date);
+      if (!isNaN(poOrderDate.getTime())) {
+        matchesOrderDateFrom = orderDateFrom === "" || isAfter(poOrderDate, new Date(orderDateFrom)) || isEqual(poOrderDate, new Date(orderDateFrom));
+        matchesOrderDateTo = orderDateTo === "" || isBefore(poOrderDate, new Date(orderDateTo)) || isEqual(poOrderDate, new Date(orderDateTo));
+      }
+    }
     
     let matchesExpiryDateFrom = true;
     let matchesExpiryDateTo = true;
@@ -203,15 +235,53 @@ export function POListView() {
       matchesExpiryDateFrom = expiryDateFrom === "" || isAfter(poExpiryDate, new Date(expiryDateFrom)) || isEqual(poExpiryDate, new Date(expiryDateFrom));
       matchesExpiryDateTo = expiryDateTo === "" || isBefore(poExpiryDate, new Date(expiryDateTo)) || isEqual(poExpiryDate, new Date(expiryDateTo));
     } else {
-      // If no expiry date, only match if no expiry date filters are set
+      // If no expiry date, show the PO unless user specifically filtered for expiry dates
       matchesExpiryDateFrom = expiryDateFrom === "";
       matchesExpiryDateTo = expiryDateTo === "";
+      // If both expiry filters are empty, show all POs including those with null expiry
+      if (expiryDateFrom === "" && expiryDateTo === "") {
+        matchesExpiryDateFrom = true;
+        matchesExpiryDateTo = true;
+      }
     }
     
-    return matchesSearch && matchesStatus && matchesPlatform && 
+    const passes = matchesSearch && matchesStatus && matchesPlatform && 
            matchesOrderDateFrom && matchesOrderDateTo && 
            matchesExpiryDateFrom && matchesExpiryDateTo;
+    
+    // Debug individual filter failures
+    if (!passes) {
+      console.log(`🚨 PO ${po.po_number} filtered out:`, {
+        matchesSearch,
+        matchesStatus,
+        matchesPlatform,
+        matchesOrderDateFrom,
+        matchesOrderDateTo,
+        matchesExpiryDateFrom,
+        matchesExpiryDateTo,
+        po_expiry_date: po.expiry_date
+      });
+    }
+    
+    return passes;
   });
+
+  // Debug filtering results
+  useEffect(() => {
+    console.log(`🔍 FILTER DEBUG: ${pos.length} total POs → ${filteredPOs.length} filtered POs`);
+    console.log("🔍 FILTER DEBUG: Filters:", {
+      searchTerm,
+      statusFilter,
+      platformFilter,
+      orderDateFrom,
+      orderDateTo,
+      expiryDateFrom,
+      expiryDateTo
+    });
+    if (pos.length > filteredPOs.length) {
+      console.log("🔍 FILTER DEBUG: Some POs were filtered out");
+    }
+  }, [pos.length, filteredPOs.length, searchTerm, statusFilter, platformFilter, orderDateFrom, orderDateTo, expiryDateFrom, expiryDateTo]);
 
   const getStatusBadgeVariant = (status: string) => {
     switch (status.toLowerCase()) {
@@ -225,11 +295,23 @@ export function POListView() {
   };
 
   const calculatePOTotals = (items: PfOrderItems[]) => {
-    const totalQuantity = items.reduce((sum, item) => sum + item.quantity, 0);
-    const totalValue = items.reduce((sum, item) => {
-      return sum + (parseFloat(item.landing_rate) * item.quantity);
-    }, 0);
-    return { totalQuantity, totalValue };
+    try {
+      if (!items || !Array.isArray(items)) {
+        console.warn("🚨 calculatePOTotals: Invalid items array", items);
+        return { totalQuantity: 0, totalValue: 0 };
+      }
+      
+      const totalQuantity = items.reduce((sum, item) => sum + (item?.quantity || 0), 0);
+      const totalValue = items.reduce((sum, item) => {
+        const landingRate = parseFloat(item?.landing_rate || '0') || 0;
+        const quantity = item?.quantity || 0;
+        return sum + (landingRate * quantity);
+      }, 0);
+      return { totalQuantity, totalValue };
+    } catch (error) {
+      console.error("🚨 Error in calculatePOTotals:", error, "Items:", items);
+      return { totalQuantity: 0, totalValue: 0 };
+    }
   };
 
   if (isLoading) {
@@ -486,8 +568,9 @@ export function POListView() {
         </Card>
       ) : (
         <div className="space-y-4">
-          {filteredPOs.map((po) => {
-            const { totalQuantity, totalValue } = calculatePOTotals(po.orderItems);
+          {filteredPOs.map((po, index) => {
+            console.log(`🔍 DEBUG: Rendering PO ${index + 1}/${filteredPOs.length}: ${po.po_number} (ID: ${po.id})`);
+            const { totalQuantity, totalValue } = calculatePOTotals(po.orderItems || []);
             
             return (
               <Card key={`po-${po.id}-${po.po_number}`} className="shadow-lg border-0 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm hover:shadow-xl transition-all duration-300 hover:scale-[1.01]">

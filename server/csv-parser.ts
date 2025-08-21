@@ -460,7 +460,7 @@ export function parseCityMallPO(csvContent: string, uploadedBy: string, filename
   let totalAmount = 0;
 
   // Process each line item
-  records.forEach((record: Record<string, string>, index: number) => {
+  (records as Record<string, string>[]).forEach((record, index: number) => {
     try {
       // Skip total row
       if (record['S.No'] === '' && record['Article Id'] === 'Total') {
@@ -591,7 +591,7 @@ export function parseBlinkitPO(fileContent: Buffer, uploadedBy: string): {
     }
     
     // Convert to object format with headers
-    rows = dataRows.map((row: any[]) => {
+    rows = (dataRows as unknown[][]).map((row) => {
       const obj: any = {};
       headers.forEach((header, index) => {
         obj[header] = (row[index] || '').toString().trim();
@@ -821,11 +821,8 @@ export async function parseSwiggyPO(fileBuffer: Buffer, uploadedBy: string): Pro
           line_number: lineNumber++,
           item_code: itemCode,
           quantity: quantity,
-          unit_price: unitPrice.toString(),
-          total_amount: totalPrice.toString(),
-          uom: 'PCS',
-          status: 'Active',
-          created_by: uploadedBy
+          unit_base_cost: unitPrice.toString(),
+          line_total: totalPrice.toString()
         });
         
         totalQuantity += quantity;
@@ -843,12 +840,11 @@ export async function parseSwiggyPO(fileBuffer: Buffer, uploadedBy: string): Pro
   const header: InsertSwiggyPo = {
     po_number: poNumber,
     po_date: poDate ? new Date(poDate) : new Date(),
-    total_amount: totalAmount.toString(),
+    grand_total: totalAmount.toString(),
     total_quantity: totalQuantity,
     total_items: lines.length,
     status: 'Open',
-    created_by: uploadedBy,
-    uploaded_by: uploadedBy
+    created_by: uploadedBy
   };
   
   return {
