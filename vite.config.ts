@@ -4,7 +4,7 @@ import path from "path";
 import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
 
 export default defineConfig({
-  base: process.env.NODE_ENV === "production" ? "/Jivo-Ecom_App/" : "/",
+  base: process.env.NODE_ENV === "production" ? "/Jivo-Ecom-Ops/" : "/",
   plugins: [
     react(),
     runtimeErrorOverlay(),
