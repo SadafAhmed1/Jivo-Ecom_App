@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { z } from "zod";
-import { Plus, Check, CalendarDays, Package, MapPin, Building2, User, FileText, Warehouse, Truck, Save, AlertCircle, CheckCircle2, Clock } from "lucide-react";
+import { Plus, Check, CalendarDays, Package, MapPin, Building2, User, FileText, Truck, Save, AlertCircle, CheckCircle2, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -31,7 +31,6 @@ const poFormSchema = z.object({
   area: z.string().optional(),
   serving_distributor: z.string().optional(),
   dispatch_from: z.string().optional(),
-  warehouse: z.string().optional(),
   attachment: z.string().optional()
 });
 
@@ -672,7 +671,6 @@ export function PlatformPOForm() {
       area: "",
       serving_distributor: "none",
       dispatch_from: "",
-      warehouse: "",
       attachment: ""
     }
   });
@@ -837,7 +835,6 @@ export function PlatformPOForm() {
           area: "",
           serving_distributor: initialDistributor,
           dispatch_from: "",
-          warehouse: "",
           attachment: ""
         });
         
@@ -1392,7 +1389,7 @@ export function PlatformPOForm() {
                           <span className="px-2 py-1 text-xs font-medium text-orange-600 bg-orange-100 rounded-full">Required</span>
                         </CardTitle>
                         <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
-                          Delivery location and warehouse information
+                          Delivery location information
                         </p>
                       </div>
                     </div>
@@ -1562,26 +1559,6 @@ export function PlatformPOForm() {
                     )}
                   />
 
-                  <FormField
-                    control={form.control}
-                    name="warehouse"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-sm font-medium text-slate-700 dark:text-slate-300 flex items-center gap-2">
-                          <Warehouse className="h-4 w-4" />
-                          Warehouse
-                        </FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder="Enter warehouse name"
-                            className="h-12 border-slate-300 hover:border-cyan-400 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 transition-all duration-200"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage className="text-xs mt-1" />
-                      </FormItem>
-                    )}
-                  />
                 </div>
               </CardContent>
             </Card>

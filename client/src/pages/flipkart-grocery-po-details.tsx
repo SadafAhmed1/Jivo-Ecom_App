@@ -20,7 +20,8 @@ import {
   Calendar,
   CreditCard,
   FileText,
-  ShoppingCart
+  ShoppingCart,
+  Edit
 } from "lucide-react";
 import { Link } from "wouter";
 import type { FlipkartGroceryPO, FlipkartGroceryPoLines } from "@/types";
@@ -110,6 +111,12 @@ export default function FlipkartGroceryPODetails() {
             <div className="flex items-center gap-2">
               {getStatusBadge(po.status)}
               <Badge variant="outline">{po.category}</Badge>
+              <Link href={`/flipkart-grocery-po/${id}/edit`}>
+                <Button variant="outline" size="sm">
+                  <Edit className="mr-2 h-4 w-4" />
+                  Edit
+                </Button>
+              </Link>
             </div>
           </div>
         </div>
@@ -169,7 +176,7 @@ export default function FlipkartGroceryPODetails() {
       </div>
 
       {/* PO Details */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
         {/* Supplier Information */}
         <Card>
           <CardHeader>
@@ -230,6 +237,42 @@ export default function FlipkartGroceryPODetails() {
             <div>
               <p className="text-sm font-medium text-muted-foreground">Contract Ref ID</p>
               <p className="font-mono text-sm">{po.contract_ref_id || '-'}</p>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Distribution & Location */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <MapPin className="h-5 w-5" />
+              Distribution & Location
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <p className="text-sm font-medium text-muted-foreground">Distributor</p>
+              <p className="font-medium">{po.distributor || '-'}</p>
+            </div>
+            <div>
+              <p className="text-sm font-medium text-muted-foreground">Region</p>
+              <p>{po.region || '-'}</p>
+            </div>
+            <div>
+              <p className="text-sm font-medium text-muted-foreground">State</p>
+              <p>{po.state || '-'}</p>
+            </div>
+            <div>
+              <p className="text-sm font-medium text-muted-foreground">City</p>
+              <p>{po.city || '-'}</p>
+            </div>
+            <div>
+              <p className="text-sm font-medium text-muted-foreground">Area</p>
+              <p>{po.area || '-'}</p>
+            </div>
+            <div>
+              <p className="text-sm font-medium text-muted-foreground">Dispatch From</p>
+              <p className="text-sm leading-relaxed">{po.dispatch_from || '-'}</p>
             </div>
           </CardContent>
         </Card>

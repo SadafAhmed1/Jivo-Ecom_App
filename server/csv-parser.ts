@@ -240,6 +240,13 @@ export function parseFlipkartGroceryPO(csvContent: string, uploadedBy: string): 
     contract_ref_id: contractRefId,
     contract_version: contractVersion,
     credit_term: creditTerm,
+    // Add new location fields with default values
+    distributor: '', // Will need to be set from UI or extracted if available
+    area: '', // Will need to be set from UI or extracted if available
+    city: '', // Will need to be set from UI or extracted if available
+    region: '', // Will need to be set from UI or extracted if available
+    state: '', // Will need to be set from UI or extracted if available
+    dispatch_from: '', // Will need to be set from UI or extracted if available
     total_quantity: totalQuantity,
     total_taxable_value: totalTaxableValue.toString(),
     total_tax_amount: totalTaxAmount.toString(),

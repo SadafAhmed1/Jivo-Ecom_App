@@ -107,7 +107,7 @@ export function OrderItemsListView() {
       'GST Rate': parseFloat(item.gst_rate || '0'),
       'Landing Rate': parseFloat(item.landing_rate || '0'),
       'Item Total': parseFloat((parseFloat(item.landing_rate || '0') * item.quantity).toFixed(2)),
-      'Status': item.status || 'Pending',
+      'Status': (item.status || 'PENDING').toUpperCase(),
       'Order Date': format(new Date(item.order_date), 'yyyy-MM-dd'),
       'Expiry Date': item.expiry_date ? format(new Date(item.expiry_date), 'yyyy-MM-dd') : 'Not set'
     }));
@@ -144,14 +144,18 @@ export function OrderItemsListView() {
 
   // Filter order items based on search term and filters
   const filteredOrderItems = orderItems.filter(item => {
-    const matchesSearch = searchTerm === "" || 
-      item.item_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.po_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.platform_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (item.sap_code && item.sap_code.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      (item.hsn_code && item.hsn_code.toLowerCase().includes(searchTerm.toLowerCase()));
+    // Safe search with type checking
+    const searchTermLower = searchTerm && typeof searchTerm === 'string' ? searchTerm.toLowerCase() : '';
+    const matchesSearch = !searchTermLower || 
+      (item.item_name && typeof item.item_name === 'string' && item.item_name.toLowerCase().includes(searchTermLower)) ||
+      (item.po_number && typeof item.po_number === 'string' && item.po_number.toLowerCase().includes(searchTermLower)) ||
+      (item.platform_name && typeof item.platform_name === 'string' && item.platform_name.toLowerCase().includes(searchTermLower)) ||
+      (item.sap_code && typeof item.sap_code === 'string' && item.sap_code.toLowerCase().includes(searchTermLower)) ||
+      (item.hsn_code && typeof item.hsn_code === 'string' && item.hsn_code.toLowerCase().includes(searchTermLower));
     
-    const matchesStatus = statusFilter === "all" || (item.status || 'pending').toLowerCase() === statusFilter.toLowerCase();
+    const matchesStatus = statusFilter === "all" || 
+      (item.status || 'PENDING').toUpperCase() === (statusFilter && typeof statusFilter === 'string' ? statusFilter.toUpperCase() : '') ||
+      (item.status || 'PENDING').toLowerCase().replace(/_/g, ' ') === (statusFilter && typeof statusFilter === 'string' ? statusFilter.toLowerCase().replace(/_/g, ' ') : '');
     const matchesPlatform = platformFilter === "all" || item.platform.id.toString() === platformFilter;
     
     // Date filters
@@ -183,13 +187,15 @@ export function OrderItemsListView() {
   );
 
   const getStatusBadgeVariant = (status: string) => {
-    switch (status.toLowerCase()) {
+    const normalizedStatus = (status && typeof status === 'string' ? status.toLowerCase().replace(/_/g, ' ') : 'pending');
+    switch (normalizedStatus) {
       case 'pending': return 'default';
       case 'invoiced': return 'secondary';
       case 'dispatched': return 'secondary';
       case 'delivered': return 'secondary';
       case 'cancelled': return 'destructive';
       case 'expired': return 'destructive';
+      case 'price diff':
       case 'price difference': return 'outline';
       case 'mov issue': return 'outline';
       case 'stock issue': return 'outline';
@@ -484,10 +490,10 @@ export function OrderItemsListView() {
                           disabled={updateStatusMutation.isPending || !item.id}
                         >
                           <Badge 
-                            variant={getStatusBadgeVariant(item.status || 'pending')}
+                            variant={getStatusBadgeVariant(item.status || 'PENDING')}
                             className="text-xs font-semibold border-none bg-transparent p-0"
                           >
-                            {item.status || 'Pending'}
+                            {(item.status || 'PENDING').toUpperCase()}
                           </Badge>
                           <ChevronDown className="h-3 w-3" />
                         </Button>
@@ -497,120 +503,120 @@ export function OrderItemsListView() {
                           onClick={(e) => {
                             e.preventDefault();
                             e.stopPropagation();
-                            handleStatusUpdate(item.id, 'Pending');
+                            handleStatusUpdate(item.id, 'PENDING');
                           }}
                           className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 px-3 py-2 font-medium"
                           style={{ color: '#111827' }}
                         >
-                          <Badge variant="default" className="text-xs mr-2">Pending</Badge>
+                          <Badge variant="default" className="text-xs mr-2">PENDING</Badge>
                           <span style={{ color: '#111827' }}>Pending</span>
                         </DropdownMenuItem>
                         <DropdownMenuItem 
                           onClick={(e) => {
                             e.preventDefault();
                             e.stopPropagation();
-                            handleStatusUpdate(item.id, 'Invoiced');
+                            handleStatusUpdate(item.id, 'INVOICED');
                           }}
                           className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 px-3 py-2 font-medium"
                           style={{ color: '#111827' }}
                         >
-                          <Badge variant="secondary" className="text-xs mr-2">Invoiced</Badge>
+                          <Badge variant="secondary" className="text-xs mr-2">INVOICED</Badge>
                           <span style={{ color: '#111827' }}>Invoiced</span>
                         </DropdownMenuItem>
                         <DropdownMenuItem 
                           onClick={(e) => {
                             e.preventDefault();
                             e.stopPropagation();
-                            handleStatusUpdate(item.id, 'Dispatched');
+                            handleStatusUpdate(item.id, 'DISPATCHED');
                           }}
                           className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 px-3 py-2 font-medium"
                           style={{ color: '#111827' }}
                         >
-                          <Badge variant="secondary" className="text-xs mr-2">Dispatched</Badge>
+                          <Badge variant="secondary" className="text-xs mr-2">DISPATCHED</Badge>
                           <span style={{ color: '#111827' }}>Dispatched</span>
                         </DropdownMenuItem>
                         <DropdownMenuItem 
                           onClick={(e) => {
                             e.preventDefault();
                             e.stopPropagation();
-                            handleStatusUpdate(item.id, 'Delivered');
+                            handleStatusUpdate(item.id, 'DELIVERED');
                           }}
                           className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 px-3 py-2 font-medium"
                           style={{ color: '#111827' }}
                         >
-                          <Badge variant="secondary" className="text-xs mr-2">Delivered</Badge>
+                          <Badge variant="secondary" className="text-xs mr-2">DELIVERED</Badge>
                           <span style={{ color: '#111827' }}>Delivered</span>
                         </DropdownMenuItem>
                         <DropdownMenuItem 
                           onClick={(e) => {
                             e.preventDefault();
                             e.stopPropagation();
-                            handleStatusUpdate(item.id, 'Price Difference');
+                            handleStatusUpdate(item.id, 'PRICE_DIFF');
                           }}
                           className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 px-3 py-2 font-medium"
                           style={{ color: '#111827' }}
                         >
-                          <Badge variant="outline" className="text-xs mr-2">Price Difference</Badge>
+                          <Badge variant="outline" className="text-xs mr-2">PRICE DIFF</Badge>
                           <span style={{ color: '#111827' }}>Price Difference</span>
                         </DropdownMenuItem>
                         <DropdownMenuItem 
                           onClick={(e) => {
                             e.preventDefault();
                             e.stopPropagation();
-                            handleStatusUpdate(item.id, 'MOV Issue');
+                            handleStatusUpdate(item.id, 'MOV_ISSUE');
                           }}
                           className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 px-3 py-2 font-medium"
                           style={{ color: '#111827' }}
                         >
-                          <Badge variant="outline" className="text-xs mr-2">MOV Issue</Badge>
+                          <Badge variant="outline" className="text-xs mr-2">MOV ISSUE</Badge>
                           <span style={{ color: '#111827' }}>MOV Issue</span>
                         </DropdownMenuItem>
                         <DropdownMenuItem 
                           onClick={(e) => {
                             e.preventDefault();
                             e.stopPropagation();
-                            handleStatusUpdate(item.id, 'Stock Issue');
+                            handleStatusUpdate(item.id, 'STOCK_ISSUE');
                           }}
                           className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 px-3 py-2 font-medium"
                           style={{ color: '#111827' }}
                         >
-                          <Badge variant="outline" className="text-xs mr-2">Stock Issue</Badge>
+                          <Badge variant="outline" className="text-xs mr-2">STOCK ISSUE</Badge>
                           <span style={{ color: '#111827' }}>Stock Issue</span>
                         </DropdownMenuItem>
                         <DropdownMenuItem 
                           onClick={(e) => {
                             e.preventDefault();
                             e.stopPropagation();
-                            handleStatusUpdate(item.id, 'Cancelled');
+                            handleStatusUpdate(item.id, 'CANCELLED');
                           }}
                           className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 px-3 py-2 font-medium"
                           style={{ color: '#111827' }}
                         >
-                          <Badge variant="destructive" className="text-xs mr-2">Cancelled</Badge>
+                          <Badge variant="destructive" className="text-xs mr-2">CANCELLED</Badge>
                           <span style={{ color: '#111827' }}>Cancelled</span>
                         </DropdownMenuItem>
                         <DropdownMenuItem 
                           onClick={(e) => {
                             e.preventDefault();
                             e.stopPropagation();
-                            handleStatusUpdate(item.id, 'Expired');
+                            handleStatusUpdate(item.id, 'EXPIRED');
                           }}
                           className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 px-3 py-2 font-medium"
                           style={{ color: '#111827' }}
                         >
-                          <Badge variant="destructive" className="text-xs mr-2">Expired</Badge>
+                          <Badge variant="destructive" className="text-xs mr-2">EXPIRED</Badge>
                           <span style={{ color: '#111827' }}>Expired</span>
                         </DropdownMenuItem>
                         <DropdownMenuItem 
                           onClick={(e) => {
                             e.preventDefault();
                             e.stopPropagation();
-                            handleStatusUpdate(item.id, 'Hold');
+                            handleStatusUpdate(item.id, 'HOLD');
                           }}
                           className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 px-3 py-2 font-medium"
                           style={{ color: '#111827' }}
                         >
-                          <Badge variant="outline" className="text-xs mr-2">Hold</Badge>
+                          <Badge variant="outline" className="text-xs mr-2">HOLD</Badge>
                           <span style={{ color: '#111827' }}>Hold</span>
                         </DropdownMenuItem>
                         <DropdownMenuItem 

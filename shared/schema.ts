@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, integer, decimal, timestamp, boolean, serial, date } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, integer, decimal, timestamp, boolean, serial, date, unique } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 import { relations } from "drizzle-orm";
@@ -66,13 +66,14 @@ export const items = pgTable("items", {
   subgroup: varchar("subgroup", { length: 100 }),
   brand: varchar("brand", { length: 100 }),
   uom: varchar("uom", { length: 20 }),
-  taxrate: decimal("taxrate", { precision: 5, scale: 2 }),
+  taxrate: decimal("u_tax_rate", { precision: 5, scale: 2 }),
   unitsize: varchar("unitsize", { length: 50 }),
   is_litre: boolean("is_litre").default(false),
   case_pack: integer("case_pack"),
   basic_rate: decimal("basic_rate", { precision: 12, scale: 2 }),
   landing_rate: decimal("landing_rate", { precision: 12, scale: 2 }),
   mrp: decimal("mrp", { precision: 12, scale: 2 }),
+  supplier_price: decimal("supplier_price", { precision: 12, scale: 2 }),
   last_synced: timestamp("last_synced").defaultNow(),
   created_at: timestamp("created_at").defaultNow(),
   updated_at: timestamp("updated_at").defaultNow()
@@ -91,7 +92,12 @@ export const pfItemMst = pgTable("pf_item_mst", {
   pf_itemname: text("pf_itemname").notNull(),
   pf_id: integer("pf_id").notNull().references(() => pfMst.id),
   sap_id: varchar("sap_id", { length: 50 }).notNull() // Changed to varchar to store itemcode directly
-});
+}, (table) => ({
+  // Unique constraint to prevent duplicate item codes within the same platform
+  uniqueItemCode: unique("pf_item_mst_pf_id_itemcode_unique").on(table.pf_id, table.pf_itemcode),
+  // Unique constraint to prevent duplicate item names within the same platform  
+  uniqueItemName: unique("pf_item_mst_pf_id_itemname_unique").on(table.pf_id, table.pf_itemname)
+}));
 
 // Platform PO Table
 export const pfPo = pgTable("pf_po", {
@@ -233,7 +239,9 @@ export const pfPoRelations = relations(pfPo, ({ one, many }) => ({
     fields: [pfPo.district_id],
     references: [districts.id]
   }),
-  orderItems: many(pfOrderItems)
+  orderItems: many(pfOrderItems),
+  attachments: many(platformPoAttachments),
+  comments: many(platformPoComments)
 }));
 
 export const pfOrderItemsRelations = relations(pfOrderItems, ({ one }) => ({
@@ -296,21 +304,71 @@ export type InsertDistributorPo = z.infer<typeof insertDistributorPoSchema>;
 export type DistributorOrderItems = typeof distributorOrderItems.$inferSelect;
 export type InsertDistributorOrderItems = z.infer<typeof insertDistributorOrderItemsSchema>;
 
+// RBAC System Tables - Define roles first for proper referencing
+export const roles = pgTable("roles", {
+  id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
+  role_name: varchar("role_name", { length: 50 }).notNull().unique(),
+  description: text("description"),
+  is_admin: boolean("is_admin").default(false),
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow()
+});
+
 // Enhanced user table with profile management
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
   username: text("username").notNull().unique(),
   email: text("email").notNull().unique(),
   password: text("password").notNull(),
+  password_hash: text("password_hash"), // For new hashed passwords
   full_name: text("full_name"),
   phone: varchar("phone", { length: 20 }),
-  role: varchar("role", { length: 20 }).default("user"),
+  role: varchar("role", { length: 20 }).default("user"), // Legacy role field
+  role_id: integer("role_id").references(() => roles.id), // New RBAC role reference
   department: varchar("department", { length: 100 }).default("E-Com"),
   is_active: boolean("is_active").default(true),
+  status: varchar("status", { length: 20 }).default("active"), // active, inactive, suspended
   last_login: timestamp("last_login"),
   password_changed_at: timestamp("password_changed_at"),
+  created_by: integer("created_by").references(() => users.id),
   created_at: timestamp("created_at").defaultNow(),
   updated_at: timestamp("updated_at").defaultNow()
+});
+
+// Users relations
+export const usersRelations = relations(users, ({ one, many }) => ({
+  role: one(roles, {
+    fields: [users.role_id],
+    references: [roles.id]
+  }),
+  createdBy: one(users, {
+    fields: [users.created_by],
+    references: [users.id]
+  }),
+  userSessions: many(userSessions)
+}));
+
+// Log Master Table for tracking user edits and changes
+export const logMaster = pgTable("log_master", {
+  id: serial("id").primaryKey(),
+  user_id: integer("user_id").references(() => users.id),
+  username: varchar("username", { length: 100 }).notNull(),
+  action: varchar("action", { length: 50 }).notNull(), // 'CREATE', 'UPDATE', 'DELETE'
+  table_name: varchar("table_name", { length: 100 }).notNull(),
+  record_id: integer("record_id").notNull(),
+  field_name: varchar("field_name", { length: 100 }),
+  old_value: text("old_value"),
+  new_value: text("new_value"),
+  ip_address: varchar("ip_address", { length: 45 }),
+  user_agent: text("user_agent"),
+  session_id: varchar("session_id", { length: 100 }),
+  timestamp: timestamp("timestamp").defaultNow().notNull(),
+  created_at: timestamp("created_at").defaultNow()
+});
+
+export const insertLogMasterSchema = createInsertSchema(logMaster).omit({
+  id: true,
+  created_at: true
 });
 
 export const insertUserSchema = createInsertSchema(users).omit({
@@ -378,6 +436,12 @@ export const flipkartGroceryPoHeader = pgTable("flipkart_grocery_po_header", {
   total_tax_amount: decimal("total_tax_amount", { precision: 12, scale: 2 }),
   total_amount: decimal("total_amount", { precision: 12, scale: 2 }),
   status: varchar("status", { length: 20 }).notNull().default('Open'),
+  distributor: varchar("distributor", { length: 200 }),
+  area: varchar("area", { length: 100 }),
+  city: varchar("city", { length: 100 }),
+  region: varchar("region", { length: 100 }),
+  state: varchar("state", { length: 100 }),
+  dispatch_from: varchar("dispatch_from", { length: 100 }),
   created_by: varchar("created_by", { length: 100 }),
   uploaded_by: varchar("uploaded_by", { length: 100 }),
   created_at: timestamp("created_at").defaultNow(),
@@ -421,7 +485,9 @@ export const flipkartGroceryPoLines = pgTable("flipkart_grocery_po_lines", {
 
 // Relations for Flipkart Grocery PO tables
 export const flipkartGroceryPoHeaderRelations = relations(flipkartGroceryPoHeader, ({ many }) => ({
-  poLines: many(flipkartGroceryPoLines)
+  poLines: many(flipkartGroceryPoLines),
+  attachments: many(flipkartAttachments),
+  comments: many(flipkartComments)
 }));
 
 export const flipkartGroceryPoLinesRelations = relations(flipkartGroceryPoLines, ({ one }) => ({
@@ -496,7 +562,9 @@ export const zeptoPoLines = pgTable("zepto_po_lines", {
 
 // Relations for Zepto PO tables
 export const zeptoPoHeaderRelations = relations(zeptoPoHeader, ({ many }) => ({
-  poLines: many(zeptoPoLines)
+  poLines: many(zeptoPoLines),
+  attachments: many(zeptoAttachments),
+  comments: many(zeptoComments)
 }));
 
 export const zeptoPoLinesRelations = relations(zeptoPoLines, ({ one }) => ({
@@ -565,7 +633,9 @@ export const cityMallPoLines = pgTable("city_mall_po_lines", {
 
 // Relations for City Mall PO tables
 export const cityMallPoHeaderRelations = relations(cityMallPoHeader, ({ many }) => ({
-  poLines: many(cityMallPoLines)
+  poLines: many(cityMallPoLines),
+  attachments: many(citymallAttachments),
+  comments: many(citymallComments)
 }));
 
 export const cityMallPoLinesRelations = relations(cityMallPoLines, ({ one }) => ({
@@ -641,7 +711,9 @@ export const blinkitPoLines = pgTable("blinkit_po_lines", {
 
 // Relations for Blinkit PO tables
 export const blinkitPoHeaderRelations = relations(blinkitPoHeader, ({ many }) => ({
-  poLines: many(blinkitPoLines)
+  poLines: many(blinkitPoLines),
+  attachments: many(blinkitAttachments),
+  comments: many(blinkitComments)
 }));
 
 export const blinkitPoLinesRelations = relations(blinkitPoLines, ({ one }) => ({
@@ -719,6 +791,8 @@ export const swiggyPoLines = pgTable("swiggy_po_lines", {
 
 export const swiggyPosRelations = relations(swiggyPos, ({ many }) => ({
   poLines: many(swiggyPoLines),
+  attachments: many(swiggyAttachments),
+  comments: many(swiggyComments)
 }));
 
 export const swiggyPoLinesRelations = relations(swiggyPoLines, ({ one }) => ({
@@ -802,6 +876,8 @@ export const bigbasketPoLines = pgTable("bigbasket_po_lines", {
 
 export const bigbasketPoHeaderRelations = relations(bigbasketPoHeader, ({ many }) => ({
   poLines: many(bigbasketPoLines),
+  attachments: many(bigbasketAttachments),
+  comments: many(bigbasketComments)
 }));
 
 export const bigbasketPoLinesRelations = relations(bigbasketPoLines, ({ one }) => ({
@@ -880,6 +956,8 @@ export const zomatoPoItems = pgTable("zomato_po_items", {
 // Zomato Relations
 export const zomatoPoHeaderRelations = relations(zomatoPoHeader, ({ many }) => ({
   poItems: many(zomatoPoItems),
+  attachments: many(zomatoAttachments),
+  comments: many(zomatoComments)
 }));
 
 export const zomatoPoItemsRelations = relations(zomatoPoItems, ({ one }) => ({
@@ -956,6 +1034,8 @@ export const dealsharePoItems = pgTable("dealshare_po_items", {
 // Dealshare Relations
 export const dealsharePoHeaderRelations = relations(dealsharePoHeader, ({ many }) => ({
   poItems: many(dealsharePoItems),
+  attachments: many(dealshareAttachments),
+  comments: many(dealshareComments)
 }));
 
 export const dealsharePoItemsRelations = relations(dealsharePoItems, ({ one }) => ({
@@ -1027,6 +1107,224 @@ export const secondarySalesItems = pgTable("secondary_sales_items", {
   fulfillment_method: varchar("fulfillment_method", { length: 50 }), // FBA, FBM, etc.
   created_at: timestamp("created_at").defaultNow(),
   updated_at: timestamp("updated_at").defaultNow()
+});
+
+// Platform Attachment Tables
+
+// Zepto Attachments
+export const zeptoAttachments = pgTable("zepto_attachments", {
+  id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
+  poId: integer("po_id").notNull().references(() => zeptoPoHeader.id, { onDelete: "cascade" }),
+  fileName: text("file_name").notNull(),
+  filePath: text("file_path").notNull(),
+  fileType: text("file_type"),
+  fileSize: integer("file_size"),
+  uploadedBy: integer("uploaded_by").references(() => users.id),
+  uploadedAt: timestamp("uploaded_at").defaultNow(),
+  description: text("description"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow()
+});
+
+export const zeptoComments = pgTable("zepto_comments", {
+  id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
+  poId: integer("po_id").notNull().references(() => zeptoPoHeader.id, { onDelete: "cascade" }),
+  comment: text("comment").notNull(),
+  createdBy: integer("created_by").references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow()
+});
+
+// Flipkart Attachments
+export const flipkartAttachments = pgTable("flipkart_attachments", {
+  id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
+  poId: integer("po_id").notNull().references(() => flipkartGroceryPoHeader.id, { onDelete: "cascade" }),
+  fileName: text("file_name").notNull(),
+  filePath: text("file_path").notNull(),
+  fileType: text("file_type"),
+  fileSize: integer("file_size"),
+  uploadedBy: integer("uploaded_by").references(() => users.id),
+  uploadedAt: timestamp("uploaded_at").defaultNow(),
+  description: text("description"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow()
+});
+
+export const flipkartComments = pgTable("flipkart_comments", {
+  id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
+  poId: integer("po_id").notNull().references(() => flipkartGroceryPoHeader.id, { onDelete: "cascade" }),
+  comment: text("comment").notNull(),
+  createdBy: integer("created_by").references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow()
+});
+
+// Blinkit Attachments
+export const blinkitAttachments = pgTable("blinkit_attachments", {
+  id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
+  poId: integer("po_id").notNull().references(() => blinkitPoHeader.id, { onDelete: "cascade" }),
+  fileName: text("file_name").notNull(),
+  filePath: text("file_path").notNull(),
+  fileType: text("file_type"),
+  fileSize: integer("file_size"),
+  uploadedBy: integer("uploaded_by").references(() => users.id),
+  uploadedAt: timestamp("uploaded_at").defaultNow(),
+  description: text("description"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow()
+});
+
+export const blinkitComments = pgTable("blinkit_comments", {
+  id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
+  poId: integer("po_id").notNull().references(() => blinkitPoHeader.id, { onDelete: "cascade" }),
+  comment: text("comment").notNull(),
+  createdBy: integer("created_by").references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow()
+});
+
+// Swiggy Attachments
+export const swiggyAttachments = pgTable("swiggy_attachments", {
+  id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
+  poId: integer("po_id").notNull().references(() => swiggyPos.id, { onDelete: "cascade" }),
+  fileName: text("file_name").notNull(),
+  filePath: text("file_path").notNull(),
+  fileType: text("file_type"),
+  fileSize: integer("file_size"),
+  uploadedBy: integer("uploaded_by").references(() => users.id),
+  uploadedAt: timestamp("uploaded_at").defaultNow(),
+  description: text("description"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow()
+});
+
+export const swiggyComments = pgTable("swiggy_comments", {
+  id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
+  poId: integer("po_id").notNull().references(() => swiggyPos.id, { onDelete: "cascade" }),
+  comment: text("comment").notNull(),
+  createdBy: integer("created_by").references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow()
+});
+
+// BigBasket Attachments
+export const bigbasketAttachments = pgTable("bigbasket_attachments", {
+  id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
+  poId: integer("po_id").notNull().references(() => bigbasketPoHeader.id, { onDelete: "cascade" }),
+  fileName: text("file_name").notNull(),
+  filePath: text("file_path").notNull(),
+  fileType: text("file_type"),
+  fileSize: integer("file_size"),
+  uploadedBy: integer("uploaded_by").references(() => users.id),
+  uploadedAt: timestamp("uploaded_at").defaultNow(),
+  description: text("description"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow()
+});
+
+export const bigbasketComments = pgTable("bigbasket_comments", {
+  id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
+  poId: integer("po_id").notNull().references(() => bigbasketPoHeader.id, { onDelete: "cascade" }),
+  comment: text("comment").notNull(),
+  createdBy: integer("created_by").references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow()
+});
+
+// Zomato Attachments
+export const zomatoAttachments = pgTable("zomato_attachments", {
+  id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
+  poId: integer("po_id").notNull().references(() => zomatoPoHeader.id, { onDelete: "cascade" }),
+  fileName: text("file_name").notNull(),
+  filePath: text("file_path").notNull(),
+  fileType: text("file_type"),
+  fileSize: integer("file_size"),
+  uploadedBy: integer("uploaded_by").references(() => users.id),
+  uploadedAt: timestamp("uploaded_at").defaultNow(),
+  description: text("description"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow()
+});
+
+export const zomatoComments = pgTable("zomato_comments", {
+  id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
+  poId: integer("po_id").notNull().references(() => zomatoPoHeader.id, { onDelete: "cascade" }),
+  comment: text("comment").notNull(),
+  createdBy: integer("created_by").references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow()
+});
+
+// Dealshare Attachments
+export const dealshareAttachments = pgTable("dealshare_attachments", {
+  id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
+  poId: integer("po_id").notNull().references(() => dealsharePoHeader.id, { onDelete: "cascade" }),
+  fileName: text("file_name").notNull(),
+  filePath: text("file_path").notNull(),
+  fileType: text("file_type"),
+  fileSize: integer("file_size"),
+  uploadedBy: integer("uploaded_by").references(() => users.id),
+  uploadedAt: timestamp("uploaded_at").defaultNow(),
+  description: text("description"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow()
+});
+
+export const dealshareComments = pgTable("dealshare_comments", {
+  id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
+  poId: integer("po_id").notNull().references(() => dealsharePoHeader.id, { onDelete: "cascade" }),
+  comment: text("comment").notNull(),
+  createdBy: integer("created_by").references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow()
+});
+
+// CityMall Attachments
+export const citymallAttachments = pgTable("citymall_attachments", {
+  id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
+  poId: integer("po_id").notNull().references(() => cityMallPoHeader.id, { onDelete: "cascade" }),
+  fileName: text("file_name").notNull(),
+  filePath: text("file_path").notNull(),
+  fileType: text("file_type"),
+  fileSize: integer("file_size"),
+  uploadedBy: integer("uploaded_by").references(() => users.id),
+  uploadedAt: timestamp("uploaded_at").defaultNow(),
+  description: text("description"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow()
+});
+
+export const citymallComments = pgTable("citymall_comments", {
+  id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
+  poId: integer("po_id").notNull().references(() => cityMallPoHeader.id, { onDelete: "cascade" }),
+  comment: text("comment").notNull(),
+  createdBy: integer("created_by").references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow()
+});
+
+// Platform PO Attachments
+export const platformPoAttachments = pgTable("platform_po_attachments", {
+  id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
+  poId: integer("po_id").notNull().references(() => pfPo.id, { onDelete: "cascade" }),
+  fileName: text("file_name").notNull(),
+  filePath: text("file_path").notNull(),
+  fileType: text("file_type"),
+  fileSize: integer("file_size"),
+  uploadedBy: integer("uploaded_by").references(() => users.id),
+  uploadedAt: timestamp("uploaded_at").defaultNow(),
+  description: text("description"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow()
+});
+
+export const platformPoComments = pgTable("platform_po_comments", {
+  id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
+  poId: integer("po_id").notNull().references(() => pfPo.id, { onDelete: "cascade" }),
+  comment: text("comment").notNull(),
+  createdBy: integer("created_by").references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow()
 });
 
 // Secondary Sales Relations
@@ -2191,7 +2489,7 @@ export type InsertBigBasketInventoryRange = z.infer<typeof insertBigBasketInvent
 export const poMaster = pgTable("po_master", {
   id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
   platform_id: integer("platform_id").notNull(),
-  vendor_po_number: varchar("vendor_po_number", { length: 256 }).notNull(),
+  vendor_po_number: varchar("vendor_po_number", { length: 256 }),
   distributor_id: integer("distributor_id").notNull(),
   series: varchar("series", { length: 250 }).notNull(),
   company_id: integer("company_id").notNull(),
@@ -2318,6 +2616,7 @@ export const statusItem = pgTable("status_item", {
 export const states = pgTable("states", {
   id: integer("id").primaryKey(),
   statename: text("statename").notNull(),
+  region_id: integer("region_id").references(() => regions.id),
 });
 
 export const districts = pgTable("districts", {
@@ -2331,7 +2630,37 @@ export const distributors = pgTable("distributors", {
   name: text("name").notNull(),
 });
 
-// Relations for States and Districts
+// Regions table for proper cascading
+export const regions = pgTable("regions", {
+  id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
+  region_name: varchar("region_name", { length: 100 }).notNull().unique(),
+  region_code: varchar("region_code", { length: 10 }),
+  status: varchar("status", { length: 20 }).notNull().default('Active'),
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow()
+});
+
+// Relations for Regions, States and Districts
+export const regionsRelations = relations(regions, ({ many }) => ({
+  states: many(states),
+}));
+
+export const statesRelations = relations(states, ({ one, many }) => ({
+  region: one(regions, {
+    fields: [states.region_id],
+    references: [regions.id]
+  }),
+  districts: many(districts),
+}));
+
+export const districtsRelations = relations(districts, ({ one }) => ({
+  state: one(states, {
+    fields: [districts.state_id],
+    references: [states.id]
+  })
+}));
+
+// Master table relations (keeping existing for backward compatibility)
 export const statesMstRelations = relations(statesMst, ({ many }) => ({
   districts: many(districtsMst),
 }));
@@ -2344,6 +2673,12 @@ export const districtsMstRelations = relations(districtsMst, ({ one }) => ({
 }));
 
 // Insert schemas
+export const insertRegionsSchema = createInsertSchema(regions).omit({
+  id: true,
+  created_at: true,
+  updated_at: true
+});
+
 export const insertStatesMstSchema = createInsertSchema(statesMst).omit({
   id: true,
   created_at: true,
@@ -2357,6 +2692,8 @@ export const insertDistrictsMstSchema = createInsertSchema(districtsMst).omit({
 });
 
 // Types
+export type Regions = typeof regions.$inferSelect;
+export type InsertRegions = z.infer<typeof insertRegionsSchema>;
 export type StatesMst = typeof statesMst.$inferSelect;
 export type InsertStatesMst = z.infer<typeof insertStatesMstSchema>;
 export type DistrictsMst = typeof districtsMst.$inferSelect;
@@ -2368,9 +2705,94 @@ export type InsertStatuses = typeof statuses.$inferInsert;
 export type StatusItem = typeof statusItem.$inferSelect;
 export type InsertStatusItem = typeof statusItem.$inferInsert;
 
+// Types for logging
+export type LogMaster = typeof logMaster.$inferSelect;
+export type InsertLogMaster = z.infer<typeof insertLogMasterSchema>;
+
 // Types for original tables
 export type States = typeof states.$inferSelect;
 export type Districts = typeof districts.$inferSelect;  
 export type Distributors = typeof distributors.$inferSelect;
 
+// RBAC Tables - Role-Based Access Control System
+export const permissions = pgTable("permissions", {
+  id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
+  permission_name: varchar("permission_name", { length: 100 }).notNull().unique(),
+  category: varchar("category", { length: 50 }).notNull(),
+  description: text("description"),
+  created_at: timestamp("created_at").defaultNow()
+});
+
+export const rolePermissions = pgTable("role_permissions", {
+  id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
+  role_id: integer("role_id").notNull().references(() => roles.id, { onDelete: "cascade" }),
+  permission_id: integer("permission_id").notNull().references(() => permissions.id, { onDelete: "cascade" }),
+  granted_at: timestamp("granted_at").defaultNow()
+}, (table) => [
+  unique().on(table.role_id, table.permission_id)
+]);
+
+export const userSessions = pgTable("user_sessions", {
+  id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
+  user_id: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  session_token: varchar("session_token", { length: 255 }).notNull().unique(),
+  expires_at: timestamp("expires_at").notNull(),
+  created_at: timestamp("created_at").defaultNow(),
+  ip_address: varchar("ip_address", { length: 45 }),
+  user_agent: text("user_agent")
+});
+
+// RBAC Relations
+export const rolesRelations = relations(roles, ({ many }) => ({
+  users: many(users),
+  rolePermissions: many(rolePermissions)
+}));
+
+export const permissionsRelations = relations(permissions, ({ many }) => ({
+  rolePermissions: many(rolePermissions)
+}));
+
+export const rolePermissionsRelations = relations(rolePermissions, ({ one }) => ({
+  role: one(roles, {
+    fields: [rolePermissions.role_id],
+    references: [roles.id]
+  }),
+  permission: one(permissions, {
+    fields: [rolePermissions.permission_id],
+    references: [permissions.id]
+  })
+}));
+
+export const userSessionsRelations = relations(userSessions, ({ one }) => ({
+  user: one(users, {
+    fields: [userSessions.user_id],
+    references: [users.id]
+  })
+}));
+
+// RBAC Insert Schemas
+export const insertPermissionSchema = createInsertSchema(permissions).omit({
+  id: true,
+  created_at: true
+});
+
+export const insertRolePermissionSchema = createInsertSchema(rolePermissions).omit({
+  id: true,
+  granted_at: true
+});
+
+export const insertUserSessionSchema = createInsertSchema(userSessions).omit({
+  id: true,
+  created_at: true
+});
+
+// RBAC Types
+export type Role = typeof roles.$inferSelect;
+export type InsertRole = typeof roles.$inferInsert;
+export type Permission = typeof permissions.$inferSelect;
+export type InsertPermission = z.infer<typeof insertPermissionSchema>;
+export type RolePermission = typeof rolePermissions.$inferSelect;
+export type InsertRolePermission = z.infer<typeof insertRolePermissionSchema>;
+export type UserSession = typeof userSessions.$inferSelect;
+export type InsertUserSession = z.infer<typeof insertUserSessionSchema>;
 

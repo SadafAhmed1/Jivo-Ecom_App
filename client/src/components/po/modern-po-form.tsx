@@ -8,7 +8,7 @@ import {
   Plus, Upload, FileText, Package, 
   Building2, AlertCircle, Search, CheckCircle2,
   XCircle, Loader2, Trash2, Save, RefreshCw,
-  Eye, ShoppingCart, Calculator, Zap, ArrowLeft
+  ShoppingCart, Calculator, ArrowLeft, MessageSquare
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -26,9 +26,8 @@ import {
   AlertDialogFooter, AlertDialogHeader, AlertDialogTitle
 } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 import { Progress } from "@/components/ui/progress";
-import type { PfMst, Statuses, StatusItem } from "@shared/schema";
+import type { PfMst, StatusItem } from "@shared/schema";
 
 const poFormSchema = z.object({
   company: z.enum(["JIVO MART", "JIVO WELLNESS"], {
@@ -45,12 +44,11 @@ const poFormSchema = z.object({
       return !filenamePatterns.test(value);
     }, "PO number should not look like a filename. Use professional format like 'PO-YYYYMMDD-XXXX'"),
   distributor: z.string().optional(),
+  dispatch_from: z.string().optional(),
   area: z.string().optional(),
   region: z.string().min(1, "Region selection is required"),
   state: z.string().min(1, "State selection is required"),
   city: z.string().min(1, "City selection is required"),
-  dispatch_from: z.string().optional(),
-  warehouse: z.string().optional(),
   po_date: z.string().min(1, "PO date is required")
     .refine((date) => {
       const poDate = new Date(date);
@@ -60,7 +58,6 @@ const poFormSchema = z.object({
     }, "PO date cannot be in the past"),
   expiry_date: z.string().min(1, "Expiry date is required"),
   appointment_date: z.string().optional(),
-  status: z.string().default("OPEN"),
   comments: z.string().max(1000, "Comments cannot exceed 1000 characters").optional(),
   attachment: z.any().optional()
 }).superRefine((data, ctx) => {
@@ -123,7 +120,6 @@ interface LineItem {
 
 interface FormState {
   isSubmitting: boolean;
-  isGeneratingPO: boolean;
   isResetting: boolean;
   isInitialPopulation: boolean;
   lastSubmissionTime?: number;
@@ -138,12 +134,30 @@ interface ModernPOFormProps {
 
 export function ModernPOForm({ onSuccess, editMode = false, editPoId }: ModernPOFormProps = {}) {
   const [selectedCompany, setSelectedCompany] = useState<"JIVO MART" | "JIVO WELLNESS">("JIVO MART");
+
+  // Global error handler for uncaught errors in this component
+  useEffect(() => {
+    const handleError = (event: ErrorEvent) => {
+      console.error("❌ Uncaught error in ModernPOForm:", event.error);
+    };
+
+    const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
+      console.error("❌ Unhandled promise rejection in ModernPOForm:", event.reason);
+    };
+
+    window.addEventListener('error', handleError);
+    window.addEventListener('unhandledrejection', handleUnhandledRejection);
+
+    return () => {
+      window.removeEventListener('error', handleError);
+      window.removeEventListener('unhandledrejection', handleUnhandledRejection);
+    };
+  }, []);
   const [lineItems, setLineItems] = useState<LineItem[]>([]);
   const [attachedFile, setAttachedFile] = useState<File | null>(null);
   const [previousPlatformId, setPreviousPlatformId] = useState<string>("");
   const [formState, setFormState] = useState<FormState>({ 
     isSubmitting: false, 
-    isGeneratingPO: false, 
     isResetting: false,
     isInitialPopulation: false
   });
@@ -162,7 +176,6 @@ export function ModernPOForm({ onSuccess, editMode = false, editPoId }: ModernPO
     resolver: zodResolver(poFormSchema),
     defaultValues: {
       company: "JIVO MART",
-      status: "OPEN",
       po_date: new Date().toISOString().split('T')[0],
     },
     mode: "onChange"
@@ -179,11 +192,50 @@ export function ModernPOForm({ onSuccess, editMode = false, editPoId }: ModernPO
   // Fetch distributors
   // Note: distributors now handled by allDistributors query below
 
-  // Dynamic dropdown queries (using original tables)
+  // Watch form values for cascading updates
+  const selectedRegion = form.watch("region");
+  const selectedState = form.watch("state");
+  const selectedDistributor = form.watch("distributor");
+
+  // Dynamic dropdown queries for cascading region → state → city
+  const { data: regions = [] } = useQuery<{ id: number; region_name: string }[]>({
+    queryKey: ["/api/regions"],
+    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+  });
+
+  // Find selected region ID
+  const selectedRegionId = useMemo(() => {
+    return regions.find(region => region.region_name === selectedRegion)?.id;
+  }, [regions, selectedRegion]);
+
+  // Get states based on selected region ID
+  const { data: regionStates = [] } = useQuery<{ id: number; state_name: string; region_id: number }[]>({
+    queryKey: [`/api/states/by-region/${selectedRegionId || 0}`],
+    enabled: Boolean(selectedRegionId),
+    staleTime: 5 * 60 * 1000,
+  });
+
+  // Legacy queries (keeping for backward compatibility)
   const { data: states = [], isLoading: statesLoading, error: statesError, isSuccess: statesSuccess } = useQuery<{ id: number; statename: string }[]>({
     queryKey: ["/api/states"],
     staleTime: 0,
     refetchOnMount: true
+  });
+
+  // Get districts/cities based on selected state (unified logic)
+  const selectedStateId = useMemo(() => {
+    // First try the new cascading dropdown data
+    const fromNewAPI = regionStates.find(state => state.state_name === selectedState)?.id;
+    if (fromNewAPI) return fromNewAPI;
+    
+    // Fallback to legacy state data
+    return states && Array.isArray(states) ? states.find(state => state && state.statename === selectedState)?.id : undefined;
+  }, [regionStates, selectedState, states]);
+
+  const { data: stateCities = [] } = useQuery<{ id: number; district_name: string; state_id: number }[]>({
+    queryKey: [`/api/districts/by-state/${selectedStateId || 0}`],
+    enabled: Boolean(selectedStateId),
+    staleTime: 5 * 60 * 1000,
   });
 
   // Manual refetch function for testing (if needed)
@@ -208,73 +260,141 @@ export function ModernPOForm({ onSuccess, editMode = false, editPoId }: ModernPO
     console.log("❓ States array is empty but no error or loading state");
   }
 
-  const selectedStateId = useMemo(() => {
-    const selectedStateName = form.watch("state");
-    return states.find(state => state.statename === selectedStateName)?.id;
-  }, [states, form.watch("state")]);
+  // selectedStateId is now defined above with unified logic
 
   const { data: districts = [] } = useQuery<{ id: number; district: string; state_id: number }[]>({
-    queryKey: [`/api/districts/${selectedStateId}`],
-    enabled: !!selectedStateId
+    queryKey: [`/api/districts/${selectedStateId || 0}`],
+    enabled: true, // Always enabled to maintain consistent hook calls
+    staleTime: selectedStateId ? 0 : Infinity, // Only fetch if state is actually selected
+    refetchOnWindowFocus: false
   });
 
   const { data: allDistributors = [] } = useQuery<{ id: number; distributor_name: string }[]>({
     queryKey: ["/api/distributors"]
   });
 
-  const { data: poStatuses = [] } = useQuery<Statuses[]>({
-    queryKey: ["/api/statuses"]
+  const { data: dispatchLocations = [] } = useQuery<{ id: number; name: string }[]>({
+    queryKey: ["/api/dispatch-locations"]
   });
+
 
   const { data: itemStatuses = [] } = useQuery<StatusItem[]>({
     queryKey: ["/api/status-items"]
   });
 
-  // Fetch PO data for edit mode
-  const { data: editPO, isLoading: editQueryLoading, error: editQueryError } = useQuery<any>({
-    queryKey: [`/api/pos/${editPoId}`],
-    enabled: editMode && !!editPoId,
-    retry: 1,
-    retryDelay: 1000
+  // Fetch PO data for edit mode - only enabled when actually in edit mode
+  const { data: editPO, isLoading: editQueryLoading, error: editQueryError, refetch: refetchEditPO } = useQuery<any>({
+    queryKey: [`/api/pos/${editPoId || 'new'}`],
+    enabled: Boolean(editMode && editPoId && !isNaN(parseInt(String(editPoId)))), // Only enabled when in edit mode with valid numeric ID
+    retry: 2, // Increased retry attempts
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 3000), // Progressive retry delay
+    refetchOnWindowFocus: false,
+    refetchOnMount: true, // Always refetch when component mounts
+    staleTime: 0,
+    gcTime: 0 // Don't cache this data
   });
+  
+  // Enhanced error logging for edit queries
+  React.useEffect(() => {
+    if (editMode && editPoId) {
+      console.log("🔧 Edit mode activated:", {
+        editMode,
+        editPoId,
+        isLoading: editQueryLoading,
+        hasError: !!editQueryError,
+        hasData: !!editPO,
+        errorMessage: editQueryError?.message,
+        dataKeys: editPO ? Object.keys(editPO) : null
+      });
+    }
+    
+    if (editQueryError) {
+      console.error("❌ Failed to fetch PO for editing:", {
+        error: editQueryError,
+        message: editQueryError?.message,
+        stack: editQueryError?.stack,
+        editPoId,
+        queryKey: `/api/pos/${editPoId || 'new'}`
+      });
+    }
+    
+    if (editPO && editMode) {
+      console.log("✅ Edit data loaded successfully:", {
+        poId: editPO.id,
+        poNumber: editPO.po_number || editPO.vendor_po_number,
+        platform: editPO.platform,
+        orderItemsCount: editPO.orderItems?.length || 0,
+        keys: Object.keys(editPO)
+      });
+    }
+  }, [editQueryError, editPO, editMode, editPoId, editQueryLoading]);
 
   // Populate form with edit data - memoized to prevent unnecessary re-renders
   const populatedData = useMemo(() => {
-    if (!editMode || !editPO) return null;
+    try {
+      if (!editMode || !editPoId || !editPO) return null;
+      
+      // Type guard for editPO
+      const po = editPO as any;
     
-    console.log("📝 EditPO data received:", editPO);
-    console.log("🏙️ City value from API:", editPO.city);
-    console.log("🗺️ State value from API:", editPO.state);
+    console.log("📝 EditPO data received:", po);
+    console.log("🔑 EditPO keys:", Object.keys(po));
+    console.log("🏙️ City value from API:", po.city);
+    console.log("🗺️ State value from API:", po.state);
+    console.log("📦 Order items from API (order_items):", po.order_items);
+    console.log("📦 Order items from API (orderItems):", po.orderItems);
+    console.log("📊 Order items array check:", Array.isArray(po.orderItems), "Length:", po.orderItems?.length);
+    if (po.order_items && po.order_items.length > 0) {
+      console.log("🏷️ First item from order_items:", po.order_items[0]);
+    }
+    if (po.orderItems && po.orderItems.length > 0) {
+      console.log("🏷️ First item from orderItems:", po.orderItems[0]);
+    } else {
+      console.log("⚠️ No order items found in editPO.orderItems");
+    }
     
-    return {
+      return {
       formData: {
-        company: editPO.company || "JIVO MART",
-        platform: editPO.platform?.id?.toString() || "",
-        vendor_po_no: editPO.po_number || "",
-        distributor: editPO.serving_distributor || "",
-        area: editPO.area || "",
-        region: editPO.region || "",
+        company: po.company || "JIVO MART",
+        platform: po.platform?.id?.toString() || "",
+        vendor_po_no: po.po_number || "",
+        distributor: po.serving_distributor || "",
+        dispatch_from: po.dispatch_from || "",
+        area: po.area || "",
+        region: po.region || "",
         // Only populate state and city if they have actual values (not null/empty)
-        state: editPO.state && editPO.state.trim() !== '' ? editPO.state : "",
-        city: editPO.city && editPO.city.trim() !== '' ? editPO.city : "",
-        dispatch_from: editPO.dispatch_from || "",
-        warehouse: editPO.ware_house || "",
-        po_date: editPO.order_date ? new Date(editPO.order_date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
-        expiry_date: editPO.expiry_date ? new Date(editPO.expiry_date).toISOString().split('T')[0] : "",
-        appointment_date: editPO.appointment_date ? new Date(editPO.appointment_date).toISOString().split('T')[0] : "",
-        status: editPO.status || "OPEN",
-        comments: editPO.comments || ""
+        state: po.state && po.state.trim() !== '' ? po.state : "",
+        city: po.city && po.city.trim() !== '' ? po.city : "",
+        po_date: po.order_date ? new Date(po.order_date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+        expiry_date: po.expiry_date ? new Date(po.expiry_date).toISOString().split('T')[0] : "",
+        appointment_date: po.appointment_date ? new Date(po.appointment_date).toISOString().split('T')[0] : "",
+        comments: po.comments || ""
       },
-      lineItems: editPO.orderItems && editPO.orderItems.length > 0 
-        ? editPO.orderItems.map((item: any, index: number) => ({
+      lineItems: po.orderItems && po.orderItems.length > 0 
+        ? po.orderItems.map((item: any, index: number) => ({
             tempId: `existing-${index}`,
             item_name: item.item_name || "",
-            platform_code: item.platform_code || item.sap_code || "",
-            sap_code: item.sap_code || "",
+            // If platform_code or sap_code are numeric IDs, reset them to be populated properly
+            platform_code: (typeof item.platform_code === 'number' || !isNaN(Number(item.platform_code))) ? "" : (item.platform_code || ""),
+            sap_code: (typeof item.sap_code === 'number' || !isNaN(Number(item.sap_code))) ? "" : (item.sap_code || ""),
             uom: item.uom || "PCS",
             quantity: item.quantity || 1,
             basic_amount: parseFloat(item.basic_rate || "0"),
-            tax_percent: parseFloat(item.gst_rate || "0"),
+            tax_percent: (() => {
+              // Use the corrected tax_percent from API (which handles decimal vs percentage conversion)
+              let taxPercent = 0;
+              
+              // Priority: tax_percent from API (properly converted) > gst_rate (fallback)
+              if (item.tax_percent !== undefined && item.tax_percent !== null) {
+                taxPercent = parseFloat(item.tax_percent.toString());
+                console.log('📝 Edit Mode - Using corrected tax_percent from API:', taxPercent + '% for item', item.item_name);
+              } else if (item.gst_rate) {
+                taxPercent = parseFloat(item.gst_rate);
+                console.log('📝 Edit Mode - Fallback to gst_rate:', taxPercent + '% for item', item.item_name);
+              }
+              
+              return taxPercent;
+            })(),
             landing_amount: parseFloat(item.landing_rate || "0"),
             total_amount: parseFloat(item.landing_rate || "0") * (item.quantity || 1),
             boxes: item.boxes || null,
@@ -295,70 +415,81 @@ export function ModernPOForm({ onSuccess, editMode = false, editPoId }: ModernPO
             errors: []
           }))
         : []
-    };
+      };
+    } catch (error) {
+      console.error("❌ Error processing edit PO data:", error);
+      return null;
+    }
   }, [editMode, editPO]);
 
   // Apply the populated data only once when it changes
   useEffect(() => {
-    if (populatedData) {
-      console.log("🔄 Resetting form with data:", populatedData.formData);
-      console.log("🏙️ City value being set:", populatedData.formData.city);
-      setFormState(prev => ({ ...prev, isInitialPopulation: true }));
-      form.reset(populatedData.formData);
-      if (populatedData.lineItems.length > 0) {
-        setLineItems(populatedData.lineItems);
-      }
-      // Reset flag after a longer delay to ensure all watchers have completed
-      setTimeout(() => {
-        // Ensure city value is preserved after all watchers have fired
-        if (populatedData.formData.city) {
-          form.setValue("city", populatedData.formData.city);
-        }
-        setFormState(prev => ({ ...prev, isInitialPopulation: false }));
-        console.log("🔍 City value after form reset:", form.getValues("city"));
-      }, 500);
-    }
-  }, [populatedData, form]);
-
-  // Utility functions
-  const generatePONumber = useCallback(async (platformId: string) => {
-    setFormState(prev => ({ ...prev, isGeneratingPO: true }));
     try {
-      const platform = platforms.find(p => p.id.toString() === platformId);
-      if (!platform) return;
-      
-      const today = new Date();
-      const year = today.getFullYear().toString().slice(-2);
-      const month = String(today.getMonth() + 1).padStart(2, '0');
-      const day = String(today.getDate()).padStart(2, '0');
-      
-      const platformCode = platform.pf_name.substring(0, 3).toUpperCase().replace(/\s/g, '');
-      // Generate a more professional sequence number
-      const sequenceNum = String(Math.floor(Math.random() * 9000) + 1000);
-      const generatedPO = `${platformCode}-${year}${month}${day}-${sequenceNum}`;
-      
-      form.setValue("vendor_po_no", generatedPO, { 
-        shouldValidate: true, 
-        shouldDirty: true 
-      });
-      
-      toast({
-        title: "PO Number Generated",
-        description: `Auto-generated PO: ${generatedPO}`,
-        duration: 3000,
-      });
+      if (populatedData) {
+        console.log("🔄 Resetting form with data:", populatedData.formData);
+        console.log("🏙️ City value being set:", populatedData.formData.city);
+        setFormState(prev => ({ ...prev, isInitialPopulation: true }));
+        
+        // Safely reset form with error handling
+        try {
+          form.reset(populatedData.formData);
+        } catch (formResetError) {
+          console.error("❌ Error resetting form:", formResetError);
+          toast({
+            title: "Form Reset Error",
+            description: "There was an issue loading the form data. Please try refreshing the page.",
+            variant: "destructive"
+          });
+          return;
+        }
+        
+        if (populatedData.lineItems && populatedData.lineItems.length > 0) {
+          setLineItems(populatedData.lineItems);
+        }
+        
+        // Reset flag after a longer delay to ensure all watchers have completed
+        setTimeout(() => {
+          try {
+            // Ensure city value is preserved after all watchers have fired
+            if (populatedData.formData.city) {
+              form.setValue("city", populatedData.formData.city);
+            }
+            setFormState(prev => ({ ...prev, isInitialPopulation: false }));
+            console.log("🔍 City value after form reset:", form.getValues("city"));
+          } catch (setValueError) {
+            console.error("❌ Error setting city value:", setValueError);
+          }
+        }, 500);
+      }
     } catch (error) {
+      console.error("❌ Critical error in populated data useEffect:", error);
       toast({
-        title: "Generation Failed",
-        description: "Could not generate PO number. Please enter manually.",
-        variant: "destructive",
-        duration: 4000,
+        title: "Data Loading Error",
+        description: "Failed to load PO data for editing. Please refresh and try again.",
+        variant: "destructive"
       });
-    } finally {
-      setFormState(prev => ({ ...prev, isGeneratingPO: false }));
     }
-  }, [platforms, form, toast]);
+  }, [populatedData, form, toast]);
 
+  // Effect to auto-populate missing codes for existing items after form loads
+  useEffect(() => {
+    try {
+      if (editMode && populatedData && populatedData.lineItems && populatedData.lineItems.length > 0) {
+        // Small delay to ensure form is fully populated
+        const timer = setTimeout(() => {
+          try {
+            autoPopulateMissingCodes(populatedData.lineItems);
+          } catch (autoPopulateError) {
+            console.error("❌ Error auto-populating missing codes:", autoPopulateError);
+          }
+        }, 1000);
+        
+        return () => clearTimeout(timer);
+      }
+    } catch (error) {
+      console.error("❌ Error in auto-populate effect:", error);
+    }
+  }, [editMode, populatedData]);
 
   const validateLineItem = useCallback((item: LineItem): { isValid: boolean; errors: string[] } => {
     const errors: string[] = [];
@@ -405,7 +536,6 @@ export function ModernPOForm({ onSuccess, editMode = false, editPoId }: ModernPO
     setTimeout(() => {
       form.reset({
         company: selectedCompany,
-        status: "OPEN",
         po_date: new Date().toISOString().split('T')[0],
       });
       setLineItems([]);
@@ -439,7 +569,7 @@ export function ModernPOForm({ onSuccess, editMode = false, editPoId }: ModernPO
 
   // Auto-select distributor and clear items when platform changes
   useEffect(() => {
-    // Clear all line items only when platform actually changes (not on initial load or same platform)
+    // Clear all line items when platform actually changes (not on initial load or same platform)
     if (selectedPlatformId && previousPlatformId && selectedPlatformId !== previousPlatformId && lineItems.length > 0) {
       setLineItems([]);
       toast({
@@ -454,12 +584,7 @@ export function ModernPOForm({ onSuccess, editMode = false, editPoId }: ModernPO
       });
     }
     
-    // Update previous platform ID
-    if (selectedPlatformId) {
-      setPreviousPlatformId(selectedPlatformId);
-    }
-    
-    // When Amazon (ID: 6) is selected, automatically select RK WORLD
+    // Auto-select RK WORLD distributor when Amazon platform is selected
     if (selectedPlatformId === "6" || String(selectedPlatformId) === "6") {
       const currentDistributor = form.getValues("distributor");
       // Only set if not already set to avoid infinite loops and unnecessary toasts
@@ -467,48 +592,124 @@ export function ModernPOForm({ onSuccess, editMode = false, editPoId }: ModernPO
         form.setValue("distributor", "RK WORLD", { shouldValidate: true, shouldDirty: true });
         toast({
           title: "Distributor Auto-Selected",
-          description: (
-            <div className="flex items-center">
-              <Zap className="h-4 w-4 mr-1 text-blue-600" />
-              RK WORLD selected for Amazon orders
-            </div>
-          ),
+          description: "RK WORLD selected for Amazon orders",
           duration: 3000,
         });
       }
+    } else {
+      // For non-Amazon platforms, clear the distributor to allow manual selection
+      const currentDistributor = form.getValues("distributor");
+      if (currentDistributor === "RK WORLD" && previousPlatformId === "6") {
+        form.setValue("distributor", "");
+      }
     }
+    
+    // Update previous platform ID
+    if (selectedPlatformId) {
+      setPreviousPlatformId(selectedPlatformId);
+    }
+    
   }, [selectedPlatformId, form, toast, lineItems.length, previousPlatformId]);
 
-  // Handle item selection from HANA SQL Server stored procedure
-  const handleItemSelect = (tempId: string, itemName: string, hanaItem?: any) => {
+  // Auto-populate missing codes for existing items
+  const autoPopulateMissingCodes = async (items: LineItem[]) => {
+    for (const item of items) {
+      if (item.item_name && (!item.platform_code || !item.sap_code)) {
+        try {
+          const response = await fetch(`/api/pf-items?search=${encodeURIComponent(item.item_name)}`);
+          if (response.ok) {
+            const pfItems = await response.json();
+            const exactMatch = pfItems && Array.isArray(pfItems) ? pfItems.find((pfItem: any) => {
+              // More robust null and type checks
+              if (!pfItem || !pfItem.ItemName || !item.item_name) return false;
+              if (typeof pfItem.ItemName !== 'string' || typeof item.item_name !== 'string') return false;
+              if (pfItem.ItemName.trim() === '' || item.item_name.trim() === '') return false;
+              
+              try {
+                return pfItem.ItemName.toLowerCase() === item.item_name.toLowerCase();
+              } catch (error) {
+                console.error('Error in toLowerCase comparison:', error, { pfItem: pfItem.ItemName, itemName: item.item_name });
+                return false;
+              }
+            }) : undefined;
+            if (exactMatch) {
+              const updates: Partial<LineItem> = {};
+              if (!item.platform_code) updates.platform_code = exactMatch.ItemCode || "";
+              if (!item.sap_code) updates.sap_code = exactMatch.actual_itemcode || exactMatch.sap_id || "";
+              // Always update tax_percent from the matched item's database value
+              let correctTaxRate = parseFloat(exactMatch.taxrate || exactMatch.u_tax_rate || "0");
+              
+              // Apply corrections for known incorrect tax rates
+              if (exactMatch.ItemName && typeof exactMatch.ItemName === 'string' && exactMatch.ItemName.trim() !== '') {
+                try {
+                  if (exactMatch.ItemName.toLowerCase().includes('mustard') && correctTaxRate < 1) {
+                    correctTaxRate = 5; // Correct GST rate for edible oils
+                    console.log('🔧 Fixed tax rate for mustard oil from', exactMatch.taxrate, 'to', correctTaxRate);
+                  } else if (exactMatch.ItemName.toLowerCase().includes('oil') && correctTaxRate < 1) {
+                    correctTaxRate = 5; // Correct GST rate for edible oils
+                    console.log('🔧 Fixed tax rate for oil product from', exactMatch.taxrate, 'to', correctTaxRate);
+                  }
+                } catch (error) {
+                  console.error('Error in tax rate correction:', error, { ItemName: exactMatch.ItemName });
+                }
+              }
+              
+              updates.tax_percent = correctTaxRate;
+              
+              updateLineItem(item.tempId, updates);
+              console.log('🔧 Auto-populated codes for:', item.item_name, updates);
+            }
+          }
+        } catch (error) {
+          console.error('Failed to auto-populate codes for:', item.item_name, error);
+        }
+      }
+    }
+  };
+
+  // Handle item selection from PF Items - simplified without additional data
+  const handleItemSelect = (tempId: string, itemName: string, pfItem?: any) => {
     const updates: Partial<LineItem> = { item_name: itemName };
     
-    if (hanaItem) {
-      // Auto-populate from HANA stored procedure data
-      updates.platform_code = hanaItem.ItemCode || "";
-      updates.sap_code = hanaItem.ItemCode || "";
-      updates.uom = hanaItem.InvntryUom || hanaItem.UOM || hanaItem.UnitOfMeasure || "PCS";
-      updates.unit_size_ltrs = parseFloat(hanaItem.SalPackUn?.toString() || hanaItem.UnitSize?.toString() || "1");
-      updates.tax_percent = parseFloat(hanaItem.U_Tax_Rate?.toString() || hanaItem.TaxRate?.toString() || "0");
-      updates.boxes = hanaItem.CasePack || 1;
+    if (pfItem) {
+      console.log('🔍 DEBUGGING pfItem data:', JSON.stringify(pfItem, null, 2));
       
-      // For basic amount, we don't have this in the stored procedure response
-      // so we'll keep it as 0 for now and let user enter it manually
-      updates.basic_amount = hanaItem.BasicRate || 0;
+      // Auto-populate basic fields from PF Item data
+      // Use pf_itemcode for platform code (platform-specific code)  
+      updates.platform_code = pfItem.ItemCode || pfItem.pf_itemcode || "";
+      // Use actual_itemcode from items table for SAP code (the real item master code)
+      updates.sap_code = pfItem.actual_itemcode || pfItem.sap_id || "";
+      updates.uom = "PCS"; // Default UOM since we don't have this data
+      updates.unit_size_ltrs = 1; // Default unit size
+      // Fix tax rate for specific items with incorrect rates
+      let correctTaxRate = parseFloat(pfItem.taxrate || "0");
       
-      // Calculate derived values based on HANA data
-      if (updates.basic_amount && updates.tax_percent) {
-        const basicAmount = updates.basic_amount;
-        const taxPercent = updates.tax_percent;
-        const taxAmount = basicAmount * (taxPercent / 100);
-        updates.landing_amount = basicAmount + taxAmount; // Per unit landing amount
-        // Total amount will be calculated in updateLineItem when quantity is known
+      // Apply corrections for known incorrect tax rates
+      if (pfItem.ItemName && typeof pfItem.ItemName === 'string' && pfItem.ItemName.trim() !== '') {
+        try {
+          if (pfItem.ItemName.toLowerCase().includes('mustard') && correctTaxRate < 1) {
+            correctTaxRate = 5; // Correct GST rate for edible oils
+            console.log('🔧 Fixed tax rate for mustard oil from', pfItem.taxrate, 'to', correctTaxRate);
+          } else if (pfItem.ItemName.toLowerCase().includes('oil') && correctTaxRate < 1) {
+            correctTaxRate = 5; // Correct GST rate for edible oils
+            console.log('🔧 Fixed tax rate for oil product from', pfItem.taxrate, 'to', correctTaxRate);
+          }
+        } catch (error) {
+          console.error('Error in tax rate correction:', error, { ItemName: pfItem.ItemName });
+        }
       }
       
-      // Calculate total litres if we have unit size
-      if (updates.unit_size_ltrs && updates.boxes) {
-        updates.total_ltrs = updates.unit_size_ltrs * updates.boxes;
-      }
+      updates.tax_percent = correctTaxRate; // Use corrected tax rate
+      updates.boxes = 1; // Default boxes
+      updates.basic_amount = 0; // User needs to enter manually
+      
+      console.log('📝 Item selected:', itemName);
+      console.log('📝 Platform Code (ItemCode):', pfItem.ItemCode);
+      console.log('📝 Platform Code (pf_itemcode):', pfItem.pf_itemcode);
+      console.log('📝 SAP Code (actual_itemcode):', pfItem.actual_itemcode);
+      console.log('📝 SAP ID:', pfItem.sap_id);
+      console.log('📝 Tax Rate:', pfItem.taxrate);
+      console.log('📝 Final updates:', updates);
     }
     
     updateLineItem(tempId, updates);
@@ -603,7 +804,7 @@ export function ModernPOForm({ onSuccess, editMode = false, editPoId }: ModernPO
         title: editMode ? "Failed to Update Purchase Order" : "Failed to Create Purchase Order",
         description: (
           <div className="space-y-2">
-            <div className="flex items-center text-red-600">
+            <div className="flex items-center text-orange-600">
               <XCircle className="h-4 w-4 mr-1" />
               {errorMessage}
             </div>
@@ -626,13 +827,22 @@ export function ModernPOForm({ onSuccess, editMode = false, editPoId }: ModernPO
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 5000)
   });
 
-  // Region options (keeping static for now, can be made dynamic later)
-  const regionOptions = ["NORTH", "SOUTH", "WEST", "EAST", "CENTRAL"];
+  // Region options - now using dynamic data
+  const getAvailableRegions = () => {
+    return regions.length > 0 ? regions.map(r => r.region_name) : ["NORTH INDIA", "SOUTH INDIA", "WEST INDIA", "EAST INDIA", "CENTRAL INDIA"];
+  };
 
-  // Watch form values for cascading updates
-  const selectedState = form.watch("state");  
+  // selectedState is already defined above  
 
   // Cascading location logic - clear dependent fields when parent changes (but not during initial population)
+  useEffect(() => {
+    if (selectedRegion && !formState.isInitialPopulation && !editMode) {
+      // Clear state and city when region changes
+      form.setValue("state", "");
+      form.setValue("city", "");
+    }
+  }, [selectedRegion, form, formState.isInitialPopulation, editMode]);
+
   useEffect(() => {
     if (selectedState && !formState.isInitialPopulation && !editMode) {
       // Clear city when state changes (district-based cities) - but not in edit mode
@@ -641,17 +851,46 @@ export function ModernPOForm({ onSuccess, editMode = false, editPoId }: ModernPO
     }
   }, [selectedState, form, formState.isInitialPopulation, editMode]);
 
+  // Distributor-Dispatch From locking logic
+  useEffect(() => {
+    if (selectedDistributor && selectedDistributor !== "none") {
+      // Clear dispatch_from when distributor is selected
+      const currentDispatchFrom = form.getValues("dispatch_from");
+      if (currentDispatchFrom && currentDispatchFrom !== "none") {
+        form.setValue("dispatch_from", "none");
+      }
+    }
+  }, [selectedDistributor, form]);
+
   // Get available options based on dynamic data
   const getAvailableStates = () => {
-    const stateOptions = states.map(state => state.statename);
-    console.log("getAvailableStates called, returning:", stateOptions);
-    return stateOptions;
+    // Use cascading states if region is selected, otherwise fall back to all states
+    if (selectedRegion && regionStates.length > 0) {
+      const cascadingStateOptions = regionStates.map(state => state.state_name);
+      console.log("getAvailableStates (cascading):", cascadingStateOptions);
+      return cascadingStateOptions;
+    }
+    
+    // Fallback to legacy all states
+    const allStateOptions = states.map(state => state.statename);
+    console.log("getAvailableStates (legacy):", allStateOptions);
+    return allStateOptions;
   };
-  const getAvailableCities = () => districts.map(district => district.district);
-  const getAvailableDistributors = () => allDistributors.map(distributor => distributor.distributor_name);
+  
+  const getAvailableCities = () => {
+    // Use cascading cities if available, otherwise fall back to districts
+    if (stateCities.length > 0) {
+      const cascadingCityOptions = stateCities.map(city => city.district_name);
+      console.log("getAvailableCities (cascading):", cascadingCityOptions);
+      return cascadingCityOptions;
+    }
+    
+    // Fallback to legacy districts
+    const legacyCityOptions = districts.map(district => district.district);
+    console.log("getAvailableCities (legacy):", legacyCityOptions);
+    return legacyCityOptions;
+  };
 
-  const dispatchOptions = ["MAYAPURI", "BHAKHAPUR", "DASNA", "GHAZIABAD"];
-  const warehouseOptions = ["WAREHOUSE 1", "WAREHOUSE 2", "WAREHOUSE 3", "CENTRAL WAREHOUSE"];
 
   const addLineItem = useCallback(() => {
     if (!selectedPlatformId) {
@@ -711,7 +950,7 @@ export function ModernPOForm({ onSuccess, editMode = false, editPoId }: ModernPO
         title: "Item Removed",
         description: (
           <div className="flex items-center">
-            <Trash2 className="h-4 w-4 mr-1 text-red-600" />
+            <Trash2 className="h-4 w-4 mr-1 text-orange-600" />
             Item #{itemIndex + 1} removed from order
           </div>
         ),
@@ -723,15 +962,17 @@ export function ModernPOForm({ onSuccess, editMode = false, editPoId }: ModernPO
   }, [toast]);
 
   const updateLineItem = useCallback((tempId: string, updates: Partial<LineItem>) => {
-    setLineItems(prev => prev.map(item => {
-      if (item.tempId === tempId) {
-        const updated = { ...item, ...updates };
+    try {
+      setLineItems(prev => prev.map(item => {
+        if (item.tempId === tempId) {
+          const updated = { ...item, ...updates };
         
         // Only recalculate amounts for non-status updates
         if (('quantity' in updates || 'basic_amount' in updates || 'tax_percent' in updates) && !('status' in updates)) {
           const basicAmount = Math.max(0, updated.basic_amount || 0);
           const quantity = Math.max(0, updated.quantity || 0);
-          const taxPercent = Math.max(0, Math.min(100, updated.tax_percent || 0));
+          // Keep exact tax_percent value as user selected, don't modify it
+          const taxPercent = updated.tax_percent || 0;
           
           const taxAmountPerUnit = basicAmount * (taxPercent / 100);
           updated.landing_amount = basicAmount + taxAmountPerUnit;
@@ -752,6 +993,9 @@ export function ModernPOForm({ onSuccess, editMode = false, editPoId }: ModernPO
       }
       return item;
     }));
+    } catch (error) {
+      console.error('Error updating line item:', error);
+    }
   }, []);
 
   const orderSummary = useMemo(() => {
@@ -798,16 +1042,16 @@ export function ModernPOForm({ onSuccess, editMode = false, editPoId }: ModernPO
       errors.push("Please add at least one item to the purchase order");
     }
 
-    const validItems = lineItems.filter(item => {
+    const validItems = lineItems && Array.isArray(lineItems) ? lineItems.filter(item => {
       const validation = validateLineItem(item);
       return validation.isValid;
-    });
+    }) : [];
 
-    if (validItems.length === 0 && lineItems.length > 0) {
+    if (validItems.length === 0 && lineItems && lineItems.length > 0) {
       errors.push("Please complete at least one valid order item");
     }
     
-    const invalidItems = lineItems.filter(item => !validateLineItem(item).isValid);
+    const invalidItems = lineItems && Array.isArray(lineItems) ? lineItems.filter(item => !validateLineItem(item).isValid) : [];
     if (invalidItems.length > 0) {
       errors.push(`${invalidItems.length} item${invalidItems.length === 1 ? '' : 's'} ${invalidItems.length === 1 ? 'has' : 'have'} validation errors`);
     }
@@ -891,7 +1135,7 @@ export function ModernPOForm({ onSuccess, editMode = false, editPoId }: ModernPO
         description: (
           <div className="space-y-1">
             {validation.errors.map((error, index) => (
-              <div key={index} className="flex items-center text-red-600">
+              <div key={index} className="flex items-center text-orange-600">
                 <XCircle className="h-3 w-3 mr-1 flex-shrink-0" />
                 <span className="text-sm">{error}</span>
               </div>
@@ -919,9 +1163,9 @@ export function ModernPOForm({ onSuccess, editMode = false, editPoId }: ModernPO
       formData.append('attachment', attachedFile);
     }
 
-    // Get state_id and district_id from selected names
-    const selectedStateRecord = states.find(state => state.statename === data.state);
-    const selectedDistrictRecord = districts.find(district => district.district === data.city);
+    // Get state_id and district_id from selected names (with safety checks)
+    const selectedStateRecord = states && Array.isArray(states) ? states.find(state => state && state.statename === data.state) : undefined;
+    const selectedDistrictRecord = districts && Array.isArray(districts) ? districts.find(district => district && district.district === data.city) : undefined;
     
     console.log("🔍 Debug PO submission:");
     console.log("Selected state:", data.state);
@@ -937,6 +1181,7 @@ export function ModernPOForm({ onSuccess, editMode = false, editPoId }: ModernPO
       company: selectedCompany,
       platform_id: parseInt(data.platform),
       serving_distributor: data.distributor === "none" ? undefined : data.distributor,
+      dispatch_from: data.dispatch_from === "none" ? undefined : data.dispatch_from,
       po_date: data.po_date,
       expiry_date: data.expiry_date || undefined,
       appointment_date: data.appointment_date || undefined,
@@ -946,9 +1191,7 @@ export function ModernPOForm({ onSuccess, editMode = false, editPoId }: ModernPO
       area: data.area,
       state_id: selectedStateRecord?.id || null,
       district_id: selectedDistrictRecord?.id || null,
-      dispatch_from: data.dispatch_from,
-      warehouse: data.warehouse,
-      status: data.status || "OPEN",
+      status: "OPEN",
       comments: data.comments,
       attachment: attachedFile?.name
     };
@@ -965,7 +1208,10 @@ export function ModernPOForm({ onSuccess, editMode = false, editPoId }: ModernPO
       unit_size_ltrs: item.unit_size_ltrs || null,
       loose_qty: item.loose_qty || null,
       basic_amount: item.basic_amount.toString(),
-      tax_percent: item.tax_percent.toString(),
+      tax_percent: (() => {
+        console.log('🚀 Sending tax_percent to server - Original value:', item.tax_percent, 'String value:', item.tax_percent.toString());
+        return item.tax_percent.toString();
+      })(),
       landing_amount: (item.landing_amount || 0).toString(),
       total_amount: item.total_amount.toString(),
       total_ltrs: item.total_ltrs?.toString() || null,
@@ -988,30 +1234,29 @@ export function ModernPOForm({ onSuccess, editMode = false, editPoId }: ModernPO
     });
   }, [validateFormSubmission, attachedFile, selectedCompany, createPOMutation]);
 
-  // Keyboard shortcuts handler (added after all dependencies are defined)
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      // Ctrl/Cmd + Enter to submit form
-      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter' && !formState.isSubmitting) {
-        e.preventDefault();
-        if (selectedPlatformId && lineItems.length > 0) {
-          onSubmit(form.getValues());
-        }
-      }
+
+  // Handle redirect when edit query fails (must be outside conditional to follow hooks rules)
+  React.useEffect(() => {
+    if (editMode && editQueryError) {
+      console.log("❌ Edit query error:", editQueryError, "for PO ID:", editPoId);
       
-      // Escape to close dialogs
-      if (e.key === 'Escape') {
-        setShowConfirmDialog(false);
-        setShowResetConfirmDialog(false);
-      }
-    };
+      // If this is likely from a recent upload (PO was created but can't be found for editing),
+      // redirect back to list with a success message instead of showing error
+      const timer = setTimeout(() => {
+        if (onSuccess) {
+          console.log("🔄 Auto-redirecting to list due to edit load failure");
+          onSuccess();
+        }
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [editMode, editQueryError, editPoId, onSuccess]);
 
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [formState.isSubmitting, selectedPlatformId, lineItems.length, onSubmit, form, setShowConfirmDialog, setShowResetConfirmDialog]);
+  // Conditional rendering logic (moved after all hooks to fix hooks rule violation)
+  const showLoadingSkeleton = editMode && editQueryLoading;
+  const showErrorState = editMode && editQueryError;
 
-  // Show skeleton loading while data is being fetched in edit mode
-  if (editMode && editQueryLoading) {
+  if (showLoadingSkeleton) {
     return (
       <div className="max-w-7xl mx-auto p-4 sm:p-6 space-y-6 min-h-screen bg-gradient-to-br from-blue-50/30 via-white to-purple-50/20">
         <div className="space-y-6">
@@ -1090,29 +1335,14 @@ export function ModernPOForm({ onSuccess, editMode = false, editPoId }: ModernPO
     );
   }
 
-  // Show error state if failed to load PO data
-  if (editMode && editQueryError) {
-    console.log("❌ Edit query error:", editQueryError, "for PO ID:", editPoId);
-    
-    // If this is likely from a recent upload (PO was created but can't be found for editing),
-    // redirect back to list with a success message instead of showing error
-    React.useEffect(() => {
-      const timer = setTimeout(() => {
-        if (onSuccess) {
-          console.log("🔄 Auto-redirecting to list due to edit load failure");
-          onSuccess();
-        }
-      }, 2000);
-      return () => clearTimeout(timer);
-    }, [onSuccess]);
-    
+  if (showErrorState) {
     return (
       <div className="max-w-7xl mx-auto p-4 sm:p-6 space-y-6 min-h-screen bg-gradient-to-br from-blue-50/30 via-white to-purple-50/20">
-        <Card className="shadow-lg border border-red-200">
+        <Card className="shadow-lg border border-orange-200">
           <CardContent className="pt-6">
             <div className="flex flex-col items-center space-y-4 text-center py-8">
-              <div className="bg-red-100 p-4 rounded-full">
-                <XCircle className="h-12 w-12 text-red-600" />
+              <div className="bg-orange-100 p-4 rounded-full">
+                <XCircle className="h-12 w-12 text-orange-600" />
               </div>
               <div>
                 <h3 className="text-xl font-semibold text-gray-900 mb-2">
@@ -1124,8 +1354,28 @@ export function ModernPOForm({ onSuccess, editMode = false, editPoId }: ModernPO
                 <p className="text-sm text-gray-500">
                   The purchase order may still be processing or there may be a temporary issue. Please try refreshing the page or go back to the list.
                 </p>
+                {editQueryError && (
+                  <details className="mt-4 text-left">
+                    <summary className="text-sm text-gray-400 cursor-pointer hover:text-gray-600">
+                      Show technical details
+                    </summary>
+                    <div className="mt-2 p-3 bg-gray-50 rounded text-xs text-gray-600 font-mono">
+                      <div>Error: {editQueryError.message}</div>
+                      <div>Query: /api/pos/{editPoId}</div>
+                      <div>Status: {(editQueryError as any)?.status || 'Unknown'}</div>
+                    </div>
+                  </details>
+                )}
               </div>
               <div className="flex space-x-3">
+                <Button
+                  variant="outline"
+                  onClick={() => refetchEditPO()}
+                  className="text-orange-600 hover:text-orange-800 border-orange-300 hover:bg-orange-50"
+                >
+                  <RefreshCw className="h-4 w-4 mr-2" />
+                  Retry Loading
+                </Button>
                 <Button
                   variant="outline"
                   onClick={() => window.history.back()}
@@ -1205,14 +1455,6 @@ export function ModernPOForm({ onSuccess, editMode = false, editPoId }: ModernPO
                   </span>
                 </div>
               )}
-              {formState.isGeneratingPO && (
-                <div className="flex items-center space-x-2 px-3 py-1 bg-green-50 border border-green-200 rounded-full">
-                  <Loader2 className="h-4 w-4 animate-spin text-green-600" />
-                  <span className="text-sm font-medium text-green-700 animate-pulse">
-                    Generating PO...
-                  </span>
-                </div>
-              )}
             </div>
           </div>
         </div>
@@ -1232,7 +1474,7 @@ export function ModernPOForm({ onSuccess, editMode = false, editPoId }: ModernPO
                 variant="ghost"
                 size="sm"
                 onClick={() => handleFormReset()}
-                className="ml-auto text-gray-500 hover:text-red-600 hover:bg-red-50 transition-all duration-200"
+                className="ml-auto text-gray-500 hover:text-orange-600 hover:bg-gray-100 transition-all duration-200"
                 title="Reset form"
               >
                 <RefreshCw className="h-4 w-4" />
@@ -1296,54 +1538,10 @@ export function ModernPOForm({ onSuccess, editMode = false, editPoId }: ModernPO
               )}
             </div>
             <div className="flex items-center space-x-2">
-              {selectedPlatformId && (
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => generatePONumber(selectedPlatformId)}
-                  disabled={formState.isGeneratingPO || formState.isSubmitting}
-                  className="text-blue-600 border-blue-300 hover:bg-blue-50 transition-all duration-200"
-                >
-                  {formState.isGeneratingPO ? (
-                    <Loader2 className="h-4 w-4 animate-spin mr-1" />
-                  ) : (
-                    <Zap className="h-4 w-4 mr-1" />
-                  )}
-                  Auto-generate PO
-                </Button>
-              )}
             </div>
           </CardTitle>
         </CardHeader>
         <CardContent className="pt-8">
-          {/* Keyboard Shortcuts Helper */}
-          <div className="mb-6 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-3 border border-blue-200">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <Eye className="h-4 w-4 text-blue-600" />
-                <span className="text-sm font-medium text-gray-700">Keyboard Shortcuts</span>
-              </div>
-              <div className="hidden md:flex items-center space-x-4 text-xs text-gray-600">
-                <div className="flex items-center space-x-1">
-                  <kbd className="px-1.5 py-0.5 bg-white border rounded text-xs shadow-sm">Ctrl+Enter</kbd>
-                  <span className="ml-1">Submit</span>
-                </div>
-                <div className="flex items-center space-x-1">
-                  <kbd className="px-1.5 py-0.5 bg-white border rounded text-xs shadow-sm">Ctrl+G</kbd>
-                  <span className="ml-1">Generate PO</span>
-                </div>
-                <div className="flex items-center space-x-1">
-                  <kbd className="px-1.5 py-0.5 bg-white border rounded text-xs shadow-sm">Ctrl+I</kbd>
-                  <span className="ml-1">Add Item</span>
-                </div>
-                <div className="flex items-center space-x-1">
-                  <kbd className="px-1.5 py-0.5 bg-white border rounded text-xs shadow-sm">Ctrl+R</kbd>
-                  <span className="ml-1">Reset</span>
-                </div>
-              </div>
-            </div>
-          </div>
           
           <form 
             ref={formRef} 
@@ -1374,7 +1572,7 @@ export function ModernPOForm({ onSuccess, editMode = false, editPoId }: ModernPO
                         <SelectTrigger className={cn(
                           "h-12 bg-white border-2 transition-all duration-200 text-base",
                           fieldState.error 
-                            ? "border-red-300 focus:border-red-500 focus:ring-red-200" 
+                            ? "border-orange-300 focus:border-orange-400 focus:ring-orange-100" 
                             : "border-gray-300 hover:border-blue-400 focus:border-blue-500 focus:ring-blue-200",
                           field.value && !fieldState.error && "border-green-300 bg-green-50/30"
                         )}>
@@ -1398,7 +1596,7 @@ export function ModernPOForm({ onSuccess, editMode = false, editPoId }: ModernPO
                       {fieldState.error && (
                         <p 
                           id="platform-error" 
-                          className="mt-1 text-sm text-red-600 flex items-center" 
+                          className="mt-1 text-sm text-orange-600 flex items-center" 
                           role="alert"
                           aria-live="polite"
                         >
@@ -1410,6 +1608,7 @@ export function ModernPOForm({ onSuccess, editMode = false, editPoId }: ModernPO
                   )}
                 />
               </div>
+
 
               <div className="space-y-3 relative">
                 <Label htmlFor="vendor_po_no" className="text-sm font-semibold text-gray-800 flex items-center">
@@ -1424,13 +1623,13 @@ export function ModernPOForm({ onSuccess, editMode = false, editPoId }: ModernPO
                       <Input
                         {...field}
                         id="vendor_po_no"
-                        placeholder={selectedPlatformId ? "e.g., BLI-20250821-1234 or use auto-generate" : "Select platform first"}
+                        placeholder={selectedPlatformId ? "e.g., BLI-20250821-1234" : "Select platform first"}
                         className={cn(
                           "h-12 transition-all duration-200 text-base pl-4 pr-12 border-2",
                           !selectedPlatformId 
                             ? "bg-gray-100 border-gray-200 cursor-not-allowed text-gray-500" 
                             : fieldState.error 
-                            ? "border-red-300 focus:border-red-500 focus:ring-red-200 bg-red-50/30" 
+                            ? "border-orange-300 focus:border-orange-400 focus:ring-orange-100 bg-orange-50/30" 
                             : field.value && !fieldState.error
                             ? "border-green-300 focus:border-green-500 focus:ring-green-200 bg-green-50/30"
                             : "bg-white border-gray-300 focus:border-blue-500 focus:ring-blue-200 hover:border-blue-400"
@@ -1443,15 +1642,15 @@ export function ModernPOForm({ onSuccess, editMode = false, editPoId }: ModernPO
                         <CheckCircle2 className="absolute right-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-green-600" />
                       )}
                       {fieldState.error && (
-                        <XCircle className="absolute right-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-red-600" />
+                        <AlertCircle className="absolute right-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-orange-500" />
                       )}
                       <p id="po-number-hint" className="mt-1 text-xs text-gray-500">
-                        {selectedPlatformId ? 'Use the auto-generate button or enter manually' : 'Select a platform first'}
+                        {selectedPlatformId ? 'Enter PO number manually' : 'Select a platform first'}
                       </p>
                       {fieldState.error && (
                         <p 
                           id="po-number-error" 
-                          className="mt-1 text-sm text-red-600 flex items-center" 
+                          className="mt-1 text-sm text-orange-600 flex items-center" 
                           role="alert"
                           aria-live="polite"
                         >
@@ -1478,13 +1677,59 @@ export function ModernPOForm({ onSuccess, editMode = false, editPoId }: ModernPO
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">-- No Distributor --</SelectItem>
-                    {getAvailableDistributors().map((distributorName: string) => (
-                      <SelectItem key={distributorName} value={distributorName}>
-                        {distributorName}
+                    {allDistributors.map((distributor) => (
+                      <SelectItem key={distributor.id} value={distributor.distributor_name}>
+                        {distributor.distributor_name}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
+              </div>
+
+              {/* Dispatch From Field - Locked when distributor is selected */}
+              <div className="space-y-2">
+                <Label htmlFor="dispatch_from" className="text-xs font-medium text-gray-700 flex items-center">
+                  DISPATCH FROM
+                  {selectedDistributor && selectedDistributor !== "none" && (
+                    <span className="ml-2 px-2 py-1 text-xs bg-yellow-100 text-yellow-800 rounded-full">
+                      Locked - Distributor Selected
+                    </span>
+                  )}
+                </Label>
+                <Select
+                  value={form.watch("dispatch_from")}
+                  onValueChange={(value) => form.setValue("dispatch_from", value)}
+                  disabled={!selectedPlatformId || Boolean(selectedDistributor && selectedDistributor !== "none")}
+                >
+                  <SelectTrigger className={cn(
+                    "h-10", 
+                    !selectedPlatformId || (selectedDistributor && selectedDistributor !== "none")
+                      ? "bg-gray-100 cursor-not-allowed" 
+                      : "bg-white"
+                  )}>
+                    <SelectValue placeholder={
+                      !selectedPlatformId 
+                        ? "SELECT PLATFORM FIRST" 
+                        : (selectedDistributor && selectedDistributor !== "none")
+                        ? "LOCKED - REMOVE DISTRIBUTOR TO EDIT"
+                        : "SELECT DISPATCH FROM"
+                    } />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">-- No Dispatch Location --</SelectItem>
+                    {dispatchLocations.map((location) => (
+                      <SelectItem key={location.id} value={location.name}>
+                        {location.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {selectedDistributor && selectedDistributor !== "none" && (
+                  <p className="text-xs text-amber-600 flex items-center mt-1">
+                    <AlertCircle className="h-3 w-3 mr-1" />
+                    Dispatch From is locked when a distributor is selected. Remove distributor to edit.
+                  </p>
+                )}
               </div>
 
               {/* Row 2 */}
@@ -1514,7 +1759,7 @@ export function ModernPOForm({ onSuccess, editMode = false, editPoId }: ModernPO
                     <SelectValue placeholder={selectedPlatformId ? "SELECT REGION" : "SELECT PLATFORM FIRST"} />
                   </SelectTrigger>
                   <SelectContent>
-                    {regionOptions.map((region) => (
+                    {getAvailableRegions().map((region: string) => (
                       <SelectItem key={region} value={region}>
                         {region}
                       </SelectItem>
@@ -1574,49 +1819,7 @@ export function ModernPOForm({ onSuccess, editMode = false, editPoId }: ModernPO
                 </Select>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="dispatch_from" className="text-xs font-medium text-gray-700">
-                  DISPATCH FROM
-                </Label>
-                <Select
-                  value={form.watch("dispatch_from")}
-                  onValueChange={(value) => form.setValue("dispatch_from", value)}
-                  disabled={!selectedPlatformId}
-                >
-                  <SelectTrigger className={cn("h-10", selectedPlatformId ? "bg-white" : "bg-gray-100")}>
-                    <SelectValue placeholder={selectedPlatformId ? "SELECT DISPATCH LOCATION" : "SELECT PLATFORM FIRST"} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {dispatchOptions.map((location) => (
-                      <SelectItem key={location} value={location}>
-                        {location}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="warehouse" className="text-xs font-medium text-gray-700">
-                  WAREHOUSE
-                </Label>
-                <Select
-                  value={form.watch("warehouse")}
-                  onValueChange={(value) => form.setValue("warehouse", value)}
-                  disabled={!selectedPlatformId}
-                >
-                  <SelectTrigger className={cn("h-10", selectedPlatformId ? "bg-white" : "bg-gray-100")}>
-                    <SelectValue placeholder={selectedPlatformId ? "SELECT WAREHOUSE" : "SELECT PLATFORM FIRST"} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {warehouseOptions.map((warehouse) => (
-                      <SelectItem key={warehouse} value={warehouse}>
-                        {warehouse}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
 
               {/* Row 4 */}
               <div className="space-y-2">
@@ -1651,7 +1854,7 @@ export function ModernPOForm({ onSuccess, editMode = false, editPoId }: ModernPO
                           !selectedPlatformId 
                             ? "bg-gray-100 cursor-not-allowed text-gray-500" 
                             : fieldState.error 
-                            ? "border-red-300 focus:border-red-500 focus:ring-red-200 bg-red-50/30" 
+                            ? "border-orange-300 focus:border-orange-400 focus:ring-orange-100 bg-orange-50/30" 
                             : field.value && !fieldState.error
                             ? "border-green-300 focus:border-green-500 focus:ring-green-200 bg-green-50/30"
                             : "bg-white border-gray-300 focus:border-blue-500 focus:ring-blue-200 hover:border-blue-400"
@@ -1659,7 +1862,7 @@ export function ModernPOForm({ onSuccess, editMode = false, editPoId }: ModernPO
                         disabled={!selectedPlatformId}
                       />
                       {fieldState.error && (
-                        <p className="mt-1 text-sm text-red-600 flex items-center" role="alert" aria-live="polite">
+                        <p className="mt-1 text-sm text-orange-600 flex items-center" role="alert" aria-live="polite">
                           <AlertCircle className="h-3 w-3 mr-1" aria-hidden="true" />
                           {fieldState.error.message}
                         </p>
@@ -1669,51 +1872,23 @@ export function ModernPOForm({ onSuccess, editMode = false, editPoId }: ModernPO
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="appointment_date" className="text-xs font-medium text-gray-700">
-                  APPOINTMENT DATE
-                </Label>
-                <Input
-                  id="appointment_date"
-                  type="date"
-                  placeholder="DD/MM/YYYY"
-                  {...form.register("appointment_date")}
-                  className={cn("h-10", selectedPlatformId ? "bg-white" : "bg-gray-100 cursor-not-allowed")}
-                  disabled={!selectedPlatformId}
-                />
-              </div>
-
-              {/* Status - Show as read-only in edit mode */}
-              <div className="space-y-2">
-                <Label htmlFor="status" className="text-xs font-medium text-gray-700">
-                  STATUS
-                </Label>
-                {editMode ? (
+              {/* Appointment Date - Only show in edit mode */}
+              {editMode && (
+                <div className="space-y-2">
+                  <Label htmlFor="appointment_date" className="text-xs font-medium text-gray-700">
+                    APPOINTMENT DATE
+                  </Label>
                   <Input
-                    value={form.watch("status")}
-                    readOnly
-                    className="h-10 bg-gray-100 border-gray-200 text-gray-600 cursor-not-allowed"
-                    title="Status cannot be changed manually - it updates automatically based on item status"
-                  />
-                ) : (
-                  <Select
-                    value={form.watch("status")}
-                    onValueChange={(value) => form.setValue("status", value)}
+                    id="appointment_date"
+                    type="date"
+                    placeholder="DD/MM/YYYY"
+                    {...form.register("appointment_date")}
+                    className={cn("h-10", selectedPlatformId ? "bg-white" : "bg-gray-100 cursor-not-allowed")}
                     disabled={!selectedPlatformId}
-                  >
-                    <SelectTrigger className={cn("h-10", selectedPlatformId ? "bg-white" : "bg-gray-100")}>
-                      <SelectValue placeholder={selectedPlatformId ? "SELECT STATUS" : "SELECT PLATFORM FIRST"} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {poStatuses.map((status) => (
-                        <SelectItem key={status.id} value={status.status_name}>
-                          {status.status_name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                )}
-              </div>
+                  />
+                </div>
+              )}
+
             </div>
 
             {/* Enhanced Purchase Order Items Section */}
@@ -1733,8 +1908,8 @@ export function ModernPOForm({ onSuccess, editMode = false, editPoId }: ModernPO
                           {lineItems.length} item{lineItems.length === 1 ? '' : 's'}
                         </Badge>
                       )}
-                      {lineItems.some(item => item.isValid === false) && (
-                        <Badge variant="destructive" className="bg-red-100 text-red-800">
+                      {lineItems && Array.isArray(lineItems) && lineItems.some(item => item.isValid === false) && (
+                        <Badge variant="destructive" className="bg-orange-100 text-orange-700">
                           {lineItems.filter(item => item.isValid === false).length} invalid
                         </Badge>
                       )}
@@ -1794,7 +1969,6 @@ export function ModernPOForm({ onSuccess, editMode = false, editPoId }: ModernPO
                 <div className="space-y-8">
                   {lineItems.map((item, index) => {
                     const isValid = item.isValid !== false;
-                    const itemErrors = item.errors || [];
                     
                     return (
                       <div 
@@ -1803,7 +1977,7 @@ export function ModernPOForm({ onSuccess, editMode = false, editPoId }: ModernPO
                           "relative bg-white rounded-2xl border-2 shadow-sm p-8 transition-all duration-300 hover:shadow-lg hover:scale-[1.01] animate-in slide-in-from-top-2",
                           isValid 
                             ? "border-green-300 hover:border-green-400 bg-gradient-to-br from-green-50/30 via-white to-emerald-50/20" 
-                            : "border-red-300 hover:border-red-400 bg-gradient-to-br from-red-50/30 via-white to-pink-50/20"
+                            : "border-orange-300 hover:border-orange-400 bg-gradient-to-br from-orange-50/30 via-white to-yellow-50/20"
                         )}
                       >
                         {/* Enhanced Item Header */}
@@ -1813,7 +1987,7 @@ export function ModernPOForm({ onSuccess, editMode = false, editPoId }: ModernPO
                               "flex items-center space-x-3 px-4 py-2.5 rounded-full text-sm font-bold shadow-sm border",
                               isValid 
                                 ? "bg-gradient-to-r from-green-100 to-emerald-100 text-green-800 border-green-200" 
-                                : "bg-gradient-to-r from-red-100 to-pink-100 text-red-800 border-red-200"
+                                : "bg-gradient-to-r from-orange-100 to-yellow-100 text-orange-800 border-orange-200"
                             )}>
                               {isValid ? (
                                 <CheckCircle2 className="h-4 w-4" />
@@ -1827,11 +2001,6 @@ export function ModernPOForm({ onSuccess, editMode = false, editPoId }: ModernPO
                                 {item.item_name}
                               </Badge>
                             )}
-                            {!isValid && itemErrors.length > 0 && (
-                              <Badge variant="destructive" className="font-semibold shadow-sm">
-                                {itemErrors.length} error{itemErrors.length === 1 ? '' : 's'}
-                              </Badge>
-                            )}
                           </div>
                           <div className="flex items-center space-x-2">
                             <Button
@@ -1840,7 +2009,7 @@ export function ModernPOForm({ onSuccess, editMode = false, editPoId }: ModernPO
                               variant="destructive"
                               size="sm"
                               disabled={formState.isSubmitting || formState.isResetting}
-                              className="bg-red-500 hover:bg-red-600 transition-all duration-300 transform hover:scale-105 font-semibold"
+                              className="bg-gray-500 hover:bg-gray-600 transition-all duration-300 transform hover:scale-105 font-semibold"
                             >
                               <Trash2 className="h-4 w-4 mr-1" />
                               Remove
@@ -1848,31 +2017,17 @@ export function ModernPOForm({ onSuccess, editMode = false, editPoId }: ModernPO
                           </div>
                         </div>
                         
-                        {/* Error Messages */}
-                        {!isValid && itemErrors.length > 0 && (
-                          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-                            <p className="text-sm font-semibold text-red-800 mb-2">Please fix these issues:</p>
-                            <ul className="space-y-1">
-                              {itemErrors.map((error, errorIndex) => (
-                                <li key={errorIndex} className="flex items-center text-sm text-red-700">
-                                  <AlertCircle className="h-3 w-3 mr-2 flex-shrink-0" />
-                                  {error}
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
-                        )}
 
                         {/* Enhanced Item Name - Full Width */}
                         <div className="mb-8 p-4 bg-gradient-to-r from-blue-50/50 to-indigo-50/30 rounded-xl border-l-4 border-blue-500">
-                          <Label className="text-sm font-bold text-blue-700 uppercase tracking-wider flex items-center mb-4">
+                          <Label className="text-sm font-medium text-gray-700 flex items-center mb-4">
                             <Search className="h-4 w-4 mr-2 text-blue-600" />
-                            ITEM NAME *
+                            Item Name *
                           </Label>
                           <SearchableItemInput
                             value={item.item_name}
                             onChange={(itemName, hanaItem) => handleItemSelect(item.tempId, itemName, hanaItem)}
-                            placeholder="Search and select item from database..."
+                            placeholder="Type item name or code (e.g. 'rice' or 'FG0000216')"
                             className={cn(
                               "h-14 bg-white border-2 text-base transition-all duration-300 rounded-xl shadow-sm",
                               !item.item_name 
@@ -1886,33 +2041,35 @@ export function ModernPOForm({ onSuccess, editMode = false, editPoId }: ModernPO
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8 p-4 bg-gray-50/50 rounded-xl border border-gray-200">
                         {/* Row 1 - Auto-filled Fields */}
                         <div className="space-y-3">
-                          <Label className="text-xs font-semibold text-gray-600 uppercase tracking-wider flex items-center">
+                          <Label className="text-sm font-medium text-gray-700 flex items-center">
                             <Package className="h-3 w-3 mr-1 text-gray-500" />
-                            PLATFORM CODE
+                            Platform Code
                           </Label>
                           <Input
                             value={item.platform_code || ""}
                             readOnly
-                            className="h-11 bg-gray-50 border-gray-200 text-gray-600 cursor-not-allowed text-sm font-mono rounded-lg"
-                            title="Auto-filled from item selection"
+                            className="h-11 bg-gray-50 border-2 border-gray-200 text-gray-900 text-sm rounded-lg cursor-not-allowed"
+                            placeholder="Auto-filled from item selection"
+                            title="This field is auto-filled when you select an item"
                           />
                         </div>
                         <div className="space-y-3">
-                          <Label className="text-xs font-semibold text-gray-600 uppercase tracking-wider flex items-center">
+                          <Label className="text-sm font-medium text-gray-700 flex items-center">
                             <FileText className="h-3 w-3 mr-1 text-gray-500" />
-                            SAP CODE
+                            SAP Code
                           </Label>
                           <Input
                             value={item.sap_code || ""}
                             readOnly
-                            className="h-11 bg-gray-50 border-gray-200 text-gray-600 cursor-not-allowed text-sm font-mono rounded-lg"
-                            title="Auto-filled from item selection"
+                            className="h-11 bg-gray-50 border-2 border-gray-200 text-gray-900 text-sm rounded-lg cursor-not-allowed"
+                            placeholder="Auto-filled from item selection"
+                            title="This field is auto-filled when you select an item"
                           />
                         </div>
                         <div className="space-y-3">
-                          <Label className="text-xs font-semibold text-gray-600 uppercase tracking-wider flex items-center">
+                          <Label className="text-sm font-medium text-gray-700 flex items-center">
                             <Package className="h-3 w-3 mr-1 text-gray-500" />
-                            UOM
+                            Unit of Measure
                           </Label>
                           <Input
                             value={item.uom || "PCS"}
@@ -1922,9 +2079,9 @@ export function ModernPOForm({ onSuccess, editMode = false, editPoId }: ModernPO
                           />
                         </div>
                         <div className="relative space-y-3">
-                          <Label className="text-xs font-bold text-blue-700 uppercase tracking-wider flex items-center">
+                          <Label className="text-sm font-medium text-gray-700 flex items-center">
                             <Calculator className="h-4 w-4 mr-1 text-blue-600" />
-                            QUANTITY *
+                            Quantity *
                           </Label>
                           <div className="relative">
                             <Input
@@ -1938,7 +2095,7 @@ export function ModernPOForm({ onSuccess, editMode = false, editPoId }: ModernPO
                               className={cn(
                                 "h-12 bg-white border-2 transition-all duration-200 text-base pl-4 pr-12 rounded-lg shadow-sm",
                                 !item.quantity || item.quantity <= 0
-                                  ? "border-red-300 focus:border-red-500 focus:ring-red-200 bg-red-50/30"
+                                  ? "border-orange-300 focus:border-orange-400 focus:ring-orange-100 bg-orange-50/30"
                                   : "border-blue-300 hover:border-blue-400 focus:border-blue-500 focus:ring-blue-200"
                               )}
                               placeholder="Enter quantity"
@@ -1948,16 +2105,16 @@ export function ModernPOForm({ onSuccess, editMode = false, editPoId }: ModernPO
                             {item.quantity > 0 ? (
                               <CheckCircle2 className="absolute right-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-green-600" />
                             ) : (
-                              <XCircle className="absolute right-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-red-600" />
+                              <AlertCircle className="absolute right-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-orange-500" />
                             )}
                           </div>
                         </div>
 
                         {/* Row 2 - Measurement Fields */}
                         <div className="space-y-3">
-                          <Label className="text-xs font-semibold text-gray-600 uppercase tracking-wider flex items-center">
+                          <Label className="text-sm font-medium text-gray-700 flex items-center">
                             <Package className="h-3 w-3 mr-1 text-gray-500" />
-                            BOXES
+                            Boxes
                           </Label>
                           <Input
                             type="number"
@@ -1968,9 +2125,9 @@ export function ModernPOForm({ onSuccess, editMode = false, editPoId }: ModernPO
                           />
                         </div>
                         <div className="space-y-3">
-                          <Label className="text-xs font-semibold text-gray-600 uppercase tracking-wider flex items-center">
+                          <Label className="text-sm font-medium text-gray-700 flex items-center">
                             <Package className="h-3 w-3 mr-1 text-gray-500" />
-                            UNIT SIZE (LTRS)
+                            Unit Size (Litres)
                           </Label>
                           <Input
                             type="number"
@@ -1982,9 +2139,9 @@ export function ModernPOForm({ onSuccess, editMode = false, editPoId }: ModernPO
                           />
                         </div>
                         <div className="space-y-3">
-                          <Label className="text-xs font-semibold text-gray-600 uppercase tracking-wider flex items-center">
+                          <Label className="text-sm font-medium text-gray-700 flex items-center">
                             <Package className="h-3 w-3 mr-1 text-gray-500" />
-                            LOOSE QTY
+                            Loose Quantity
                           </Label>
                           <Input
                             type="number"
@@ -1995,9 +2152,9 @@ export function ModernPOForm({ onSuccess, editMode = false, editPoId }: ModernPO
                           />
                         </div>
                         <div className="relative space-y-3">
-                          <Label className="text-xs font-bold text-blue-700 uppercase tracking-wider flex items-center">
+                          <Label className="text-sm font-medium text-gray-700 flex items-center">
                             <IndianRupee className="h-4 w-4 mr-1 text-blue-600" />
-                            BASIC AMOUNT *
+                            Basic Amount *
                           </Label>
                           <div className="relative">
                             <Input
@@ -2012,7 +2169,7 @@ export function ModernPOForm({ onSuccess, editMode = false, editPoId }: ModernPO
                               className={cn(
                                 "h-12 bg-white border-2 transition-all duration-200 text-base pl-8 pr-12 rounded-lg shadow-sm",
                                 !item.basic_amount || item.basic_amount <= 0
-                                  ? "border-red-300 focus:border-red-500 focus:ring-red-200 bg-red-50/30"
+                                  ? "border-orange-300 focus:border-orange-400 focus:ring-orange-100 bg-orange-50/30"
                                   : "border-blue-300 hover:border-blue-400 focus:border-blue-500 focus:ring-blue-200"
                               )}
                               placeholder="0.00"
@@ -2023,7 +2180,7 @@ export function ModernPOForm({ onSuccess, editMode = false, editPoId }: ModernPO
                             {item.basic_amount > 0 ? (
                               <CheckCircle2 className="absolute right-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-green-600" />
                             ) : (
-                              <XCircle className="absolute right-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-red-600" />
+                              <AlertCircle className="absolute right-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-orange-500" />
                             )}
                           </div>
                         </div>
@@ -2033,37 +2190,86 @@ export function ModernPOForm({ onSuccess, editMode = false, editPoId }: ModernPO
                           <Label className="text-sm font-semibold text-gray-800 uppercase tracking-wide">
                             ITEM STATUS
                           </Label>
-                          <Select
-                            value={item.status || "PENDING"}
-                            onValueChange={(value) => {
-                              updateLineItem(item.tempId, { status: value });
-                            }}
-                            disabled={formState.isSubmitting || formState.isResetting}
-                          >
-                            <SelectTrigger className="h-12 mt-2 bg-white border-2 border-gray-300 hover:border-gray-400 focus:border-blue-500">
-                              <SelectValue placeholder="Select status" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {(itemStatuses || []).map((status) => (
-                                <SelectItem key={status.id} value={status.status_name}>
-                                  {status.status_name}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
+                          {/* Custom select styled to match other Radix UI selects */}
+                          <div className="relative">
+                            <select
+                              value={item.status || "PENDING"}
+                              onChange={(e) => {
+                                const value = e.target.value;
+                                if (item?.tempId) {
+                                  setLineItems(prev => prev.map(lineItem => 
+                                    lineItem.tempId === item.tempId 
+                                      ? { ...lineItem, status: value || "PENDING" }
+                                      : lineItem
+                                  ));
+                                }
+                              }}
+                              disabled={formState.isSubmitting || formState.isResetting}
+                              className={cn("flex h-10 mt-2 w-full items-center justify-between rounded-md border border-input bg-white px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 appearance-none cursor-pointer")}
+                              style={{ 
+                                backgroundImage: `url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3E%3C/svg%3E")`,
+                                backgroundPosition: 'right 0.75rem center',
+                                backgroundRepeat: 'no-repeat',
+                                backgroundSize: '16px 12px',
+                                paddingRight: '2.5rem'
+                              }}
+                            >
+                              <option value="">Select status</option>
+                              {itemStatuses && itemStatuses.length > 0 ? (
+                                itemStatuses.filter(status => status && status.status_name).map((status) => (
+                                  <option key={status.id || status.status_name} value={status.status_name}>
+                                    {status.status_name}
+                                  </option>
+                                ))
+                              ) : (
+                                // Fallback status options if API fails
+                                <>
+                                  <option value="PENDING">PENDING</option>
+                                  <option value="INVOICED">INVOICED</option>
+                                  <option value="DISPATCHED">DISPATCHED</option>
+                                  <option value="DELIVERED">DELIVERED</option>
+                                  <option value="STOCK_ISSUE">STOCK ISSUE</option>
+                                  <option value="PRICE_DIFF">PRICE DIFF</option>
+                                  <option value="MOV_ISSUE">MOV ISSUE</option>
+                                  <option value="CANCELLED">CANCELLED</option>
+                                  <option value="EXPIRED">EXPIRED</option>
+                                  <option value="HOLD">HOLD</option>
+                                  <option value="CN">CN</option>
+                                  <option value="RTV">RTV</option>
+                                </>
+                              )}
+                            </select>
+                          </div>
                         </div>
                         <div>
-                          <Label className="text-sm font-medium text-gray-700 uppercase tracking-wide">
+                          <Label className="text-sm font-medium text-gray-700 uppercase tracking-wide flex items-center">
+                            <span className="text-green-600 mr-1">💰</span>
                             TAX (%)
+                            {item.tax_percent > 0 && (
+                              <span className="ml-2 px-2 py-0.5 bg-green-100 text-green-700 text-xs rounded-full font-semibold">
+                                {item.tax_percent}% Applied
+                              </span>
+                            )}
                           </Label>
-                          <Input
-                            type="number"
-                            step="0.01"
-                            value={item.tax_percent}
-                            readOnly
-                            className="h-12 mt-2 bg-gray-100 border-gray-200 text-gray-600 cursor-not-allowed"
-                            title="This field is auto-filled from item selection"
-                          />
+                          <div className="relative">
+                            <Input
+                              type="number"
+                              step="0.01"
+                              value={item.tax_percent}
+                              readOnly
+                              className={`h-12 mt-2 border-2 font-semibold ${
+                                item.tax_percent > 0 
+                                  ? 'bg-green-50 border-green-300 text-green-700' 
+                                  : 'bg-gray-100 border-gray-200 text-gray-600'
+                              } cursor-not-allowed`}
+                              title="This field is auto-filled from item selection"
+                            />
+                            {item.tax_percent > 0 && (
+                              <div className="absolute right-2 top-1/2 transform -translate-y-1/2 text-green-600">
+                                <span className="text-lg">✓</span>
+                              </div>
+                            )}
+                          </div>
                         </div>
                         <div>
                           <Label className="text-sm font-medium text-gray-700 uppercase tracking-wide">
@@ -2109,7 +2315,9 @@ export function ModernPOForm({ onSuccess, editMode = false, editPoId }: ModernPO
 
                       {/* Dynamic Fields Based on Item Status */}
                       {(() => {
-                        const currentStatusInfo = (itemStatuses || []).find(s => s?.status_name === item?.status);
+                        const currentStatusInfo = itemStatuses && itemStatuses.length > 0 
+                          ? itemStatuses.find(s => s && s.status_name && s.status_name === item?.status)
+                          : null;
                         const showInvoiceFields = currentStatusInfo?.requires_invoice_fields || false;
                         const showDispatchFields = currentStatusInfo?.requires_dispatch_date || false;
                         const showDeliveryFields = currentStatusInfo?.requires_delivery_date || false;
@@ -2243,12 +2451,16 @@ export function ModernPOForm({ onSuccess, editMode = false, editPoId }: ModernPO
             </div>
 
             {/* Bottom Section */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               {/* Attachments & Comments */}
-              <div className="space-y-4">
-                <div>
-                  <h3 className="font-semibold text-gray-900 mb-3">ATTACHMENTS & COMMENTS</h3>
-                  <div className={cn("border-2 border-dashed rounded-lg p-6 text-center", selectedPlatformId ? "border-gray-300 bg-gray-50" : "border-gray-200 bg-gray-100")}>
+              <div className="space-y-6">
+                {/* Attachments */}
+                <div className="bg-white border border-gray-200 rounded-xl p-6">
+                  <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
+                    <Upload className="h-5 w-5 mr-2 text-blue-600" />
+                    Attachments
+                  </h3>
+                  <div className={cn("border-2 border-dashed rounded-xl p-8 text-center transition-all duration-200", selectedPlatformId ? "border-blue-300 bg-blue-50/30 hover:bg-blue-50/50" : "border-gray-200 bg-gray-50")}>
                     <input
                       type="file"
                       id="attachment"
@@ -2261,75 +2473,75 @@ export function ModernPOForm({ onSuccess, editMode = false, editPoId }: ModernPO
                       htmlFor="attachment"
                       className={cn("flex flex-col items-center", selectedPlatformId ? "cursor-pointer" : "cursor-not-allowed opacity-50")}
                     >
-                      <Upload className="h-10 w-10 text-gray-400 mb-2" />
-                      <p className="text-sm text-gray-600">{selectedPlatformId ? "Click to Attach PO Document" : "Select Platform First"}</p>
+                      <Upload className={cn("h-12 w-12 mb-3", selectedPlatformId ? "text-blue-500" : "text-gray-400")} />
+                      <p className="text-sm font-medium text-gray-700 mb-1">
+                        {selectedPlatformId ? "Click to Attach PO Document" : "Select Platform First"}
+                      </p>
+                      <p className="text-xs text-gray-500">PDF, DOC, XLS files supported</p>
                       {attachedFile && (
-                        <p className="text-xs text-green-600 mt-2">
-                          Attached: {attachedFile.name}
-                        </p>
+                        <div className="mt-4 px-4 py-2 bg-green-100 border border-green-200 rounded-lg">
+                          <p className="text-sm text-green-700 font-medium">
+                            ✓ {attachedFile.name}
+                          </p>
+                        </div>
                       )}
                     </label>
                   </div>
                 </div>
 
-                <div>
-                  <Label htmlFor="comments" className="text-xs font-medium text-gray-700">
-                    COMMENTS
-                  </Label>
+                {/* Comments */}
+                <div className="bg-white border border-gray-200 rounded-xl p-6">
+                  <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
+                    <MessageSquare className="h-5 w-5 mr-2 text-blue-600" />
+                    Comments
+                  </h3>
                   <Textarea
                     id="comments"
-                    placeholder={selectedPlatformId ? "ENTER ANY ADDITIONAL COMMENTS, SPECIAL INSTRUCTIONS, OR NOTES ABOUT THIS PURCHASE ORDER..." : "SELECT PLATFORM FIRST"}
+                    placeholder={selectedPlatformId ? "Enter any additional comments, special instructions, or notes about this purchase order..." : "Select platform first"}
                     {...form.register("comments")}
-                    className={cn("h-32 mt-2 resize-none", selectedPlatformId ? "bg-white" : "bg-gray-100 cursor-not-allowed")}
+                    className={cn("h-32 resize-none border-gray-300 rounded-lg", selectedPlatformId ? "bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100" : "bg-gray-100 cursor-not-allowed")}
                     disabled={!selectedPlatformId}
                   />
-                  <p className="text-xs text-gray-500 mt-1">
-                    Maximum 1000 characters. Comments will be saved with timestamp.
+                  <p className="text-xs text-gray-500 mt-2">
+                    Maximum 1000 characters
                   </p>
                 </div>
               </div>
-
               {/* Order Summary */}
-              <div>
-                <h3 className="font-semibold text-gray-900 mb-3">ORDER SUMMARY</h3>
-                <div className="bg-gray-50 rounded-lg p-4 space-y-3">
-                  <div className="flex justify-between items-center py-2">
-                    <span className="text-gray-600">Total Basic Amount:</span>
-                    <span className="font-semibold text-lg">₹{orderSummary.totalBasic}</span>
+              <div className="bg-white border border-gray-200 rounded-xl p-6 h-fit">
+                <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
+                  <Calculator className="h-5 w-5 mr-2 text-blue-600" />
+                  Order Summary
+                </h3>
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center py-3">
+                    <span className="text-gray-600 font-medium">Total Basic Amount:</span>
+                    <span className="font-semibold text-lg text-gray-900">₹{orderSummary.totalBasic}</span>
                   </div>
-                  <div className="border-t pt-2">
-                    <div className="flex justify-between items-center py-2">
-                      <span className="text-gray-600">Total Tax:</span>
-                      <span className="font-semibold text-lg">₹{orderSummary.totalTax}</span>
-                    </div>
+                  <div className="flex justify-between items-center py-3 border-t border-gray-100">
+                    <span className="text-gray-600 font-medium">Total Tax:</span>
+                    <span className="font-semibold text-lg text-gray-900">₹{orderSummary.totalTax}</span>
                   </div>
-                  <div className="border-t pt-2">
-                    <div className="flex justify-between items-center py-2">
-                      <span className="text-gray-900 font-semibold">Grand Total:</span>
-                      <span className="font-bold text-xl text-blue-600">₹{orderSummary.grandTotal}</span>
-                    </div>
+                  <div className="flex justify-between items-center py-4 border-t-2 border-blue-100 bg-blue-50/50 rounded-lg px-4 -mx-2">
+                    <span className="text-blue-900 font-semibold text-lg">Grand Total:</span>
+                    <span className="font-bold text-2xl text-blue-600">₹{orderSummary.grandTotal}</span>
                   </div>
                 </div>
               </div>
             </div>
-
             {/* Enhanced Action Section */}
-            <Separator className="my-8" />
-            <div className="flex flex-col sm:flex-row items-center justify-between space-y-4 sm:space-y-0 sm:space-x-4 pt-6">
-              <div className="flex items-center space-x-4">
-                <div className="text-center">
-                  <p className="text-2xl font-bold text-blue-600">₹{orderSummary.grandTotal}</p>
-                  <p className="text-sm text-gray-600">Total Value</p>
+            <div className="border-t border-gray-200 bg-gray-50/50 rounded-b-xl -mx-6 -mb-6 px-6 py-6 mt-8">
+              <div className="flex flex-col sm:flex-row items-center justify-between space-y-4 sm:space-y-0 sm:space-x-6">
+                <div className="flex items-center space-x-6">
+                  <div className="text-center px-4 py-2 bg-white rounded-lg border border-gray-200 shadow-sm">
+                    <p className="text-2xl font-bold text-blue-600">₹{orderSummary.grandTotal}</p>
+                    <p className="text-xs text-gray-500 font-medium">Total Value</p>
+                  </div>
+                  <div className="text-center px-4 py-2 bg-white rounded-lg border border-gray-200 shadow-sm">
+                    <p className="text-2xl font-bold text-green-600">{lineItems.length}</p>
+                    <p className="text-xs text-gray-500 font-medium">{lineItems.length === 1 ? 'Item' : 'Items'}</p>
+                  </div>
                 </div>
-                <div className="text-center">
-                  <p className="text-2xl font-bold text-green-600">{lineItems.length}</p>
-                  <p className="text-sm text-gray-600">Items</p>
-                </div>
-                <div className="text-center">
-                  <p className="text-2xl font-bold text-purple-600">{lineItems.filter(item => item.isValid !== false).length}</p>
-                  <p className="text-sm text-gray-600">Valid</p>
-                </div>
-              </div>
               
               <div className="flex items-center space-x-3">
                 <Button
@@ -2337,7 +2549,7 @@ export function ModernPOForm({ onSuccess, editMode = false, editPoId }: ModernPO
                   variant="outline"
                   onClick={() => handleFormReset()}
                   disabled={formState.isSubmitting || formState.isResetting || (!form.formState.isDirty && lineItems.length === 0)}
-                  className="text-gray-600 border-gray-300 hover:bg-gray-50 hover:text-gray-800 transition-all duration-200"
+                  className="px-6 py-3 border-gray-300 text-gray-600 hover:bg-gray-100 hover:text-gray-700 transition-all duration-200 font-medium"
                 >
                   {formState.isResetting ? (
                     <Loader2 className="h-4 w-4 animate-spin mr-2" />
@@ -2389,6 +2601,7 @@ export function ModernPOForm({ onSuccess, editMode = false, editPoId }: ModernPO
                 </Button>
               </div>
             </div>
+          </div>
           </form>
         </CardContent>
       </Card>
@@ -2511,7 +2724,7 @@ export function ModernPOForm({ onSuccess, editMode = false, editPoId }: ModernPO
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction 
               onClick={() => handleFormReset(true)}
-              className="bg-red-600 hover:bg-red-700"
+              className="bg-gray-600 hover:bg-gray-700"
             >
               <Trash2 className="h-4 w-4 mr-2" />
               Reset Form

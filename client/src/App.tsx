@@ -6,6 +6,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/hooks/use-auth";
 import { ProtectedRoute } from "@/lib/protected-route";
 import { ResponsiveLayout } from "@/components/layout/responsive-layout";
+import { ErrorBoundary } from "@/components/error-boundary";
+import { NotificationProvider } from "@/components/ui/notification";
 
 // Auth pages
 import AuthPage from "@/pages/auth-page";
@@ -19,6 +21,7 @@ import POEdit from "@/pages/po-edit";
 import FlipkartGroceryPOUpload from "@/pages/flipkart-grocery-po-upload";
 import FlipkartGroceryPOs from "@/pages/flipkart-grocery-pos";
 import FlipkartGroceryPODetails from "@/pages/flipkart-grocery-po-details";
+import FlipkartGroceryPOEdit from "@/pages/flipkart-grocery-po-edit";
 import ZeptoPoUpload from "@/pages/zepto-po-upload";
 import ZeptoPOs from "@/pages/zepto-pos";
 import ZeptoPoDetails from "@/pages/zepto-po-details";
@@ -34,6 +37,7 @@ import SqlQuery from "@/pages/SqlQuery";
 import DistributorPO from "@/pages/distributor-po";
 import SecondarySales from "@/pages/secondary-sales";
 import Inventory from "@/pages/inventory";
+import PFItemCreation from "@/pages/pf-item-creation";
 
 import NotFound from "@/pages/not-found";
 
@@ -79,6 +83,12 @@ function Router() {
       <ProtectedRoute path="/flipkart-grocery-pos" component={() => (
         <ResponsiveLayout>
           <FlipkartGroceryPOs />
+        </ResponsiveLayout>
+      )} />
+      
+      <ProtectedRoute path="/flipkart-grocery-po/:id/edit" component={() => (
+        <ResponsiveLayout>
+          <FlipkartGroceryPOEdit />
         </ResponsiveLayout>
       )} />
       
@@ -182,6 +192,12 @@ function Router() {
         </ResponsiveLayout>
       )} />
       
+      <ProtectedRoute path="/pf-item-creation" component={() => (
+        <ResponsiveLayout>
+          <PFItemCreation />
+        </ResponsiveLayout>
+      )} />
+      
       <ProtectedRoute path="/sql-query" component={() => (
         <ResponsiveLayout>
           <SqlQuery />
@@ -195,14 +211,18 @@ function Router() {
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Router />
-        </TooltipProvider>
-      </AuthProvider>
-    </QueryClientProvider>
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <NotificationProvider>
+            <TooltipProvider>
+              <Toaster />
+              <Router />
+            </TooltipProvider>
+          </NotificationProvider>
+        </AuthProvider>
+      </QueryClientProvider>
+    </ErrorBoundary>
   );
 }
 

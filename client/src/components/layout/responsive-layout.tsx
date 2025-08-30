@@ -13,7 +13,8 @@ import {
   X,
   LogOut,
   Settings,
-  ChevronDown
+  ChevronDown,
+  Plus
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -72,6 +73,13 @@ const navigation: NavigationItem[] = [
     description: "Upload & manage inventory data from platforms"
   },
   {
+    name: "Create PF Item",
+    href: "/pf-item-creation",
+    icon: Plus,
+    active: true,
+    description: "Create new platform items"
+  },
+  {
     name: "SAP Sync",
     href: "/sap-sync", 
     icon: Database,
@@ -124,7 +132,7 @@ export function ResponsiveLayout({ children }: ResponsiveLayoutProps) {
                 <Store className="text-white text-lg" size={20} />
               </div>
               <div>
-                <h1 className="text-xl font-semibold text-gray-900">POJivo E-Com</h1>
+                <h1 className="text-xl font-semibold text-gray-900">Jivo E-Com</h1>
               </div>
             </div>
           </div>
@@ -214,7 +222,7 @@ export function ResponsiveLayout({ children }: ResponsiveLayoutProps) {
               <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
                 <Store className="text-white" size={18} />
               </div>
-              <h1 className="text-lg font-semibold text-gray-900">POJivo E-Com</h1>
+              <h1 className="text-lg font-semibold text-gray-900">Jivo E-Com</h1>
             </div>
             <Button 
               variant="ghost" 

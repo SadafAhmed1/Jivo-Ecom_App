@@ -49,6 +49,7 @@ export default function FlipkartGroceryPOUpload() {
     mutationFn: async (file: File) => {
       const formData = new FormData();
       formData.append("file", file);
+      formData.append("platform", "flipkart");
 
       const response = await fetch("/api/po/preview", {
         method: "POST",

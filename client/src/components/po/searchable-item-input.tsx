@@ -1,44 +1,22 @@
 import { useState, useEffect, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Search, Check, ChevronDown, Loader2, X, AlertCircle, RefreshCw } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Search, Check, ChevronDown, Loader2, AlertCircle } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { useDebounce } from "@/hooks/use-debounce";
 
-interface HanaItemDetail {
-  ItemCode: string;
+interface PFItemDetail {
   ItemName: string;
-  ItmsGrpNam?: string;
-  U_TYPE?: string;
-  U_Variety?: string;
-  U_Sub_Group?: string;
-  U_Brand?: string;
-  InvntryUom?: string;
-  SalPackUn?: number;
-  U_IsLitre?: string;
-  U_Tax_Rate?: string;
-  // Legacy fields for backward compatibility
-  ItemGroup?: string;
-  SubGroup?: string;
-  Brand?: string;
-  UnitOfMeasure?: string;
-  UOM?: string;
-  TaxRate?: number;
-  UnitSize?: number;
-  IsLitre?: boolean;
-  CasePack?: number;
-  BasicRate?: number;
-  LandingRate?: number;
-  MRP?: number;
-  [key: string]: any;
+  ItemCode: string;
+  pf_id: number;
+  sap_id: string;
+  actual_itemcode?: string;
+  taxrate?: number;
 }
 
 interface SearchableItemInputProps {
   value: string;
-  onChange: (value: string, hanaItem?: HanaItemDetail) => void;
+  onChange: (value: string, pfItem?: PFItemDetail) => void;
   placeholder?: string;
   className?: string;
 }
@@ -46,7 +24,7 @@ interface SearchableItemInputProps {
 export function SearchableItemInput({ 
   value, 
   onChange, 
-  placeholder = "Search items...",
+  placeholder = "Type item name or code to search...",
   className 
 }: SearchableItemInputProps) {
   const [open, setOpen] = useState(false);
@@ -60,9 +38,9 @@ export function SearchableItemInput({
   // Use custom debounce hook for smoother search
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
 
-  // Fetch item names for search dropdown with better caching and error handling
-  const { data: itemNamesResponse, isLoading: hanaLoading, error, refetch } = useQuery({
-    queryKey: ['item-names', debouncedSearchQuery],
+  // Fetch PF item names for search dropdown with better caching and error handling
+  const { data: itemNamesResponse, isLoading: pfLoading, error, refetch } = useQuery({
+    queryKey: ['pf-items', debouncedSearchQuery],
     queryFn: async () => {
       if (!debouncedSearchQuery || debouncedSearchQuery.length < 2) {
         return [];
@@ -72,7 +50,7 @@ export function SearchableItemInput({
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
         
-        const response = await fetch(`/api/item-names?search=${encodeURIComponent(debouncedSearchQuery)}`, {
+        const response = await fetch(`/api/pf-items?search=${encodeURIComponent(debouncedSearchQuery)}`, {
           credentials: "include",
           signal: controller.signal
         });
@@ -109,7 +87,24 @@ export function SearchableItemInput({
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 3000)
   });
 
-  const hanaItems = Array.isArray(itemNamesResponse) ? itemNamesResponse : []; // Results already limited by backend
+  const pfItems = Array.isArray(itemNamesResponse) ? itemNamesResponse : []; // Results already limited by backend
+
+  // Function to format SAP code to shorter format (SL000005 instead of SL0000153)
+  const formatSapCode = (sapCode: string) => {
+    if (!sapCode) return sapCode;
+    
+    // Match pattern like "SL0000153" and convert to "SL000005" format
+    const match = sapCode.match(/^([A-Z]+)(\d+)$/);
+    if (match) {
+      const prefix = match[1]; // "SL"
+      const number = parseInt(match[2]); // 153
+      // Format to 6 digits total: 2 letter prefix + 6 digits = SL000005
+      const shortNumber = number.toString().slice(-6).padStart(6, '0');
+      return `${prefix}${shortNumber}`;
+    }
+    
+    return sapCode; // Return original if doesn't match expected pattern
+  };
 
   // Function to highlight matching terms
   const highlightMatch = (text: string, query: string) => {
@@ -133,54 +128,25 @@ export function SearchableItemInput({
     setInputValue(value);
   }, [value]);
 
-  const handleSelectHanaItem = async (selectedItem: { ItemName: string }, index?: number) => {
+  const handleSelectPFItem = async (selectedItem: PFItemDetail) => {
     setIsSelecting(true);
-    setInputValue(selectedItem.ItemName);
+    setInputValue(selectedItem.ItemName); // Show pf_itemname in input
     setSelectedIndex(-1);
     setOpen(false);
     
-    // Fetch full item details with loading state
-    try {
-      const response = await fetch(`/api/item-details?itemName=${encodeURIComponent(selectedItem.ItemName)}`, {
-        credentials: "include",
-      });
-      
-      if (response.ok) {
-        const itemDetails = await response.json();
-        if (itemDetails && itemDetails.length > 0) {
-          const fullItem = itemDetails[0];
-          onChange(selectedItem.ItemName, fullItem);
-        } else {
-          onChange(selectedItem.ItemName);
-        }
-      } else {
-        console.warn('Failed to fetch item details:', response.status);
-        onChange(selectedItem.ItemName);
-      }
-    } catch (error) {
-      console.error('Error fetching item details:', error);
-      onChange(selectedItem.ItemName);
-    } finally {
-      setIsSelecting(false);
-    }
+    // Send pf_itemname as first parameter and selectedItem as second parameter
+    onChange(selectedItem.ItemName, selectedItem);
+    setIsSelecting(false);
   };
 
   const handleInputChange = (newValue: string) => {
     setInputValue(newValue);
     setSearchQuery(newValue);
     setSelectedIndex(-1);
-    setOpen(newValue.length >= 2);
+    setOpen(newValue.length >= 1);
     onChange(newValue);
   };
 
-  const clearSearch = () => {
-    setInputValue("");
-    setSearchQuery("");
-    setSelectedIndex(-1);
-    setOpen(false);
-    onChange("");
-    inputRef.current?.focus();
-  };
 
   // Keyboard navigation
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -189,7 +155,7 @@ export function SearchableItemInput({
     switch (e.key) {
       case 'ArrowDown':
         e.preventDefault();
-        setSelectedIndex(prev => prev < hanaItems.length - 1 ? prev + 1 : prev);
+        setSelectedIndex(prev => prev < pfItems.length - 1 ? prev + 1 : prev);
         break;
       case 'ArrowUp':
         e.preventDefault();
@@ -197,8 +163,8 @@ export function SearchableItemInput({
         break;
       case 'Enter':
         e.preventDefault();
-        if (selectedIndex >= 0 && selectedIndex < hanaItems.length) {
-          handleSelectHanaItem(hanaItems[selectedIndex], selectedIndex);
+        if (selectedIndex >= 0 && selectedIndex < pfItems.length) {
+          handleSelectPFItem(pfItems[selectedIndex]);
         }
         break;
       case 'Escape':
@@ -210,50 +176,40 @@ export function SearchableItemInput({
   };
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <div className="relative">
-          <Input
-            ref={inputRef}
-            value={inputValue}
-            onChange={(e) => handleInputChange(e.target.value)}
-            placeholder={placeholder}
-            className={cn("pr-20", className)}
-            onFocus={() => inputValue.length >= 2 && setOpen(true)}
-            onKeyDown={handleKeyDown}
-            autoComplete="off"
-            spellCheck="false"
-          />
-          <div className="absolute right-0 top-0 h-full flex items-center pr-2">
-            {inputValue && (
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                className="h-6 w-6 p-0 hover:bg-gray-100 rounded-full mr-1"
-                onClick={clearSearch}
-              >
-                <X className="h-3 w-3 text-gray-500" />
-              </Button>
-            )}
-            {isSelecting || hanaLoading ? (
-              <Loader2 className="h-4 w-4 text-blue-500 animate-spin" />
-            ) : (
-              <Search className="h-4 w-4 text-gray-400" />
-            )}
-          </div>
-        </div>
-      </PopoverTrigger>
-      <PopoverContent className="w-[500px] p-0" align="start">
-        <div className="max-h-80 overflow-y-auto">
+    <div className="relative">
+      {/* Simple Input Field */}
+      <Input
+        ref={inputRef}
+        value={inputValue}
+        onChange={(e) => handleInputChange(e.target.value)}
+        placeholder={placeholder}
+        className={cn("pr-10", className)}
+        onFocus={() => setOpen(inputValue.length >= 1)}
+        onKeyDown={handleKeyDown}
+        autoComplete="off"
+        spellCheck="false"
+      />
+      
+      {/* Icons */}
+      <div className="absolute right-0 top-0 h-full flex items-center pr-3">
+        {isSelecting || pfLoading ? (
+          <Loader2 className="h-4 w-4 text-blue-500 animate-spin" />
+        ) : (
+          <Search className="h-4 w-4 text-gray-400" />
+        )}
+      </div>
+
+      {/* Suggestions below input */}
+      {open && (
+        <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
           {/* Search Status */}
           <div className="p-3 border-b border-gray-100">
             <div className="flex items-center justify-between">
               <span className="text-xs text-gray-500">
-                {hanaLoading ? "Searching..." : 
+                {pfLoading ? "Searching platform items..." : 
                  error ? "Search error" :
-                 hanaItems.length > 0 ? `${hanaItems.length} item${hanaItems.length === 1 ? '' : 's'} found` :
-                 searchQuery.length >= 2 ? "No items found" : "Type to search"}
+                 pfItems.length > 0 ? `${pfItems.length} platform item${pfItems.length === 1 ? '' : 's'} found` :
+                 searchQuery.length >= 2 ? "No items found" : "Start typing to search items"}
               </span>
               {searchQuery.length >= 2 && (
                 <span className="text-xs text-gray-400">
@@ -264,10 +220,10 @@ export function SearchableItemInput({
           </div>
 
           {/* Loading State */}
-          {hanaLoading && (
+          {pfLoading && (
             <div className="flex items-center justify-center py-8">
               <Loader2 className="h-5 w-5 animate-spin text-blue-500 mr-2" />
-              <span className="text-sm text-gray-600">Searching database...</span>
+              <span className="text-sm text-gray-600">Searching platform items...</span>
             </div>
           )}
 
@@ -280,7 +236,7 @@ export function SearchableItemInput({
                   <span className="text-sm font-medium text-red-800">Search Error</span>
                 </div>
                 <p className="text-sm text-red-700 mb-3">
-                  {error.message || 'Failed to search items. Please try again.'}
+                  {error.message || 'Failed to search platform items. Please try again.'}
                 </p>
                 <button
                   onClick={() => refetch()}
@@ -293,18 +249,18 @@ export function SearchableItemInput({
           )}
 
           {/* No Results */}
-          {!hanaLoading && !error && hanaItems.length === 0 && searchQuery.length >= 2 && (
+          {!pfLoading && !error && pfItems.length === 0 && searchQuery.length >= 2 && (
             <div className="p-6 text-center text-gray-500">
               <Search className="h-8 w-8 mx-auto mb-2 opacity-50" />
               <div className="text-sm font-medium">No items found</div>
-              <div className="text-xs mt-1">Try adjusting your search term</div>
+              <div className="text-xs mt-1">Try different search terms</div>
             </div>
           )}
 
           {/* Search Results */}
-          {hanaItems.length > 0 && (
+          {pfItems.length > 0 && (
             <div className="py-2">
-              {hanaItems.map((item, index) => {
+              {pfItems.map((item, index) => {
                 const isSelected = index === selectedIndex;
                 const isCurrentValue = inputValue === item.ItemName;
                 
@@ -320,7 +276,7 @@ export function SearchableItemInput({
                         ? "bg-green-50 border-l-green-500 text-green-900"
                         : "border-l-transparent hover:bg-gray-50"
                     )}
-                    onClick={() => handleSelectHanaItem(item, index)}
+                    onClick={() => handleSelectPFItem(item)}
                     onMouseEnter={() => setSelectedIndex(index)}
                   >
                     <div className="flex items-center justify-between">
@@ -334,6 +290,9 @@ export function SearchableItemInput({
                             __html: highlightMatch(item.ItemName, debouncedSearchQuery)
                           }}
                         />
+                        <div className="text-xs text-gray-500 mt-1">
+                          <div>Code: {highlightMatch(item.ItemCode, debouncedSearchQuery)} | SAP: {formatSapCode(item.sap_id)}</div>
+                        </div>
                       </div>
                       <div className="flex items-center ml-2">
                         {isCurrentValue && (
@@ -351,13 +310,13 @@ export function SearchableItemInput({
           )}
 
           {/* Instruction Footer */}
-          {hanaItems.length > 0 && (
+          {pfItems.length > 0 && (
             <div className="p-2 border-t border-gray-100 bg-gray-50 text-xs text-gray-500 text-center">
               Use arrow keys to navigate • Enter to select • Esc to close
             </div>
           )}
         </div>
-      </PopoverContent>
-    </Popover>
+      )}
+    </div>
   );
 }

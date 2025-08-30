@@ -30,8 +30,24 @@ export default function POList() {
 
   const deletePOMutation = useMutation({
     mutationFn: (id: number) => apiRequest('DELETE', `/api/pos/${id}`),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/pos"] });
+    onSuccess: async () => {
+      console.log("✅ PO deletion successful, refreshing cache...");
+      
+      // Invalidate multiple related queries to ensure complete refresh
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["/api/pos"] }),
+        queryClient.invalidateQueries({ queryKey: ["/api/order-items"] }),
+        queryClient.refetchQueries({ queryKey: ["/api/pos"] })
+      ]);
+      
+      console.log("🔄 Cache invalidated and queries refetched");
+      
+      // Force a manual refetch as backup
+      setTimeout(() => {
+        console.log("🔄 Backup refetch initiated");
+        refetch();
+      }, 500);
+      
       toast({
         title: "Success",
         description: "Purchase order deleted successfully"
@@ -56,6 +72,14 @@ export default function POList() {
 
   const handleDelete = (po: POWithDetails) => {
     if (confirm(`Are you sure you want to delete PO ${po.po_number}?`)) {
+      console.log(`🗑️ Deleting PO ${po.po_number} (ID: ${po.id})`);
+      
+      // Optimistic UI update - immediately remove from cache
+      queryClient.setQueryData(["/api/pos"], (oldData: POWithDetails[] | undefined) => {
+        if (!oldData) return [];
+        return oldData.filter(p => p.id !== po.id);
+      });
+      
       deletePOMutation.mutate(po.id);
     }
   };

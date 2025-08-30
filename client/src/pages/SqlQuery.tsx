@@ -6,8 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Play, Download, Database, Clock, AlertTriangle, CheckCircle } from 'lucide-react';
+import { Play, Download, Database, Clock, AlertTriangle, CheckCircle, Users } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 
@@ -27,63 +26,18 @@ interface QueryHistory {
   executionTime?: number;
 }
 
-
-
-const sampleQueries = [
-  {
-    title: "Total Sales by Platform",
-    query: `SELECT 
-  'Amazon' as platform,
-  COUNT(*) as total_orders,
-  SUM(total_sales_value) as total_revenue
-FROM "SC_Amazon_JW_Daily"
-UNION ALL
-SELECT 
-  'Flipkart' as platform,
-  COUNT(*) as total_orders, 
-  SUM(total_sales_value) as total_revenue
-FROM "SC_FlipKart_JM_2Month"
-ORDER BY total_revenue DESC;`
-  },
-  {
-    title: "Top Products by Sales Quantity",
-    query: `SELECT 
-  product_name,
-  SUM(total_sales_qty) as total_quantity,
-  SUM(total_sales_value) as total_value
-FROM "SC_FlipKart_JM_2Month"
-WHERE product_name IS NOT NULL AND product_name != ''
-GROUP BY product_name
-ORDER BY total_quantity DESC
-LIMIT 10;`
-  },
-  {
-    title: "Monthly Sales Trend",
-    query: `SELECT 
-  DATE_TRUNC('month', report_date) as month,
-  COUNT(*) as orders,
-  SUM(total_sales_value) as revenue
-FROM "SC_Amazon_JW_Daily"
-WHERE report_date >= CURRENT_DATE - INTERVAL '6 months'
-GROUP BY DATE_TRUNC('month', report_date)
-ORDER BY month DESC;`
-  },
-  {
-    title: "Inventory Status by Platform",
-    query: `SELECT 
-  'Jio Mart' as platform,
-  COUNT(*) as total_items,
-  SUM(CAST(available_qty AS NUMERIC)) as total_available
-FROM "INV_JioMart_JM_Daily"
-UNION ALL
-SELECT 
-  'Blinkit' as platform,
-  COUNT(*) as total_items,
-  SUM(CAST(available_qty AS NUMERIC)) as total_available  
-FROM "INV_Blinkit_JM_Daily"
-ORDER BY total_available DESC;`
-  }
-];
+interface UserWithRole {
+  id: number;
+  username: string;
+  email: string;
+  role?: {
+    id: number;
+    role_name: string;
+    is_admin: boolean;
+  };
+  status: string;
+  last_login?: string;
+}
 
 export default function SqlQuery() {
   const [query, setQuery] = useState('');
@@ -139,16 +93,43 @@ export default function SqlQuery() {
     }
   });
 
+  const usersQuery = useQuery({
+    queryKey: ['/api/users-with-roles'],
+    queryFn: async () => {
+      const response = await fetch('/api/users');
+      if (!response.ok) {
+        throw new Error('Failed to fetch users');
+      }
+      const users = await response.json();
+      
+      // Fetch role details for each user
+      const usersWithRoles = await Promise.all(
+        users.map(async (user: any) => {
+          if (user.role_id) {
+            try {
+              const roleResponse = await fetch(`/api/roles`);
+              if (roleResponse.ok) {
+                const roles = await roleResponse.json();
+                const userRole = roles.find((role: any) => role.id === user.role_id);
+                return { ...user, role: userRole };
+              }
+            } catch (error) {
+              console.error('Error fetching role for user:', user.username, error);
+            }
+          }
+          return user;
+        })
+      );
+      
+      return usersWithRoles as UserWithRole[];
+    },
+    refetchInterval: 30000, // Refetch every 30 seconds
+  });
+
   const handleExecuteQuery = () => {
     if (!query.trim()) return;
     executeQueryMutation.mutate(query.trim());
   };
-
-  const handleSampleQuery = (sampleQuery: string) => {
-    setQuery(sampleQuery);
-  };
-
-
 
   const downloadResults = () => {
     if (!executeQueryMutation.data) return;
@@ -293,73 +274,102 @@ export default function SqlQuery() {
 
         {/* Sidebar */}
         <div className="space-y-4">
-          <Tabs defaultValue="tables" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="tables">Tables</TabsTrigger>
-              <TabsTrigger value="samples">Samples</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="tables" className="space-y-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Database Tables</CardTitle>
-                  <CardDescription>Available tables in your database</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <ScrollArea className="h-[400px] w-full">
-                    <div className="pr-4">
-                      {tablesQuery.isLoading ? (
-                        <div className="text-sm text-gray-500">Loading tables...</div>
-                      ) : tablesQuery.data ? (
-                        <div className="space-y-2">
-                          {tablesQuery.data.map((table) => (
-                            <div
-                              key={table}
-                              className="p-3 rounded bg-gray-50 hover:bg-gray-100 cursor-pointer transition-colors border"
-                              onClick={() => setQuery(`SELECT * FROM "${table}" LIMIT 10;`)}
-                            >
-                              <span className="font-mono text-sm break-all">{table}</span>
-                            </div>
-                          ))}
-                        </div>
-                      ) : (
-                        <div className="text-sm text-gray-500">Failed to load tables</div>
-                      )}
-                    </div>
-                  </ScrollArea>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="samples" className="space-y-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Sample Queries</CardTitle>
-                  <CardDescription>Common reporting queries</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <ScrollArea className="h-[400px] w-full">
-                    <div className="pr-4 space-y-3">
-                      {sampleQueries.map((sample, index) => (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Database Tables</CardTitle>
+              <CardDescription>Available tables in your database</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ScrollArea className="h-[400px] w-full">
+                <div className="pr-4">
+                  {tablesQuery.isLoading ? (
+                    <div className="text-sm text-gray-500">Loading tables...</div>
+                  ) : tablesQuery.data ? (
+                    <div className="space-y-2">
+                      {tablesQuery.data.map((table) => (
                         <div
-                          key={index}
-                          className="p-3 rounded border hover:bg-gray-50 cursor-pointer transition-colors"
-                          onClick={() => handleSampleQuery(sample.query)}
+                          key={table}
+                          className="p-3 rounded bg-gray-50 hover:bg-gray-100 cursor-pointer transition-colors border"
+                          onClick={() => setQuery(`SELECT * FROM "${table}" LIMIT 10;`)}
                         >
-                          <h4 className="font-medium text-sm text-gray-900">{sample.title}</h4>
-                          <p className="text-xs text-gray-500 mt-1 font-mono break-all">
-                            {sample.query.split('\n')[0]}...
-                          </p>
+                          <span className="font-mono text-sm break-all">{table}</span>
                         </div>
                       ))}
                     </div>
-                  </ScrollArea>
-                </CardContent>
-              </Card>
-            </TabsContent>
+                  ) : (
+                    <div className="text-sm text-gray-500">Failed to load tables</div>
+                  )}
+                </div>
+              </ScrollArea>
+            </CardContent>
+          </Card>
 
-
-          </Tabs>
+          {/* Users & Roles */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Users size={18} />
+                Admin Users
+              </CardTitle>
+              <CardDescription>System users with their assigned roles</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ScrollArea className="h-[400px] w-full">
+                <div className="pr-4">
+                  {usersQuery.isLoading ? (
+                    <div className="text-sm text-gray-500">Loading users...</div>
+                  ) : usersQuery.data ? (
+                    <div className="space-y-3">
+                      {usersQuery.data.map((user) => (
+                        <div key={user.id} className="p-3 rounded border bg-white hover:bg-gray-50 transition-colors">
+                          <div className="flex items-start justify-between mb-2">
+                            <div>
+                              <p className="font-medium text-sm text-gray-900">{user.username}</p>
+                              <p className="text-xs text-gray-500">{user.email}</p>
+                            </div>
+                            <Badge
+                              variant={user.status === 'active' ? 'default' : 'secondary'}
+                              className="text-xs"
+                            >
+                              {user.status}
+                            </Badge>
+                          </div>
+                          
+                          {user.role ? (
+                            <div className="flex items-center gap-2 mb-2">
+                              <Badge
+                                variant={user.role.is_admin ? 'destructive' : 'outline'}
+                                className="text-xs"
+                              >
+                                {user.role.role_name}
+                              </Badge>
+                              {user.role.is_admin && (
+                                <Badge variant="secondary" className="text-xs">
+                                  Admin
+                                </Badge>
+                              )}
+                            </div>
+                          ) : (
+                            <Badge variant="outline" className="text-xs mb-2">
+                              No Role Assigned
+                            </Badge>
+                          )}
+                          
+                          {user.last_login && (
+                            <p className="text-xs text-gray-400">
+                              Last login: {new Date(user.last_login).toLocaleDateString()}
+                            </p>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-sm text-gray-500">Failed to load users</div>
+                  )}
+                </div>
+              </ScrollArea>
+            </CardContent>
+          </Card>
 
           {/* Query History */}
           {queryHistory.length > 0 && (

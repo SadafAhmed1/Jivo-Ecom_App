@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
+import { AutoPopulateWidget } from "@/components/ui/auto-populate-widget";
 
 type Step = "platform" | "upload" | "preview";
 
@@ -321,6 +322,27 @@ export function UnifiedUploadComponent({ onComplete }: UnifiedUploadComponentPro
     importMutation.mutate(parsedData);
   };
 
+  const handleAutoPopulatedData = (data: any, source: string) => {
+    // Handle the auto-populated data - set it as parsedData and move to preview
+    console.log('✅ Auto-populated data received:', { data, source });
+    
+    // Transform the data to match expected format if needed
+    const transformedData = {
+      header: data,
+      lines: Array.isArray(data) ? data : [data],
+      source: source,
+      autoPopulated: true
+    };
+    
+    setParsedData(transformedData);
+    setCurrentStep("preview");
+    
+    toast({
+      title: "Data Auto-Populated",
+      description: `Successfully loaded data from ${source}`,
+    });
+  };
+
   const renderStepContent = () => {
     switch (currentStep) {
       case "platform":
@@ -372,7 +394,27 @@ export function UnifiedUploadComponent({ onComplete }: UnifiedUploadComponentPro
                 {selectedPlatformData?.name} purchase order data
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-6">
+              {/* Auto-populate widget */}
+              <AutoPopulateWidget
+                uploadType="po"
+                onDataPopulated={handleAutoPopulatedData}
+                platforms={[selectedPlatformData?.name || selectedPlatform]}
+                searchLabel={`Search Existing ${selectedPlatformData?.name} POs`}
+                placeholder="Enter PO number, series, or item code..."
+                className="mb-4"
+              />
+
+              {/* Divider */}
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <span className="w-full border-t" />
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-background px-2 text-muted-foreground">Or upload new file</span>
+                </div>
+              </div>
+
               <div
                 className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
                   dragActive

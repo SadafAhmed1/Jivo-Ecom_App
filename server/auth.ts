@@ -51,7 +51,13 @@ export function setupAuth(app: Express) {
     new LocalStrategy(async (username, password, done) => {
       try {
         const user = await storage.getUserByUsername(username);
-        if (!user || !(await comparePasswords(password, user.password))) {
+        if (!user) {
+          return done(null, false);
+        }
+        
+        // Check password_hash first (for new RBAC users), then fallback to password (for legacy users)
+        const passwordToCheck = user.password_hash || user.password;
+        if (!passwordToCheck || !(await comparePasswords(password, passwordToCheck))) {
           return done(null, false);
         }
         

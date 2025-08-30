@@ -1,0 +1,5 @@
+username,email,full_name,phone,password,department,role
+admin,admin@jivo.com,System Administrator,9999999999,admin123,IT Six,admin
+manager.ecom,manager@jivo.com,E-Com Manager,9999999998,manager123,E-Com,admin
+user.ecom,user@jivo.com,E-Com User,9999999997,user123,E-Com,user
+analyst.ecom,analyst@jivo.com,E-Com Analyst,9999999996,analyst123,E-Com,user

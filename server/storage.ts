@@ -2,6 +2,8 @@ import {
   type User, 
   type InsertUser,
   type UpdateUser,
+  type LogMaster,
+  type InsertLogMaster,
   type PfMst,
   type InsertPfMst,
   type SapItemMst,
@@ -115,6 +117,7 @@ import {
   type DistributorOrderItems,
   type InsertDistributorOrderItems,
   users,
+  logMaster,
   pfMst,
   sapItemMst,
   sapItemMstApi,
@@ -139,6 +142,24 @@ import {
   dealsharePoItems,
   secondarySalesHeader,
   secondarySalesItems,
+  zeptoAttachments,
+  zeptoComments,
+  flipkartAttachments,
+  flipkartComments,
+  blinkitAttachments,
+  blinkitComments,
+  swiggyAttachments,
+  swiggyComments,
+  bigbasketAttachments,
+  bigbasketComments,
+  zomatoAttachments,
+  zomatoComments,
+  dealshareAttachments,
+  dealshareComments,
+  citymallAttachments,
+  citymallComments,
+  platformPoAttachments,
+  platformPoComments,
   scAmJwDaily,
   scAmJwRange,
   scAmJmDaily,
@@ -186,9 +207,12 @@ import {
   
   statesMst,
   districtsMst,
+  regions,
   states,
   districts,
   distributors,
+  type Regions,
+  type InsertRegions,
   type StatesMst,
   type InsertStatesMst,
   type DistrictsMst,
@@ -204,10 +228,24 @@ import {
   type StatusItem,
   
   // Items table
-  items
+  items,
+  
+  // RBAC tables and types
+  roles,
+  permissions,
+  rolePermissions,
+  userSessions,
+  type Role,
+  type InsertRole,
+  type Permission,
+  type InsertPermission,
+  type RolePermission,
+  type InsertRolePermission,
+  type UserSession,
+  type InsertUserSession
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, and, ilike, gte, lte, sql } from "drizzle-orm";
+import { eq, desc, and, or, ilike, gte, lte, sql, inArray, isNotNull } from "drizzle-orm";
 
 export interface IStorage {
   // Enhanced user methods
@@ -260,10 +298,14 @@ export interface IStorage {
   createItem(item: InsertItems): Promise<Items>;
   updateItem(itemcode: string, item: Partial<InsertItems>): Promise<Items>;
   syncItemsFromHana(hanaItems: any[]): Promise<number>;
+  createPFItem(data: { pf_id: number; pf_itemcode: string; pf_itemname: string; sap_id: string }): Promise<any>;
+  checkPFItemDuplicates(data: { pf_id: number; pf_itemcode: string; pf_itemname: string }): Promise<{ codeExists: boolean; nameExists: boolean; }>;
+  searchPFItems(searchTerm: string): Promise<any[]>;
+  getUniqueDispatchLocations(): Promise<string[]>;
   
   // Generic PO Master and Lines methods
   getAllPoMasters(): Promise<(PoMaster & { platform: PfMst; poLines: PoLines[] })[]>;
-  getPoMasterById(id: number): Promise<(PoMaster & { platform: PfMst; poLines: PoLines[] }) | undefined>;
+  getPoMasterById(id: number): Promise<(PoMaster & { platform: PfMst; poLines: PoLines[]; state?: any; district?: any; distributor?: any }) | undefined>;
   getPoMasterByNumber(poNumber: string): Promise<PoMaster | undefined>;
   createPoMaster(master: InsertPoMaster, lines: InsertPoLines[]): Promise<PoMaster>;
   updatePoMaster(id: number, master: Partial<InsertPoMaster>, lines?: InsertPoLines[]): Promise<PoMaster>;
@@ -276,6 +318,7 @@ export interface IStorage {
   createFlipkartGroceryPo(header: InsertFlipkartGroceryPoHeader, lines: InsertFlipkartGroceryPoLines[]): Promise<FlipkartGroceryPoHeader>;
   updateFlipkartGroceryPo(id: number, header: Partial<InsertFlipkartGroceryPoHeader>, lines?: InsertFlipkartGroceryPoLines[]): Promise<FlipkartGroceryPoHeader>;
   deleteFlipkartGroceryPo(id: number): Promise<void>;
+  getFlipkartGroceryPoLines(poHeaderId: number): Promise<FlipkartGroceryPoLines[]>;
 
   // Zepto PO methods
   getAllZeptoPos(): Promise<(ZeptoPoHeader & { poLines: ZeptoPoLines[] })[]>;
@@ -312,6 +355,7 @@ export interface IStorage {
   // Distributor methods
   getAllDistributors(): Promise<DistributorMst[]>;
   getDistributorById(id: number): Promise<DistributorMst | undefined>;
+  getDistributorByName(name: string): Promise<DistributorMst | undefined>;
   createDistributor(distributor: InsertDistributorMst): Promise<DistributorMst>;
   updateDistributor(id: number, distributor: Partial<InsertDistributorMst>): Promise<DistributorMst>;
   deleteDistributor(id: number): Promise<void>;
@@ -319,7 +363,12 @@ export interface IStorage {
   // State and District methods for dynamic dropdowns (using original tables)
   getAllStates(): Promise<States[]>;
   getDistrictsByStateId(stateId: number): Promise<Districts[]>;
-  getAllDistributors(): Promise<Distributors[]>;
+  getAllDistributorsFromOriginalTable(): Promise<Distributors[]>;
+  
+  // Three-level cascading dropdown methods (regions → states → districts)
+  getAllRegions(): Promise<{ id: number; region_name: string }[]>;
+  getStatesByRegion(regionId: number): Promise<{ id: number; state_name: string; region_id: number }[]>;
+  getDistrictsByStateIdFromMaster(stateId: number): Promise<{ id: number; district_name: string; state_id: number }[]>;
 
   // Distributor PO methods
   getAllDistributorPos(): Promise<(Omit<DistributorPo, 'distributor_id'> & { distributor: DistributorMst; orderItems: DistributorOrderItems[] })[]>;
@@ -330,6 +379,7 @@ export interface IStorage {
 
   // Distributor Order Items methods
   getAllDistributorOrderItems(): Promise<(DistributorOrderItems & { po_number: string; distributor_name: string; order_date: Date; expiry_date: Date | null; distributor: DistributorMst })[]>;
+  updateDistributorOrderItemStatus(itemId: number, status: string): Promise<void>;
 
   // BigBasket PO methods
   getAllBigbasketPos(): Promise<(BigbasketPoHeader & { poLines: BigbasketPoLines[] })[]>;
@@ -386,8 +436,55 @@ export interface IStorage {
   updateInventory(id: number, header: any, items: any): Promise<any>;
   deleteInventory(id: number): Promise<void>;
 
+  // Logging methods
+  createLog(logData: InsertLogMaster): Promise<LogMaster>;
+  logEdit(params: {
+    username: string;
+    action: string;
+    tableName: string;
+    recordId: number;
+    fieldName?: string;
+    oldValue?: string;
+    newValue?: string;
+    ipAddress?: string;
+    userAgent?: string;
+    sessionId?: string;
+  }): Promise<void>;
   
-  sessionStore: session.SessionStore;
+  // RBAC methods
+  // Role management
+  getAllRoles(): Promise<Role[]>;
+  getRoleById(id: number): Promise<Role | undefined>;
+  createRole(role: InsertRole): Promise<Role>;
+  updateRole(id: number, role: Partial<InsertRole>): Promise<Role>;
+  deleteRole(id: number): Promise<void>;
+  
+  // Permission management
+  getAllPermissions(): Promise<Permission[]>;
+  getPermissionsByCategory(category: string): Promise<Permission[]>;
+  createPermission(permission: InsertPermission): Promise<Permission>;
+  updatePermission(id: number, permission: Partial<InsertPermission>): Promise<Permission>;
+  deletePermission(id: number): Promise<void>;
+  
+  // Role-Permission management
+  getRolePermissions(roleId: number): Promise<RolePermission[]>;
+  assignPermissionToRole(roleId: number, permissionId: number): Promise<RolePermission>;
+  removePermissionFromRole(roleId: number, permissionId: number): Promise<void>;
+  getUserPermissions(userId: number): Promise<Permission[]>;
+  
+  // User management with roles
+  getAllUsers(): Promise<User[]>;
+  assignRoleToUser(userId: number, roleId: number): Promise<User>;
+  getUserWithRole(userId: number): Promise<(User & { role?: Role }) | undefined>;
+  getUsersByRole(roleId: number): Promise<User[]>;
+  
+  // Session management
+  createUserSession(session: InsertUserSession): Promise<UserSession>;
+  getUserSession(sessionToken: string): Promise<UserSession | undefined>;
+  deleteUserSession(sessionToken: string): Promise<void>;
+  cleanupExpiredSessions(): Promise<void>;
+  
+  sessionStore: session.Store;
 }
 
 import connectPgSimple from "connect-pg-simple";
@@ -397,7 +494,20 @@ import { pool } from "./db";
 const PostgresSessionStore = connectPgSimple(session);
 
 export class DatabaseStorage implements IStorage {
-  sessionStore: session.SessionStore;
+  sessionStore: session.Store;
+  
+  // Helper method to map status ID to status name
+  private mapStatusIdToName(statusId: number): string {
+    const statusMap: Record<number, string> = {
+      1: 'OPEN',
+      2: 'PENDING',
+      3: 'IN_PROGRESS', 
+      4: 'COMPLETED',
+      5: 'CLOSED',
+      6: 'CANCELLED'
+    };
+    return statusMap[statusId] || 'OPEN';
+  }
   
   constructor() {
     this.sessionStore = new PostgresSessionStore({
@@ -412,7 +522,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getUserById(id: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.id, id));
+    const [user] = await db.select().from(users).where(eq(users.id, parseInt(id)));
     return user || undefined;
   }
 
@@ -552,91 +662,147 @@ export class DatabaseStorage implements IStorage {
   async getAllPos(): Promise<(Omit<PfPo, 'platform'> & { platform: PfMst; orderItems: PfOrderItems[] })[]> {
     const result = [];
     
-    // Get regular POs from pf_po table
-    const regularPos = await db
+    // Fetch POs from po_master table with platform information
+    const posWithPlatforms = await db
       .select({
-        po: pfPo,
+        po: poMaster,
         platform: pfMst
-      })
-      .from(pfPo)
-      .leftJoin(pfMst, eq(pfPo.platform, pfMst.id))
-      .orderBy(desc(pfPo.created_at));
-
-    // Process regular POs from pf_po table
-    for (const { po, platform } of regularPos) {
-      const orderItems = await db
-        .select()
-        .from(pfOrderItems)
-        .where(eq(pfOrderItems.po_id, po.id));
-      
-      const { platform: platformId, ...poWithoutPlatform } = po;
-      result.push({
-        ...poWithoutPlatform,
-        platform: platform!,
-        orderItems
-      });
-    }
-
-    // Also fetch POs from po_master table and convert them to the same format
-    const masterPos = await db
-      .select({
-        master: poMaster,
-        platform: pfMst,
-        distributor: distributorMst
       })
       .from(poMaster)
       .leftJoin(pfMst, eq(poMaster.platform_id, pfMst.id))
-      .leftJoin(distributorMst, eq(poMaster.distributor_id, distributorMst.id))
       .orderBy(desc(poMaster.create_on));
 
     // Process POs from po_master table
-    for (const { master, platform, distributor } of masterPos) {
-      const lines = await db
+    for (const poWithPlatform of posWithPlatforms) {
+      const po = poWithPlatform.po;
+      const platform = poWithPlatform.platform;
+      
+      console.log(`🔍 Processing PO ${po.id} - ${po.vendor_po_number} with state_id: ${po.state_id}, district_id: ${po.district_id}`);
+      
+      // Special debug for SWIGGY221
+      if (po.vendor_po_number && po.vendor_po_number.includes('SWIGGY221')) {
+        console.log(`🎯 SWIGGY221 DEBUG:`, {
+          id: po.id,
+          vendor_po_number: po.vendor_po_number,
+          state_id: po.state_id,
+          district_id: po.district_id,
+          region: po.region,
+          area: po.area,
+          po_date: po.po_date
+        });
+      }
+      
+      // Get associated po_lines data with product information
+      const linesWithProducts = await db
         .select({
           line: poLines,
-          platformItem: pfItemMst
+          product: pfItemMst
         })
         .from(poLines)
         .leftJoin(pfItemMst, eq(poLines.platform_product_code_id, pfItemMst.id))
-        .where(eq(poLines.po_id, master.id));
+        .where(eq(poLines.po_id, po.id))
+        .orderBy(poLines.id);
       
-      // Convert po_master format to pf_po format for compatibility
+      console.log(`📊 Found ${linesWithProducts.length} line items for PO ${po.id}`);
+      
+      // Get state information if available
+      let stateName = '';
+      if (po.state_id) {
+        try {
+          const stateResult = await db.select().from(states).where(eq(states.id, po.state_id)).limit(1);
+          stateName = stateResult[0]?.statename || '';
+          console.log(`🗺️ State for PO ${po.id}: ${stateName}`);
+        } catch (error) {
+          console.log(`⚠️ Could not fetch state for ID ${po.state_id}:`, error);
+        }
+      }
+      
+      // Get district information if available
+      let districtName = '';
+      if (po.district_id) {
+        try {
+          const districtResult = await db.select().from(districts).where(eq(districts.id, po.district_id)).limit(1);
+          districtName = districtResult[0]?.district || '';
+          console.log(`🏜️ District for PO ${po.id}: ${districtName}`);
+        } catch (error) {
+          console.log(`⚠️ Could not fetch district for ID ${po.district_id}:`, error);
+        }
+      }
+      
+      // Get distributor information if available (using same table as edit view)
+      let distributorName = 'Unknown';
+      if (po.distributor_id) {
+        try {
+          const distributorResult = await db.select().from(distributorMst).where(eq(distributorMst.id, po.distributor_id)).limit(1);
+          distributorName = distributorResult[0]?.distributor_name || 'Unknown';
+          console.log(`🏪 Distributor for PO ${po.id}: ${distributorName}`);
+        } catch (error) {
+          console.log(`⚠️ Could not fetch distributor for ID ${po.distributor_id}:`, error);
+        }
+      }
+      
+      // Map status from status_id (if exists) or default to 'Open'
+      let poStatus = 'Open'; // Default status for new POs
+      if (po.status_id !== null && po.status_id !== undefined) {
+        // Map status_id to status text if needed
+        switch(po.status_id) {
+          case 1: poStatus = 'Open'; break;
+          case 2: poStatus = 'Closed'; break;
+          case 3: poStatus = 'Cancelled'; break;
+          case 4: poStatus = 'Expired'; break;
+          default: poStatus = 'Open';
+        }
+      }
+      
+      // Convert po_master format to expected frontend format
       const convertedPo = {
-        id: master.id,
-        po_number: master.vendor_po_number,
-        platform: platform!,
-        serving_distributor: distributor?.distributor_name || null,
-        order_date: master.po_date,
-        expiry_date: master.expiry_date,
-        appointment_date: master.appointment_date,
-        city: master.area || '',
-        state: master.region || '',
-        status: master.status_id === 1 ? 'Open' : master.status_id === 2 ? 'Closed' : 'Cancelled',
-        attachment: null,
-        created_at: master.create_on,
-        updated_at: master.updated_on,
-        region: master.region || '',
-        area: master.area || '',
-        orderItems: lines.length > 0 ? lines.map(({ line, platformItem }) => ({
-          id: line.id,
-          po_id: master.id,
-          item_name: platformItem?.pf_itemname || `Product ID: ${line.platform_product_code_id}`,
-          quantity: parseInt(line.quantity || '0'),
-          sap_code: platformItem?.pf_itemcode || null,
-          category: null,
-          subcategory: null,
-          basic_rate: line.basic_amount?.toString() || '0',
-          gst_rate: line.tax?.toString() || '0',
-          landing_rate: line.landing_amount?.toString() || '0',
-          total_litres: line.total_liter?.toString() || null,
-          status: line.status ? 'Completed' : 'Pending',
-          hsn_code: null
-        })) : [
+        id: po.id,
+        po_number: po.vendor_po_number || 'UNKNOWN',
+        platform: platform || { id: 1, pf_name: 'Unknown Platform' },
+        serving_distributor: distributorName, // Use actual distributor name
+        order_date: po.po_date ? new Date(po.po_date) : new Date(),
+        expiry_date: po.expiry_date ? new Date(po.expiry_date) : null,
+        appointment_date: po.appointment_date ? new Date(po.appointment_date) : null,
+        city: districtName, // Use district as city
+        state: stateName, // Use actual state name from state_id
+        status: poStatus, // Use mapped status
+        attachment: null, // Not available in current schema
+        created_at: po.create_on ? new Date(po.create_on) : new Date(),
+        updated_at: po.updated_on ? new Date(po.updated_on) : new Date(),
+        region: po.region || '', // Use region from po_master
+        area: po.area || '', // Use area from po_master
+        orderItems: linesWithProducts.length > 0 ? linesWithProducts.map((lineWithProduct: any) => {
+          const line = lineWithProduct.line;
+          const product = lineWithProduct.product;
+          
+          return {
+            id: line.id,
+            po_id: po.id,
+            item_name: product?.pf_itemname || `Product ID: ${line.platform_product_code_id}`, // Use actual product name
+            quantity: parseFloat(line.quantity || '0'),
+            sap_code: product?.pf_itemcode || null, // Use platform item code as SAP code
+            category: null, // Not available in current schema
+            subcategory: null, // Not available in current schema
+            basic_rate: String(line.basic_amount || '0'),
+            gst_rate: String(line.tax || '0'),
+            landing_rate: String(line.landing_amount || line.total_amount || '0'),
+            total_litres: line.total_liter || null,
+            status: line.status ? String(line.status) : 'Pending', // Convert status to string
+            hsn_code: null, // Not available in current schema
+            platform_code: product?.pf_itemcode || null, // Use platform item code
+            uom: line.uom || 'PCS',
+            boxes: line.boxes || null,
+            invoice_date: line.invoice_date ? String(line.invoice_date) : null,
+            invoice_litre: line.invoice_litre ? String(line.invoice_litre) : null,
+            invoice_amount: line.invoice_amount ? String(line.invoice_amount) : null,
+            invoice_qty: line.invoice_qty ? String(line.invoice_qty) : null
+          };
+        }) : [
           // If no lines exist, create a placeholder item to show PO exists
           {
             id: 0,
-            po_id: master.id,
-            item_name: `Items for PO ${master.vendor_po_number}`,
+            po_id: po.id,
+            item_name: `Items for PO ${po.vendor_po_number}`,
             quantity: 1,
             sap_code: null,
             category: null,
@@ -646,19 +812,38 @@ export class DatabaseStorage implements IStorage {
             landing_rate: '0.00',
             total_litres: null,
             status: 'Pending',
-            hsn_code: null
+            hsn_code: null,
+            platform_code: null,
+            uom: "PCS",
+            boxes: null,
+            invoice_date: null,
+            invoice_litre: null,
+            invoice_amount: null,
+            invoice_qty: null
           }
-        ]
+        ],
+        state_id: po.state_id,
+        district_id: po.district_id
       };
+      
+      console.log(`✅ PO ${po.id} final data:`, {
+        id: convertedPo.id,
+        po_number: convertedPo.po_number,
+        city: convertedPo.city,
+        state: convertedPo.state,
+        region: convertedPo.region,
+        area: convertedPo.area,
+        orderItemsCount: convertedPo.orderItems.length,
+        firstItemValue: convertedPo.orderItems[0]?.landing_rate || 'No items'
+      });
       
       result.push(convertedPo);
     }
 
-    // TODO: Add platform-specific table fetching here if needed
-    // For now, focus on getting unified po_master table working properly
-
-    // Sort results by created_at descending  
+    // Sort results by created_at descending (most recent uploads first)
     result.sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime());
+    
+    console.log(`📊 getAllPos: Returning ${result.length} POs from po_master table`);
 
     return result;
   }
@@ -693,7 +878,10 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getPoById(id: number): Promise<(Omit<PfPo, 'platform'> & { platform: PfMst; orderItems: PfOrderItems[] }) | undefined> {
-    // First try to find in po_master table (new structure)
+    // Skip master_po_header table check since table doesn't exist
+    console.log(`🚫 Skipping master_po_header lookup for PO ${id} - table does not exist`);
+
+    // PRIORITY 2: Check po_master table (manual POs)
     const masterPoResult = await db
       .select({
         master: poMaster,
@@ -850,7 +1038,42 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deletePo(id: number): Promise<void> {
-    await db.delete(pfPo).where(eq(pfPo.id, id));
+    console.log(`🗑️ Storage: Starting deletion for PO ID ${id}`);
+    
+    // Check if the PO exists in pf_po table first
+    const existingPo = await db.select().from(pfPo).where(eq(pfPo.id, id));
+    if (existingPo.length === 0) {
+      console.log(`⚠️ Storage: PO with ID ${id} not found in pf_po table`);
+      
+      // Also check if it might exist in other PO tables (Flipkart, Zepto, etc.)
+      console.log(`🔍 Storage: Checking if PO ID ${id} exists in other PO tables...`);
+      
+      // If PO doesn't exist anywhere, it might have been already deleted
+      // Instead of throwing an error, we'll treat this as already deleted
+      console.log(`ℹ️ Storage: PO ID ${id} already deleted or never existed - treating as successful deletion`);
+      return;
+    }
+    
+    console.log(`📝 Storage: Found PO to delete: ${existingPo[0].po_number}`);
+    
+    await db.transaction(async (tx) => {
+      console.log(`🗑️ Storage: Deleting order items for PO ID ${id} from pf_order_items table`);
+      const deletedItems = await tx.delete(pfOrderItems).where(eq(pfOrderItems.po_id, id));
+      console.log(`✅ Storage: Deleted order items for PO ID ${id}`);
+      
+      console.log(`🗑️ Storage: Deleting PO record for ID ${id} from pf_po table`);
+      const deletedPo = await tx.delete(pfPo).where(eq(pfPo.id, id));
+      console.log(`✅ Storage: Deleted PO record for ID ${id}`);
+    });
+    
+    // Verify deletion was successful
+    const verifyDeletion = await db.select().from(pfPo).where(eq(pfPo.id, id));
+    if (verifyDeletion.length > 0) {
+      console.error(`❌ Storage: DELETION FAILED - PO ID ${id} still exists in database!`);
+      throw new Error(`Failed to delete PO with ID ${id} - still exists in database`);
+    }
+    
+    console.log(`✅ Storage: VERIFIED - PO ID ${id} successfully deleted from database`);
   }
 
   async getAllOrderItems(): Promise<(PfOrderItems & { po_number: string; platform_name: string; order_date: Date; expiry_date: Date | null; platform: PfMst })[]> {
@@ -897,6 +1120,11 @@ export class DatabaseStorage implements IStorage {
       subcategory: result.subcategory,
       total_litres: result.total_litres,
       hsn_code: result.hsn_code,
+      // Add missing required fields for PfOrderItems
+      invoice_date: null,
+      invoice_litre: null,
+      invoice_amount: null,
+      invoice_qty: null,
       po_number: result.po_number,
       platform_name: result.platform_name,
       order_date: result.order_date,
@@ -941,20 +1169,74 @@ export class DatabaseStorage implements IStorage {
     return result;
   }
   
-  async getPoMasterById(id: number): Promise<(PoMaster & { platform: PfMst; poLines: PoLines[] }) | undefined> {
+  async getPoMasterById(id: number): Promise<(PoMaster & { platform: PfMst; poLines: PoLines[]; state?: any; district?: any; distributor?: any }) | undefined> {
     const master = await db.select().from(poMaster).where(eq(poMaster.id, id)).limit(1);
     if (!master[0]) return undefined;
     
     // Get platform information
     const platform = await db.select().from(pfMst).where(eq(pfMst.id, master[0].platform_id)).limit(1);
     
-    // Get associated po lines
-    const lines = await db.select().from(poLines).where(eq(poLines.po_id, id));
+    // Get state information
+    let state = null;
+    if (master[0].state_id) {
+      const stateResult = await db.select().from(states).where(eq(states.id, master[0].state_id)).limit(1);
+      state = stateResult[0];
+    }
+    
+    // Get district information
+    let district = null;
+    if (master[0].district_id) {
+      const districtResult = await db.select().from(districts).where(eq(districts.id, master[0].district_id)).limit(1);
+      district = districtResult[0];
+    }
+    
+    // Get distributor information
+    let distributor = null;
+    if (master[0].distributor_id) {
+      const distributorResult = await db.select().from(distributorMst).where(eq(distributorMst.id, master[0].distributor_id)).limit(1);
+      distributor = distributorResult[0];
+    }
+    
+    // Get associated po lines with product and tax rate information
+    const linesWithProducts = await db
+      .select({
+        line: poLines,
+        product: pfItemMst,
+        sapItem: {
+          itemcode: items.itemcode,
+          itemname: items.itemname,
+          taxrate: items.taxrate  // Explicitly select the tax rate field (maps to u_tax_rate column)
+        }
+      })
+      .from(poLines)
+      .leftJoin(pfItemMst, eq(poLines.platform_product_code_id, pfItemMst.id))
+      .leftJoin(items, eq(pfItemMst.sap_id, items.itemcode))
+      .where(eq(poLines.po_id, id))
+      .orderBy(poLines.id);
+      
+    // Transform lines to include product information
+    const lines = linesWithProducts.map((lineWithProduct: any) => {
+      const line = lineWithProduct.line;
+      const product = lineWithProduct.product;
+      
+      return {
+        ...line,
+        // Add product information if available
+        item_name: product?.pf_itemname || line.remark || `Product ID: ${line.platform_product_code_id}`,
+        platform_code: product?.pf_itemcode || line.platform_product_code_id,
+        sap_id: product?.sap_id || null,
+        // Add original tax rate from items table
+        original_tax_rate: lineWithProduct.sapItem?.taxrate || null
+      };
+    });
     
     return {
       ...master[0],
       platform: platform[0],
-      poLines: lines
+      poLines: lines,
+      state,
+      district,
+      distributor
     };
   }
   
@@ -1010,7 +1292,36 @@ export class DatabaseStorage implements IStorage {
   }
   
   async deletePoMaster(id: number): Promise<void> {
-    await db.delete(poMaster).where(eq(poMaster.id, id));
+    console.log(`🗑️ Storage: Starting po_master deletion for PO ID ${id}`);
+    
+    // First check if the PO exists in po_master table
+    const existingPo = await db.select().from(poMaster).where(eq(poMaster.id, id));
+    if (existingPo.length === 0) {
+      console.log(`⚠️ Storage: PO with ID ${id} not found in po_master table`);
+      console.log(`ℹ️ Storage: PO ID ${id} already deleted or never existed - treating as successful deletion`);
+      return;
+    }
+    
+    console.log(`📝 Storage: Found PO in po_master to delete: ${existingPo[0].vendor_po_number}`);
+    
+    await db.transaction(async (tx) => {
+      console.log(`🗑️ Storage: Deleting po lines for PO ID ${id} from po_lines table`);
+      const deletedLines = await tx.delete(poLines).where(eq(poLines.po_id, id));
+      console.log(`✅ Storage: Deleted po lines for PO ID ${id}`);
+      
+      console.log(`🗑️ Storage: Deleting PO record for ID ${id} from po_master table`);
+      const deletedPo = await tx.delete(poMaster).where(eq(poMaster.id, id));
+      console.log(`✅ Storage: Deleted PO record from po_master for ID ${id}`);
+    });
+    
+    // Verify deletion was successful
+    const verifyDeletion = await db.select().from(poMaster).where(eq(poMaster.id, id));
+    if (verifyDeletion.length > 0) {
+      console.error(`❌ Storage: DELETION FAILED - PO ID ${id} still exists in po_master table!`);
+      throw new Error(`Failed to delete PO with ID ${id} - still exists in po_master table`);
+    }
+    
+    console.log(`✅ Storage: VERIFIED - PO ID ${id} successfully deleted from po_master table`);
   }
 
   // Flipkart Grocery PO methods
@@ -1054,8 +1365,21 @@ export class DatabaseStorage implements IStorage {
     return header || undefined;
   }
 
+  private async insertIntoPoMasterAndLines(
+    tx: any,
+    platformName: string,
+    platformHeader: any,
+    platformLines: any[]
+  ): Promise<void> {
+    console.log(`🚫 Skipping master_po_header insertion for ${platformName} PO ${platformHeader.po_number || 'Unknown'}`);
+    console.log(`   Reason: master_po_header table does not exist and insertion is disabled`);
+    console.log(`   Platform: ${platformName}, Lines: ${platformLines.length}`);
+    return;
+  }
+
   async createFlipkartGroceryPo(header: InsertFlipkartGroceryPoHeader, lines: InsertFlipkartGroceryPoLines[]): Promise<FlipkartGroceryPoHeader> {
     return await db.transaction(async (tx) => {
+      // Insert into platform-specific tables
       const [createdHeader] = await tx.insert(flipkartGroceryPoHeader).values(header).returning();
       
       if (lines.length > 0) {
@@ -1064,6 +1388,12 @@ export class DatabaseStorage implements IStorage {
           header_id: createdHeader.id
         }));
         await tx.insert(flipkartGroceryPoLines).values(linesWithHeaderId);
+        
+        // Also insert into consolidated po_master and po_lines tables
+        await this.insertIntoPoMasterAndLines(tx, 'FlipkartGrocery', createdHeader, linesWithHeaderId);
+      } else {
+        // Insert header only into po_master
+        await this.insertIntoPoMasterAndLines(tx, 'FlipkartGrocery', createdHeader, []);
       }
       
       return createdHeader;
@@ -1096,11 +1426,19 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteFlipkartGroceryPo(id: number): Promise<void> {
-    await db.delete(flipkartGroceryPoHeader).where(eq(flipkartGroceryPoHeader.id, id));
+    await db.transaction(async (tx) => {
+      // First delete all related po lines
+      await tx.delete(flipkartGroceryPoLines).where(eq(flipkartGroceryPoLines.header_id, id));
+      
+      // Then delete the PO header
+      await tx.delete(flipkartGroceryPoHeader).where(eq(flipkartGroceryPoHeader.id, id));
+    });
   }
 
   async getFlipkartGroceryPoLines(poHeaderId: number): Promise<FlipkartGroceryPoLines[]> {
-    return await db.select().from(flipkartGroceryPoLines).where(eq(flipkartGroceryPoLines.header_id, poHeaderId));
+    return await db.select().from(flipkartGroceryPoLines)
+      .where(eq(flipkartGroceryPoLines.header_id, poHeaderId))
+      .orderBy(flipkartGroceryPoLines.line_number);
   }
 
   // Zepto PO methods
@@ -1142,18 +1480,26 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createZeptoPo(header: InsertZeptoPoHeader, lines: InsertZeptoPoLines[]): Promise<ZeptoPoHeader> {
+    console.log('📋 Creating Zepto PO:', header.po_number, 'with', lines.length, 'lines');
     return await db.transaction(async (tx) => {
-      // Insert header
+      // Insert into platform-specific tables
       const [createdHeader] = await tx.insert(zeptoPoHeader).values(header).returning();
+      console.log('✅ Created zepto_po_header ID:', createdHeader.id);
       
-      // Insert lines with header reference
       if (lines.length > 0) {
         const linesWithHeaderId = lines.map(line => ({
           ...line,
           po_header_id: createdHeader.id
         }));
-        
         await tx.insert(zeptoPoLines).values(linesWithHeaderId);
+        
+        // Also insert into consolidated po_master and po_lines tables
+        console.log('📊 Inserting into po_master and po_lines tables...');
+        await this.insertIntoPoMasterAndLines(tx, 'Zepto', createdHeader, linesWithHeaderId);
+        console.log('✅ Successfully inserted into ALL tables!');
+      } else {
+        // Insert header only into po_master
+        await this.insertIntoPoMasterAndLines(tx, 'Zepto', createdHeader, []);
       }
       
       return createdHeader;
@@ -1190,7 +1536,19 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteZeptoPo(id: number): Promise<void> {
-    await db.delete(zeptoPoHeader).where(eq(zeptoPoHeader.id, id));
+    await db.transaction(async (tx) => {
+      // First delete all related po lines
+      await tx.delete(zeptoPoLines).where(eq(zeptoPoLines.po_header_id, id));
+      
+      // Then delete the PO header
+      await tx.delete(zeptoPoHeader).where(eq(zeptoPoHeader.id, id));
+    });
+  }
+
+  async getZeptoPoLines(poHeaderId: number): Promise<ZeptoPoLines[]> {
+    return await db.select().from(zeptoPoLines)
+      .where(eq(zeptoPoLines.po_header_id, poHeaderId))
+      .orderBy(zeptoPoLines.line_number);
   }
 
   // City Mall PO methods
@@ -1217,6 +1575,7 @@ export class DatabaseStorage implements IStorage {
 
   async createCityMallPo(header: InsertCityMallPoHeader, lines: InsertCityMallPoLines[]): Promise<CityMallPoHeader> {
     return await db.transaction(async (tx) => {
+      // Insert into platform-specific tables
       const [createdHeader] = await tx.insert(cityMallPoHeader).values(header).returning();
       
       if (lines.length > 0) {
@@ -1225,6 +1584,12 @@ export class DatabaseStorage implements IStorage {
           po_header_id: createdHeader.id
         }));
         await tx.insert(cityMallPoLines).values(linesWithHeaderId);
+        
+        // Also insert into consolidated po_master and po_lines tables
+        await this.insertIntoPoMasterAndLines(tx, 'CityMall', createdHeader, linesWithHeaderId);
+      } else {
+        // Insert header only into po_master
+        await this.insertIntoPoMasterAndLines(tx, 'CityMall', createdHeader, []);
       }
       
       return createdHeader;
@@ -1255,12 +1620,24 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteCityMallPo(id: number): Promise<void> {
-    await db.delete(cityMallPoHeader).where(eq(cityMallPoHeader.id, id));
+    await db.transaction(async (tx) => {
+      // First delete all related po lines
+      await tx.delete(cityMallPoLines).where(eq(cityMallPoLines.po_header_id, id));
+      
+      // Then delete the PO header
+      await tx.delete(cityMallPoHeader).where(eq(cityMallPoHeader.id, id));
+    });
   }
 
   async getCityMallPoByNumber(poNumber: string): Promise<CityMallPoHeader | undefined> {
     const [header] = await db.select().from(cityMallPoHeader).where(eq(cityMallPoHeader.po_number, poNumber));
     return header || undefined;
+  }
+
+  async getCityMallPoLines(poHeaderId: number): Promise<CityMallPoLines[]> {
+    return await db.select().from(cityMallPoLines)
+      .where(eq(cityMallPoLines.po_header_id, poHeaderId))
+      .orderBy(cityMallPoLines.line_number);
   }
 
   // Blinkit PO methods
@@ -1287,6 +1664,7 @@ export class DatabaseStorage implements IStorage {
 
   async createBlinkitPo(header: InsertBlinkitPoHeader, lines: InsertBlinkitPoLines[]): Promise<BlinkitPoHeader> {
     return await db.transaction(async (tx) => {
+      // Insert into platform-specific tables
       const [createdHeader] = await tx.insert(blinkitPoHeader).values(header).returning();
       
       if (lines.length > 0) {
@@ -1295,6 +1673,12 @@ export class DatabaseStorage implements IStorage {
           po_header_id: createdHeader.id
         }));
         await tx.insert(blinkitPoLines).values(linesWithHeaderId);
+        
+        // Also insert into consolidated po_master and po_lines tables
+        await this.insertIntoPoMasterAndLines(tx, 'Blinkit', createdHeader, linesWithHeaderId);
+      } else {
+        // Insert header only into po_master
+        await this.insertIntoPoMasterAndLines(tx, 'Blinkit', createdHeader, []);
       }
       
       return createdHeader;
@@ -1325,12 +1709,24 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteBlinkitPo(id: number): Promise<void> {
-    await db.delete(blinkitPoHeader).where(eq(blinkitPoHeader.id, id));
+    await db.transaction(async (tx) => {
+      // First delete all related po lines
+      await tx.delete(blinkitPoLines).where(eq(blinkitPoLines.po_header_id, id));
+      
+      // Then delete the PO header
+      await tx.delete(blinkitPoHeader).where(eq(blinkitPoHeader.id, id));
+    });
   }
 
   async getBlinkitPoByNumber(poNumber: string): Promise<BlinkitPoHeader | undefined> {
     const [header] = await db.select().from(blinkitPoHeader).where(eq(blinkitPoHeader.po_number, poNumber));
     return header || undefined;
+  }
+
+  async getBlinkitPoLines(poHeaderId: number): Promise<BlinkitPoLines[]> {
+    return await db.select().from(blinkitPoLines)
+      .where(eq(blinkitPoLines.po_header_id, poHeaderId))
+      .orderBy(blinkitPoLines.line_number);
   }
 
   // Swiggy PO methods
@@ -1380,11 +1776,18 @@ export class DatabaseStorage implements IStorage {
 
   async createSwiggyPo(po: InsertSwiggyPo, lines: InsertSwiggyPoLine[]): Promise<SwiggyPo> {
     return await db.transaction(async (tx) => {
+      // Insert into platform-specific tables
       const [createdPo] = await tx.insert(swiggyPos).values(po).returning();
       
       if (lines.length > 0) {
         const linesWithPoId = lines.map(line => ({ ...line, po_id: createdPo.id }));
         await tx.insert(swiggyPoLines).values(linesWithPoId);
+        
+        // Also insert into consolidated po_master and po_lines tables
+        await this.insertIntoPoMasterAndLines(tx, 'Swiggy', createdPo, linesWithPoId);
+      } else {
+        // Insert header only into po_master
+        await this.insertIntoPoMasterAndLines(tx, 'Swiggy', createdPo, []);
       }
       
       return createdPo;
@@ -1401,7 +1804,19 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteSwiggyPo(id: number): Promise<void> {
-    await db.delete(swiggyPos).where(eq(swiggyPos.id, id));
+    await db.transaction(async (tx) => {
+      // First delete all related po lines
+      await tx.delete(swiggyPoLines).where(eq(swiggyPoLines.po_id, id));
+      
+      // Then delete the PO header
+      await tx.delete(swiggyPos).where(eq(swiggyPos.id, id));
+    });
+  }
+
+  async getSwiggyPoLines(poId: number): Promise<SwiggyPoLine[]> {
+    return await db.select().from(swiggyPoLines)
+      .where(eq(swiggyPoLines.po_id, poId))
+      .orderBy(swiggyPoLines.line_number);
   }
 
   // Distributor methods
@@ -1411,6 +1826,15 @@ export class DatabaseStorage implements IStorage {
 
   async getDistributorById(id: number): Promise<DistributorMst | undefined> {
     const [distributor] = await db.select().from(distributorMst).where(eq(distributorMst.id, id));
+    return distributor || undefined;
+  }
+
+  async getDistributorByName(name: string): Promise<DistributorMst | undefined> {
+    const [distributor] = await db.select().from(distributorMst)
+      .where(and(
+        eq(distributorMst.distributor_name, name),
+        eq(distributorMst.status, 'Active')
+      ));
     return distributor || undefined;
   }
 
@@ -1445,6 +1869,112 @@ export class DatabaseStorage implements IStorage {
     return await db.select().from(distributors).orderBy(distributors.name);
   }
 
+  // Three-level cascading: regions → states → districts
+  async getAllRegions(): Promise<{ id: number; region_name: string }[]> {
+    console.log('🌍 Storage: Fetching all regions');
+    
+    try {
+      // Try to get from regions table first
+      const result = await db.select().from(regions).where(eq(regions.status, 'Active')).orderBy(regions.region_name);
+      console.log(`🌍 Storage: Found ${result.length} regions from table:`, result.map(r => r.region_name));
+      return result;
+    } catch (error) {
+      console.log('🌍 Storage: Regions table not found, using hardcoded regions');
+      // Fallback to hardcoded regions if table doesn't exist
+      return [
+        { id: 1, region_name: 'NORTH INDIA' },
+        { id: 2, region_name: 'SOUTH INDIA' },
+        { id: 3, region_name: 'WEST INDIA' },
+        { id: 4, region_name: 'EAST INDIA' },
+        { id: 5, region_name: 'CENTRAL INDIA' }
+      ];
+    }
+  }
+
+  async getStatesByRegion(regionId: number): Promise<{ id: number; state_name: string; region_id: number }[]> {
+    console.log(`🏛️ Storage: Fetching states for region ID: ${regionId}`);
+    
+    // Define region-state mapping since region_id might not exist in states table
+    const regionStateMapping: Record<number, string[]> = {
+      1: ['DELHI', 'HARYANA', 'PUNJAB', 'HIMACHAL PRADESH', 'UTTAR PRADESH', 'UTTARAKHAND', 'JAMMU AND KASHMIR', 'LADAKH', 'CHANDIGARH'], // NORTH INDIA
+      2: ['KARNATAKA', 'TAMIL NADU', 'KERALA', 'ANDHRA PRADESH', 'TELANGANA', 'PUDUCHERRY'], // SOUTH INDIA  
+      3: ['MAHARASHTRA', 'GUJARAT', 'RAJASTHAN', 'GOA', 'THE DADRA AND NAGAR HAVELI AND DAMAN AND DIU'], // WEST INDIA
+      4: ['WEST BENGAL', 'ODISHA', 'BIHAR', 'JHARKHAND', 'ASSAM', 'MEGHALAYA', 'MANIPUR', 'MIZORAM', 'NAGALAND', 'TRIPURA', 'ARUNACHAL PRADESH', 'SIKKIM'], // EAST INDIA
+      5: ['MADHYA PRADESH', 'CHHATTISGARH'] // CENTRAL INDIA
+    };
+    
+    const regionNames = ['', 'NORTH INDIA', 'SOUTH INDIA', 'WEST INDIA', 'EAST INDIA', 'CENTRAL INDIA'];
+    const regionName = regionNames[regionId] || 'UNKNOWN';
+    
+    console.log(`🏛️ Storage: Mapping states for region: ${regionName}`);
+    
+    const stateNamesForRegion = regionStateMapping[regionId] || [];
+    
+    if (stateNamesForRegion.length === 0) {
+      console.log(`❌ Storage: No states mapped for region ID ${regionId}`);
+      return [];
+    }
+    
+    try {
+      // Try to filter by region_id first if it exists
+      const resultByRegionId = await db.select().from(states).where(eq(states.region_id, regionId)).orderBy(states.statename);
+      
+      if (resultByRegionId.length > 0) {
+        console.log(`🏛️ Storage: Found ${resultByRegionId.length} states using region_id for ${regionName}`);
+        return resultByRegionId.map(state => ({
+          id: state.id,
+          state_name: state.statename,
+          region_id: regionId
+        }));
+      }
+    } catch (error) {
+      console.log('🏛️ Storage: region_id column not found, using name-based filtering');
+    }
+    
+    // Fallback to name-based filtering
+    const allStates = await db.select().from(states).orderBy(states.statename);
+    const filteredStates = allStates.filter(state => 
+      stateNamesForRegion.some(regionStateName => 
+        state.statename.toUpperCase().includes(regionStateName.toUpperCase()) ||
+        regionStateName.toUpperCase().includes(state.statename.toUpperCase())
+      )
+    );
+    
+    console.log(`🏛️ Storage: Found ${filteredStates.length} states for region ${regionName} using name mapping:`, 
+      filteredStates.map(s => s.statename));
+    
+    return filteredStates.map(state => ({
+      id: state.id,
+      state_name: state.statename,
+      region_id: regionId
+    }));
+  }
+
+  async getDistrictsByStateIdFromMaster(stateId: number): Promise<{ id: number; district_name: string; state_id: number }[]> {
+    console.log(`🏘️ Storage: Fetching districts for state ID: ${stateId}`);
+    
+    // First verify the state exists
+    const state = await db.select().from(states).where(eq(states.id, stateId)).limit(1);
+    if (state.length === 0) {
+      console.log(`❌ Storage: State ID ${stateId} not found`);
+      return [];
+    }
+    
+    console.log(`🏘️ Storage: State found: ${state[0].statename}`);
+    
+    // Get districts for this state
+    const result = await db.select().from(districts).where(eq(districts.state_id, stateId)).orderBy(districts.district);
+    
+    console.log(`🏘️ Storage: Found ${result.length} districts for state ${state[0].statename}:`, 
+      result.map(d => d.district));
+    
+    return result.map(district => ({
+      id: district.id,
+      district_name: district.district,
+      state_id: district.state_id
+    }));
+  }
+
   // Status methods
   async getAllStatuses(): Promise<Statuses[]> {
     return await db.select().from(statuses).where(eq(statuses.is_active, true)).orderBy(statuses.status_name);
@@ -1456,21 +1986,38 @@ export class DatabaseStorage implements IStorage {
 
   // Items methods - using raw SQL to match actual table structure
   async getAllItems(): Promise<any[]> {
-    const result = await db.execute(sql`
-      SELECT itemcode, itemname, itmsgrpnam, u_type, u_variety, 
-             u_sub_group, u_brand, invntryuom, salpackun, u_islitre, u_tax_rate
-      FROM items 
-      ORDER BY itemname
-    `);
-    return result.rows;
+    try {
+      // First try to get items using the drizzle query
+      const itemsData = await db.select().from(items);
+      console.log(`📊 getAllItems: Found ${itemsData.length} items in PostgreSQL items table`);
+      return itemsData;
+    } catch (error) {
+      console.error("Error fetching items from database:", error);
+      // If drizzle query fails, try raw SQL as fallback
+      try {
+        const result = await db.execute(sql`
+          SELECT * FROM items 
+          ORDER BY itemname
+          LIMIT 1000
+        `);
+        console.log(`📊 getAllItems (raw SQL): Found ${result.rows.length} items`);
+        return result.rows;
+      } catch (sqlError) {
+        console.error("Raw SQL query also failed:", sqlError);
+        return [];
+      }
+    }
   }
 
   async searchItems(query: string): Promise<any[]> {
     const result = await db.execute(sql`
-      SELECT itemcode, itemname, itmsgrpnam, u_type, u_variety, 
-             u_sub_group, u_brand, invntryuom, salpackun, u_islitre, u_tax_rate
+      SELECT id, itemcode, itemname, itemgroup, type, variety, 
+             subgroup, brand, uom, taxrate, unitsize, is_litre, 
+             case_pack, basic_rate, landing_rate, mrp, supplier_price
       FROM items 
       WHERE itemname ILIKE ${`%${query}%`}
+         OR itemcode ILIKE ${`%${query}%`}
+         OR brand ILIKE ${`%${query}%`}
       ORDER BY itemname
       LIMIT 100
     `);
@@ -1512,6 +2059,211 @@ export class DatabaseStorage implements IStorage {
     return result[0];
   }
 
+  async createPFItem(data: { pf_id: number; pf_itemcode: string; pf_itemname: string; sap_id: string }): Promise<any> {
+    try {
+      console.log(`🔍 Storage: Checking for duplicate PF item - Platform: ${data.pf_id}, Code: ${data.pf_itemcode}`);
+      
+      // STRICT VALIDATION: Check for duplicates by pf_id + pf_itemcode combination
+      const existingByCode = await db
+        .select()
+        .from(pfItemMst)
+        .where(and(
+          eq(pfItemMst.pf_id, data.pf_id),
+          eq(pfItemMst.pf_itemcode, data.pf_itemcode.trim())
+        ));
+      
+      if (existingByCode.length > 0) {
+        console.log(`❌ Storage: BLOCKED - PF item code '${data.pf_itemcode}' already exists for platform ${data.pf_id}`);
+        console.log(`❌ Storage: Existing item details:`, existingByCode[0]);
+        throw new Error(`❌ DUPLICATE NOT ALLOWED: PF item code '${data.pf_itemcode}' already exists for this platform. Each item code must be unique within a platform.`);
+      }
+      
+      // STRICT VALIDATION: Check for duplicate pf_itemname within the same platform
+      const existingByName = await db
+        .select()
+        .from(pfItemMst)
+        .where(and(
+          eq(pfItemMst.pf_id, data.pf_id),
+          eq(pfItemMst.pf_itemname, data.pf_itemname.trim())
+        ));
+      
+      if (existingByName.length > 0) {
+        console.log(`❌ Storage: BLOCKED - PF item name '${data.pf_itemname}' already exists for platform ${data.pf_id}`);
+        console.log(`❌ Storage: Existing item details:`, existingByName[0]);
+        throw new Error(`❌ DUPLICATE NOT ALLOWED: PF item name '${data.pf_itemname}' already exists for this platform. Each item name must be unique within a platform.`);
+      }
+      
+      // EXTRA CHECK: Ensure exact combination doesn't exist
+      const existingCombination = await db
+        .select()
+        .from(pfItemMst)
+        .where(and(
+          eq(pfItemMst.pf_id, data.pf_id),
+          eq(pfItemMst.pf_itemcode, data.pf_itemcode.trim()),
+          eq(pfItemMst.pf_itemname, data.pf_itemname.trim())
+        ));
+      
+      if (existingCombination.length > 0) {
+        console.log(`❌ Storage: BLOCKED - Exact combination already exists for platform ${data.pf_id}`);
+        throw new Error(`❌ DUPLICATE NOT ALLOWED: This exact PF item already exists. Both the code and name must be unique.`);
+      }
+      
+      console.log(`✅ Storage: No duplicates found, proceeding with PF item creation`);
+      
+      // Insert into pf_item_mst table
+      const [newItem] = await db
+        .insert(pfItemMst)
+        .values({
+          pf_id: data.pf_id,
+          pf_itemcode: data.pf_itemcode,
+          pf_itemname: data.pf_itemname,
+          sap_id: data.sap_id
+        })
+        .returning();
+      
+      console.log(`✅ Storage: Successfully created PF item with ID: ${newItem.id}`);
+      return newItem;
+    } catch (error) {
+      console.error("Error creating PF item:", error);
+      
+      // Handle database constraint violations
+      if (error instanceof Error) {
+        // Check for our new unique constraint violations from database
+        if (error.message.includes('pf_item_unique_code_per_platform')) {
+          throw new Error(`🚫 DATABASE BLOCKED: PF item code '${data.pf_itemcode}' already exists for this platform. No duplicate item codes allowed within the same platform.`);
+        }
+        if (error.message.includes('pf_item_unique_name_per_platform')) {
+          throw new Error(`🚫 DATABASE BLOCKED: PF item name '${data.pf_itemname}' already exists for this platform. No duplicate item names allowed within the same platform.`);
+        }
+        // Check for old constraint names too (if they exist)
+        if (error.message.includes('pf_item_mst_pf_id_itemcode_unique')) {
+          throw new Error(`🚫 DATABASE BLOCKED: PF item code '${data.pf_itemcode}' already exists for this platform. No duplicates allowed.`);
+        }
+        if (error.message.includes('pf_item_mst_pf_id_itemname_unique')) {
+          throw new Error(`🚫 DATABASE BLOCKED: PF item name '${data.pf_itemname}' already exists for this platform. No duplicates allowed.`);
+        }
+        // Re-throw with original message if it's already a user-friendly error
+        if (error.message.includes('already exists') || error.message.includes('DUPLICATE NOT ALLOWED') || error.message.includes('DATABASE BLOCKED')) {
+          throw error;
+        }
+      }
+      
+      throw new Error("Failed to create PF item");
+    }
+  }
+
+  async checkPFItemDuplicates(data: { pf_id: number; pf_itemcode: string; pf_itemname: string }): Promise<{ codeExists: boolean; nameExists: boolean; }> {
+    try {
+      console.log(`🔍 Storage: Checking duplicates for Platform: ${data.pf_id}, Code: '${data.pf_itemcode}', Name: '${data.pf_itemname}'`);
+      
+      let codeExists = false;
+      let nameExists = false;
+      
+      // Check for duplicate pf_itemcode
+      if (data.pf_itemcode && data.pf_itemcode.trim()) {
+        const existingByCode = await db
+          .select()
+          .from(pfItemMst)
+          .where(and(
+            eq(pfItemMst.pf_id, data.pf_id),
+            eq(pfItemMst.pf_itemcode, data.pf_itemcode.trim())
+          ));
+        
+        codeExists = existingByCode.length > 0;
+        if (codeExists) {
+          console.log(`⚠️ Storage: Item code '${data.pf_itemcode}' already exists for platform ${data.pf_id}`);
+        }
+      }
+      
+      // Check for duplicate pf_itemname
+      if (data.pf_itemname && data.pf_itemname.trim()) {
+        const existingByName = await db
+          .select()
+          .from(pfItemMst)
+          .where(and(
+            eq(pfItemMst.pf_id, data.pf_id),
+            eq(pfItemMst.pf_itemname, data.pf_itemname.trim())
+          ));
+        
+        nameExists = existingByName.length > 0;
+        if (nameExists) {
+          console.log(`⚠️ Storage: Item name '${data.pf_itemname}' already exists for platform ${data.pf_id}`);
+        }
+      }
+      
+      console.log(`✅ Storage: Duplicate check complete - Code exists: ${codeExists}, Name exists: ${nameExists}`);
+      
+      return { codeExists, nameExists };
+    } catch (error) {
+      console.error("Error checking PF item duplicates:", error);
+      throw new Error("Failed to check for duplicates");
+    }
+  }
+
+  async searchPFItems(searchTerm: string): Promise<any[]> {
+    try {
+      console.log('🔍 SearchPFItems - Starting search for:', searchTerm);
+      
+      // Query pf_item_mst and join with items table to get tax rate
+      const result = await db
+        .select({
+          id: pfItemMst.id,
+          pf_itemcode: pfItemMst.pf_itemcode,
+          pf_itemname: pfItemMst.pf_itemname,
+          pf_id: pfItemMst.pf_id,
+          sap_id: pfItemMst.sap_id,
+          actual_itemcode: items.itemcode, // Get actual item code from items table
+          taxrate: items.taxrate // Get tax rate from items table (field name is 'taxrate' mapped to column 'u_tax_rate')
+        })
+        .from(pfItemMst)
+        .leftJoin(items, eq(pfItemMst.sap_id, items.itemcode))
+        .where(
+          or(
+            ilike(pfItemMst.pf_itemname, `%${searchTerm}%`),
+            ilike(pfItemMst.pf_itemcode, `%${searchTerm}%`)
+          )
+        )
+        .limit(50); // Limit results for performance
+      
+      console.log('🔍 SearchPFItems - Found', result.length, 'items');
+      if (result.length > 0) {
+        console.log('🔍 Sample item data:', JSON.stringify(result[0], null, 2));
+      }
+      
+      return result;
+    } catch (error) {
+      console.error("Error searching PF items:", error);
+      // Return empty array instead of throwing error to prevent UI crashes
+      return [];
+    }
+  }
+
+  async getUniqueDispatchLocations(): Promise<string[]> {
+    try {
+      console.log('🔍 Getting unique dispatch locations from po_master');
+      
+      // Get unique dispatch_from values from poMaster table where dispatch_from is not null/empty
+      const result = await db
+        .selectDistinct({ dispatch_from: poMaster.dispatch_from })
+        .from(poMaster)
+        .where(and(
+          sql`${poMaster.dispatch_from} IS NOT NULL`,
+          sql`trim(${poMaster.dispatch_from}) != ''`
+        ))
+        .orderBy(poMaster.dispatch_from);
+      
+      const locations = result
+        .map(row => row.dispatch_from)
+        .filter((location): location is string => location !== null && location.trim() !== '');
+      
+      console.log('🔍 Found unique dispatch locations:', locations);
+      return locations;
+    } catch (error) {
+      console.error("Error getting unique dispatch locations:", error);
+      return [];
+    }
+  }
+
   async syncItemsFromHana(hanaItems: any[]): Promise<number> {
     let syncedCount = 0;
     
@@ -1527,7 +2279,7 @@ export class DatabaseStorage implements IStorage {
           subgroup: hanaItem.U_Sub_Group || hanaItem.SubGroup || null,
           brand: hanaItem.U_Brand || hanaItem.Brand || null,
           uom: hanaItem.InvntryUom || hanaItem.UOM || hanaItem.UnitOfMeasure || null,
-          taxrate: hanaItem.U_Tax_Rate ? parseFloat(hanaItem.U_Tax_Rate) : (hanaItem.TaxRate ? parseFloat(hanaItem.TaxRate.toString()) : null),
+          taxrate: hanaItem.U_Tax_Rate ? hanaItem.U_Tax_Rate.toString() : (hanaItem.TaxRate ? hanaItem.TaxRate.toString() : null),
           unitsize: hanaItem.U_IsLitre || hanaItem.UnitSize?.toString() || null,
           is_litre: hanaItem.U_IsLitre === 'Y' || hanaItem.IsLitre === true || false,
           case_pack: hanaItem.SalPackUn || hanaItem.CasePack || null,
@@ -1842,33 +2594,155 @@ export class DatabaseStorage implements IStorage {
 
   // Distributor Order Items methods
   async getAllDistributorOrderItems(): Promise<(DistributorOrderItems & { po_number: string; distributor_name: string; order_date: Date; expiry_date: Date | null; distributor: DistributorMst })[]> {
-    const items = await db.select({
-      id: distributorOrderItems.id,
-      po_id: distributorOrderItems.po_id,
-      item_name: distributorOrderItems.item_name,
-      quantity: distributorOrderItems.quantity,
-      sap_code: distributorOrderItems.sap_code,
-      category: distributorOrderItems.category,
-      subcategory: distributorOrderItems.subcategory,
-      basic_rate: distributorOrderItems.basic_rate,
-      gst_rate: distributorOrderItems.gst_rate,
-      landing_rate: distributorOrderItems.landing_rate,
-      total_litres: distributorOrderItems.total_litres,
-      status: distributorOrderItems.status,
-      hsn_code: distributorOrderItems.hsn_code,
-      po_number: distributorPo.po_number,
-      distributor_name: distributorMst.distributor_name,
-      order_date: distributorPo.order_date,
-      expiry_date: distributorPo.expiry_date,
-      distributor: distributorMst
-    })
-    .from(distributorOrderItems)
-    .leftJoin(distributorPo, eq(distributorOrderItems.po_id, distributorPo.id))
-    .leftJoin(distributorMst, eq(distributorPo.distributor_id, distributorMst.id))
-    .orderBy(desc(distributorPo.created_at));
+    console.log('📋 Fetching distributor order items from po_master and po_lines (simplified version)...');
     
-    // Type assertion to fix the return type mismatch
-    return items as (DistributorOrderItems & { po_number: string; distributor_name: string; order_date: Date; expiry_date: Date | null; distributor: DistributorMst })[];
+    try {
+      // First, try to get just the po_lines data with minimal joins
+      console.log('🔍 Testing po_lines table access...');
+      const lines = await db
+        .select({
+          id: poLines.id,
+          po_id: poLines.po_id,
+          quantity: poLines.quantity,
+          basic_amount: poLines.basic_amount,
+          tax: poLines.tax,
+          landing_amount: poLines.landing_amount,
+          total_amount: poLines.total_amount,
+          status: poLines.status,
+          platform_product_code_id: poLines.platform_product_code_id
+        })
+        .from(poLines)
+        .orderBy(desc(poLines.id))
+        .limit(50); // Very small limit first
+        
+      console.log(`📊 Found ${lines.length} po_lines records`);
+      
+      if (lines.length === 0) {
+        console.log('❌ No po_lines found, returning empty array');
+        return [];
+      }
+
+      // Get corresponding PO data for just these lines
+      const poIds = Array.from(new Set(lines.map(line => line.po_id)));
+      console.log(`🔍 Getting PO data for ${poIds.length} unique PO IDs...`);
+      
+      const pos = await db
+        .select()
+        .from(poMaster)
+        .where(inArray(poMaster.id, poIds));
+        
+      console.log(`📊 Found ${pos.length} po_master records`);
+      
+      // Get distributor data
+      const distributorIds = Array.from(new Set(pos.map(po => po.distributor_id).filter(id => id != null)));
+      console.log(`🔍 Getting distributor data for ${distributorIds.length} distributor IDs...`);
+      
+      const distributorsData = distributorIds.length > 0 ? await db
+        .select()
+        .from(distributorMst)
+        .where(inArray(distributorMst.id, distributorIds)) : [];
+      
+      console.log(`📊 Found ${distributorsData.length} distributor records`);
+
+      // Create maps for quick lookup
+      const poMap = new Map();
+      pos.forEach(po => poMap.set(po.id, po));
+      
+      const distributorMap = new Map();
+      distributorsData.forEach(dist => distributorMap.set(dist.id, dist));
+
+      // Transform data to match expected distributor order items format
+      const transformedItems = lines
+        .filter(line => line.po_id && poMap.has(line.po_id))
+        .map(line => {
+          const po = poMap.get(line.po_id);
+          const distributor = po.distributor_id ? distributorMap.get(po.distributor_id) : null;
+          const distributorName = distributor ? distributor.distributor_name : 'Unknown';
+          
+          // Map status properly - status is stored as integer in po_lines table
+          // Default status should be 'Open' for new POs
+          let statusText = 'Open';  // Changed default from 'Pending' to 'Open'
+          if (line.status !== null && line.status !== undefined) {
+            // Status is stored as integer in po_lines table
+            const statusNum = typeof line.status === 'string' ? parseInt(line.status) : line.status;
+            switch(statusNum) {
+              case 0: statusText = 'Open'; break;
+              case 1: statusText = 'Confirmed'; break;
+              case 2: statusText = 'Shipped'; break;
+              case 3: statusText = 'Delivered'; break;
+              case 4: statusText = 'Cancelled'; break;
+              default: statusText = 'Open';  // Default to 'Open' instead of 'Pending'
+            }
+          }
+          
+          return {
+            id: line.id,
+            po_id: line.po_id,
+            item_name: `Product ID: ${line.platform_product_code_id}`,
+            quantity: parseFloat(line.quantity || '0'),
+            sap_code: null,
+            category: null,
+            subcategory: null,
+            basic_rate: String(line.basic_amount || '0'),
+            gst_rate: String(line.tax || '0'),
+            landing_rate: String(line.landing_amount || line.total_amount || '0'),
+            total_litres: null,
+            status: statusText,
+            hsn_code: null,
+            po_number: po.vendor_po_number || 'UNKNOWN',
+            distributor_name: distributorName,
+            order_date: po.po_date ? new Date(po.po_date) : new Date(),
+            expiry_date: po.expiry_date ? new Date(po.expiry_date) : null,
+            distributor: {
+              id: distributor?.id || 0,
+              distributor_name: distributorName,
+              distributor_code: null,
+              contact_person: null,
+              phone: null,
+              email: null,
+              address: po.region || 'Unknown',
+              city: po.area || null,
+              state: null,
+              region: po.region || 'Unknown',
+              status: 'Active',
+              created_at: new Date(),
+              updated_at: new Date()
+            } as DistributorMst
+          };
+        });
+
+      console.log(`✅ Transformed ${transformedItems.length} distributor order items from po_master/po_lines`);
+      
+      return transformedItems as (DistributorOrderItems & { po_number: string; distributor_name: string; order_date: Date; expiry_date: Date | null; distributor: DistributorMst })[];
+      
+    } catch (error) {
+      console.error('❌ Error in getAllDistributorOrderItems:', error);
+      // Return empty array instead of throwing to prevent API crashes
+      return [];
+    }
+  }
+
+  async updateDistributorOrderItemStatus(itemId: number, status: string): Promise<void> {
+    console.log(`🔄 Updating distributor order item ${itemId} status to: ${status}`);
+    
+    // Convert status text to integer for po_lines table
+    let statusNum = 0;
+    switch(status.toUpperCase()) {
+      case 'OPEN': statusNum = 0; break;
+      case 'PENDING': statusNum = 0; break;  // Map PENDING to 0 (Open)
+      case 'CONFIRMED': statusNum = 1; break;
+      case 'SHIPPED': statusNum = 2; break;
+      case 'DELIVERED': statusNum = 3; break;
+      case 'CANCELLED': statusNum = 4; break;
+      default: statusNum = 0;
+    }
+    
+    // Update the po_lines table instead of distributor_order_items
+    const result = await db
+      .update(poLines)
+      .set({ status: statusNum })
+      .where(eq(poLines.id, itemId));
+    console.log(`✅ Updated po_lines item ${itemId} status to ${statusNum} (${status}):`, result);
   }
 
   // BigBasket PO methods
@@ -1906,11 +2780,18 @@ export class DatabaseStorage implements IStorage {
 
   async createBigbasketPo(po: InsertBigbasketPoHeader, lines: InsertBigbasketPoLines[]): Promise<BigbasketPoHeader> {
     return await db.transaction(async (tx) => {
+      // Insert into platform-specific tables
       const [createdPo] = await tx.insert(bigbasketPoHeader).values(po).returning();
       
       if (lines.length > 0) {
         const linesWithPoId = lines.map(line => ({ ...line, po_id: createdPo.id }));
         await tx.insert(bigbasketPoLines).values(linesWithPoId);
+        
+        // Also insert into consolidated po_master and po_lines tables
+        await this.insertIntoPoMasterAndLines(tx, 'BigBasket', createdPo, linesWithPoId);
+      } else {
+        // Insert header only into po_master
+        await this.insertIntoPoMasterAndLines(tx, 'BigBasket', createdPo, []);
       }
       
       return createdPo;
@@ -1941,7 +2822,13 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteBigbasketPo(id: number): Promise<void> {
-    await db.delete(bigbasketPoHeader).where(eq(bigbasketPoHeader.id, id));
+    await db.transaction(async (tx) => {
+      // First delete all related po lines
+      await tx.delete(bigbasketPoLines).where(eq(bigbasketPoLines.po_id, id));
+      
+      // Then delete the PO header
+      await tx.delete(bigbasketPoHeader).where(eq(bigbasketPoHeader.id, id));
+    });
   }
 
   // Zomato PO methods
@@ -1982,6 +2869,7 @@ export class DatabaseStorage implements IStorage {
 
   async createZomatoPo(header: InsertZomatoPoHeader, items: InsertZomatoPoItems[]): Promise<ZomatoPoHeader> {
     return await db.transaction(async (tx) => {
+      // Insert into platform-specific tables
       const [createdPo] = await tx.insert(zomatoPoHeader).values(header).returning();
       
       if (items.length > 0) {
@@ -1990,6 +2878,12 @@ export class DatabaseStorage implements IStorage {
           po_header_id: createdPo.id
         }));
         await tx.insert(zomatoPoItems).values(itemsWithPoId);
+        
+        // Also insert into consolidated po_master and po_lines tables
+        await this.insertIntoPoMasterAndLines(tx, 'Zomato', createdPo, itemsWithPoId);
+      } else {
+        // Insert header only into po_master
+        await this.insertIntoPoMasterAndLines(tx, 'Zomato', createdPo, []);
       }
       
       return createdPo;
@@ -2063,6 +2957,7 @@ export class DatabaseStorage implements IStorage {
 
   async createDealsharePo(header: InsertDealsharePoHeader, items: InsertDealsharePoItems[]): Promise<DealsharePoHeader> {
     return await db.transaction(async (tx) => {
+      // Insert into platform-specific tables
       const [createdPo] = await tx.insert(dealsharePoHeader).values(header).returning();
       
       if (items.length > 0) {
@@ -2071,6 +2966,12 @@ export class DatabaseStorage implements IStorage {
           po_header_id: createdPo.id
         }));
         await tx.insert(dealsharePoItems).values(itemsWithPoId);
+        
+        // Also insert into consolidated po_master and po_lines tables
+        await this.insertIntoPoMasterAndLines(tx, 'Dealshare', createdPo, itemsWithPoId);
+      } else {
+        // Insert header only into po_master
+        await this.insertIntoPoMasterAndLines(tx, 'Dealshare', createdPo, []);
       }
       
       return createdPo;
@@ -2108,16 +3009,13 @@ export class DatabaseStorage implements IStorage {
 
   // Secondary Sales methods
   async getAllSecondarySales(platform?: string, businessUnit?: string): Promise<(SecondarySalesHeader & { salesItems: SecondarySalesItems[] })[]> {
-    let query = db.select().from(secondarySalesHeader);
+    const conditions = [];
+    if (platform) conditions.push(eq(secondarySalesHeader.platform, platform));
+    if (businessUnit) conditions.push(eq(secondarySalesHeader.business_unit, businessUnit));
     
-    if (platform || businessUnit) {
-      const conditions = [];
-      if (platform) conditions.push(eq(secondarySalesHeader.platform, platform));
-      if (businessUnit) conditions.push(eq(secondarySalesHeader.business_unit, businessUnit));
-      query = query.where(and(...conditions));
-    }
-    
-    const sales = await query.orderBy(desc(secondarySalesHeader.created_at));
+    const sales = conditions.length > 0 
+      ? await db.select().from(secondarySalesHeader).where(and(...conditions)).orderBy(desc(secondarySalesHeader.created_at))
+      : await db.select().from(secondarySalesHeader).orderBy(desc(secondarySalesHeader.created_at));
     
     const result = [];
     for (const sale of sales) {
@@ -2359,7 +3257,7 @@ export class DatabaseStorage implements IStorage {
     return await db.insert(invBlinkitJmDaily).values(items).returning();
   }
 
-  async createInventoryBlinkitJmRange(items: InsertBlinkitInventoryItem[]): Promise<BlinkitInventoryItem[]> {
+  async createInventoryBlinkitJmRange(items: any[]): Promise<any[]> {
     return await db.insert(invBlinkitJmRange).values(items).returning();
   }
 
@@ -2432,6 +3330,49 @@ export class DatabaseStorage implements IStorage {
     await db.delete(invJioMartJmRange).where(eq(invJioMartJmRange.id, id));
   }
 
+  // Logging methods implementation
+  async createLog(logData: InsertLogMaster): Promise<LogMaster> {
+    const [newLog] = await db.insert(logMaster).values(logData).returning();
+    return newLog;
+  }
+
+  async logEdit(params: {
+    username: string;
+    action: string;
+    tableName: string;
+    recordId: number;
+    fieldName?: string;
+    oldValue?: string;
+    newValue?: string;
+    ipAddress?: string;
+    userAgent?: string;
+    sessionId?: string;
+  }): Promise<void> {
+    console.log(`📝 Logging ${params.action} on ${params.tableName} record ${params.recordId} by ${params.username}`);
+    
+    const logData: InsertLogMaster = {
+      username: params.username,
+      action: params.action,
+      table_name: params.tableName,
+      record_id: params.recordId,
+      field_name: params.fieldName || null,
+      old_value: params.oldValue || null,
+      new_value: params.newValue || null,
+      ip_address: params.ipAddress || null,
+      user_agent: params.userAgent || null,
+      session_id: params.sessionId || null,
+      timestamp: new Date()
+    };
+
+    try {
+      await this.createLog(logData);
+      console.log(`✅ Log entry created successfully for ${params.action} on ${params.tableName}`);
+    } catch (error) {
+      console.error(`❌ Failed to create log entry:`, error);
+      // Don't throw error - logging failure shouldn't break the main operation
+    }
+  }
+
   // Helper method to map item status string to status ID
   private mapItemStatusToId(status?: string): number {
     if (!status) return 1; // Default to PENDING
@@ -2440,7 +3381,12 @@ export class DatabaseStorage implements IStorage {
       'PENDING': 1,
       'INVOICED': 2,
       'DISPATCHED': 3,
-      'DELIVERED': 4
+      'DELIVERED': 4,
+      'STOCK_ISSUE': 5,
+      'PRICE_DIFF': 6,
+      'MOV_ISSUE': 7,
+      'CANCELLED': 8,
+      'EXPIRED': 9
     };
     
     return statusMap[status.toUpperCase()] || 1;
@@ -2658,7 +3604,7 @@ export class DatabaseStorage implements IStorage {
         series: "PO", // Default series
         company_id: 6, // Jivo Mart company ID  
         po_date: new Date(masterData.po_date),
-        status_id: 1, // Default status ID for "OPEN"
+        status_id: 1, // Default status ID for "OPEN" (1 = Open, 2 = Closed, etc.)
         region: masterData.region,
         area: masterData.area,
         state_id: masterData.state_id || null,
@@ -2750,6 +3696,10 @@ export class DatabaseStorage implements IStorage {
             }
           }
           
+          // Map status name to status ID using helper method
+          const statusId = this.mapItemStatusToId(line.status);
+          console.log(`🔍 Mapping status "${line.status}" to ID: ${statusId}`);
+
           mappedLines.push({
             po_id: createdMaster.id,
             platform_product_code_id: platformProductCodeId,
@@ -2767,7 +3717,7 @@ export class DatabaseStorage implements IStorage {
             invoice_amount: line.invoice_amount ? line.invoice_amount.toString() : null,
             invoice_qty: line.invoice_qty ? line.invoice_qty.toString() : null,
             remark: `${line.item_name} - Platform Code: ${line.platform_code} - SAP Code: ${line.sap_code} - Tax Rate: ${line.tax_percent || 0}%`,
-            status: 1, // Default status ID for pending
+            status: statusId, // Use mapped status ID
             delete: false,
             deleted: false
           });
@@ -2785,6 +3735,308 @@ export class DatabaseStorage implements IStorage {
       
       return createdMaster;
     });
+  }
+
+  // Attachment and Comment functions for all platforms
+  
+  async addAttachment(platform: string, poId: number, attachmentData: any) {
+    const tableMap: Record<string, any> = {
+      'zepto': zeptoAttachments,
+      'flipkart': flipkartAttachments,
+      'blinkit': blinkitAttachments,
+      'swiggy': swiggyAttachments,
+      'bigbasket': bigbasketAttachments,
+      'zomato': zomatoAttachments,
+      'dealshare': dealshareAttachments,
+      'citymall': citymallAttachments,
+      'platform': platformPoAttachments,
+      'pf': platformPoAttachments
+    };
+
+    const table = tableMap[platform.toLowerCase()];
+    if (!table) {
+      throw new Error(`Unsupported platform: ${platform}`);
+    }
+
+    const attachments = await db.insert(table).values({
+      poId,
+      ...attachmentData
+    }).returning() as any[];
+    
+    return attachments[0];
+  }
+
+  async getAttachments(platform: string, poId: number) {
+    const tableMap: Record<string, any> = {
+      'zepto': zeptoAttachments,
+      'flipkart': flipkartAttachments,
+      'blinkit': blinkitAttachments,
+      'swiggy': swiggyAttachments,
+      'bigbasket': bigbasketAttachments,
+      'zomato': zomatoAttachments,
+      'dealshare': dealshareAttachments,
+      'citymall': citymallAttachments,
+      'platform': platformPoAttachments,
+      'pf': platformPoAttachments
+    };
+
+    const table = tableMap[platform.toLowerCase()];
+    if (!table) {
+      throw new Error(`Unsupported platform: ${platform}`);
+    }
+
+    return await db.select().from(table).where(eq(table.poId, poId));
+  }
+
+  async deleteAttachment(platform: string, id: number) {
+    const tableMap: Record<string, any> = {
+      'zepto': zeptoAttachments,
+      'flipkart': flipkartAttachments,
+      'blinkit': blinkitAttachments,
+      'swiggy': swiggyAttachments,
+      'bigbasket': bigbasketAttachments,
+      'zomato': zomatoAttachments,
+      'dealshare': dealshareAttachments,
+      'citymall': citymallAttachments,
+      'platform': platformPoAttachments,
+      'pf': platformPoAttachments
+    };
+
+    const table = tableMap[platform.toLowerCase()];
+    if (!table) {
+      throw new Error(`Unsupported platform: ${platform}`);
+    }
+
+    // First get the attachment to delete the file
+    const [attachment] = await db.select().from(table).where(eq(table.id, id));
+    
+    if (attachment && attachment.filePath) {
+      // Delete the physical file
+      const fs = await import('fs').then(m => m.promises);
+      try {
+        await fs.unlink(attachment.filePath);
+      } catch (error) {
+        console.warn(`Could not delete file: ${attachment.filePath}`, error);
+      }
+    }
+
+    await db.delete(table).where(eq(table.id, id));
+  }
+
+  async addComment(platform: string, poId: number, commentData: any) {
+    const tableMap: Record<string, any> = {
+      'zepto': zeptoComments,
+      'flipkart': flipkartComments,
+      'blinkit': blinkitComments,
+      'swiggy': swiggyComments,
+      'bigbasket': bigbasketComments,
+      'zomato': zomatoComments,
+      'dealshare': dealshareComments,
+      'citymall': citymallComments,
+      'platform': platformPoComments,
+      'pf': platformPoComments
+    };
+
+    const table = tableMap[platform.toLowerCase()];
+    if (!table) {
+      throw new Error(`Unsupported platform: ${platform}`);
+    }
+
+    const comments = await db.insert(table).values({
+      poId,
+      ...commentData
+    }).returning() as any[];
+    
+    return comments[0];
+  }
+
+  async getComments(platform: string, poId: number) {
+    const tableMap: Record<string, any> = {
+      'zepto': zeptoComments,
+      'flipkart': flipkartComments,
+      'blinkit': blinkitComments,
+      'swiggy': swiggyComments,
+      'bigbasket': bigbasketComments,
+      'zomato': zomatoComments,
+      'dealshare': dealshareComments,
+      'citymall': citymallComments,
+      'platform': platformPoComments,
+      'pf': platformPoComments
+    };
+
+    const table = tableMap[platform.toLowerCase()];
+    if (!table) {
+      throw new Error(`Unsupported platform: ${platform}`);
+    }
+
+    return await db.select().from(table).where(eq(table.poId, poId)).orderBy(table.createdAt);
+  }
+
+  async deleteComment(platform: string, id: number) {
+    const tableMap: Record<string, any> = {
+      'zepto': zeptoComments,
+      'flipkart': flipkartComments,
+      'blinkit': blinkitComments,
+      'swiggy': swiggyComments,
+      'bigbasket': bigbasketComments,
+      'zomato': zomatoComments,
+      'dealshare': dealshareComments,
+      'citymall': citymallComments,
+      'platform': platformPoComments,
+      'pf': platformPoComments
+    };
+
+    const table = tableMap[platform.toLowerCase()];
+    if (!table) {
+      throw new Error(`Unsupported platform: ${platform}`);
+    }
+
+    await db.delete(table).where(eq(table.id, id));
+  }
+
+  // RBAC Methods Implementation
+  
+  // Role management
+  async getAllRoles(): Promise<Role[]> {
+    return await db.select().from(roles).orderBy(roles.role_name);
+  }
+
+  async getRoleById(id: number): Promise<Role | undefined> {
+    const result = await db.select().from(roles).where(eq(roles.id, id));
+    return result[0];
+  }
+
+  async createRole(role: InsertRole): Promise<Role> {
+    const result = await db.insert(roles).values(role).returning();
+    return result[0];
+  }
+
+  async updateRole(id: number, role: Partial<InsertRole>): Promise<Role> {
+    const result = await db.update(roles)
+      .set({ ...role, updated_at: new Date() })
+      .where(eq(roles.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async deleteRole(id: number): Promise<void> {
+    await db.delete(roles).where(eq(roles.id, id));
+  }
+
+  // Permission management
+  async getAllPermissions(): Promise<Permission[]> {
+    return await db.select().from(permissions).orderBy(permissions.category, permissions.permission_name);
+  }
+
+  async getPermissionsByCategory(category: string): Promise<Permission[]> {
+    return await db.select().from(permissions).where(eq(permissions.category, category));
+  }
+
+  async createPermission(permission: InsertPermission): Promise<Permission> {
+    const result = await db.insert(permissions).values(permission).returning();
+    return result[0];
+  }
+
+  async updatePermission(id: number, permission: Partial<InsertPermission>): Promise<Permission> {
+    const result = await db.update(permissions)
+      .set(permission)
+      .where(eq(permissions.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async deletePermission(id: number): Promise<void> {
+    await db.delete(permissions).where(eq(permissions.id, id));
+  }
+
+  // Role-Permission management
+  async getRolePermissions(roleId: number): Promise<RolePermission[]> {
+    return await db.select()
+      .from(rolePermissions)
+      .where(eq(rolePermissions.role_id, roleId));
+  }
+
+  async assignPermissionToRole(roleId: number, permissionId: number): Promise<RolePermission> {
+    const result = await db.insert(rolePermissions)
+      .values({ role_id: roleId, permission_id: permissionId })
+      .returning();
+    return result[0];
+  }
+
+  async removePermissionFromRole(roleId: number, permissionId: number): Promise<void> {
+    await db.delete(rolePermissions)
+      .where(and(
+        eq(rolePermissions.role_id, roleId),
+        eq(rolePermissions.permission_id, permissionId)
+      ));
+  }
+
+  async getUserPermissions(userId: number): Promise<Permission[]> {
+    const user = await db.select().from(users).where(eq(users.id, userId));
+    if (!user[0] || !user[0].role_id) {
+      return [];
+    }
+
+    return await db.select()
+      .from(permissions)
+      .innerJoin(rolePermissions, eq(permissions.id, rolePermissions.permission_id))
+      .where(eq(rolePermissions.role_id, user[0].role_id))
+      .then(results => results.map(result => result.permissions));
+  }
+
+  // User management with roles
+  async getAllUsers(): Promise<User[]> {
+    return await db.select().from(users).orderBy(users.username);
+  }
+
+  async assignRoleToUser(userId: number, roleId: number): Promise<User> {
+    const result = await db.update(users)
+      .set({ role_id: roleId, updated_at: new Date() })
+      .where(eq(users.id, userId))
+      .returning();
+    return result[0];
+  }
+
+  async getUserWithRole(userId: number): Promise<(User & { role?: Role }) | undefined> {
+    const result = await db.select()
+      .from(users)
+      .leftJoin(roles, eq(users.role_id, roles.id))
+      .where(eq(users.id, userId));
+    
+    if (!result[0]) return undefined;
+    
+    return {
+      ...result[0].users,
+      role: result[0].roles || undefined
+    };
+  }
+
+  async getUsersByRole(roleId: number): Promise<User[]> {
+    return await db.select().from(users).where(eq(users.role_id, roleId));
+  }
+
+  // Session management
+  async createUserSession(session: InsertUserSession): Promise<UserSession> {
+    const result = await db.insert(userSessions).values(session).returning();
+    return result[0];
+  }
+
+  async getUserSession(sessionToken: string): Promise<UserSession | undefined> {
+    const result = await db.select()
+      .from(userSessions)
+      .where(and(
+        eq(userSessions.session_token, sessionToken),
+        gte(userSessions.expires_at, new Date())
+      ));
+    return result[0];
+  }
+
+  async deleteUserSession(sessionToken: string): Promise<void> {
+    await db.delete(userSessions).where(eq(userSessions.session_token, sessionToken));
+  }
+
+  async cleanupExpiredSessions(): Promise<void> {
+    await db.delete(userSessions).where(lte(userSessions.expires_at, new Date()));
   }
 
 }

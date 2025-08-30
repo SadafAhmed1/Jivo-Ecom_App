@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { format, isAfter, isBefore, isEqual, parseISO } from "date-fns";
-import { Search, Eye, Edit, Trash2, Filter, Download, RefreshCw, X, Calendar } from "lucide-react";
+import { Search, Eye, Edit, Trash2, Filter, Download, RefreshCw, X, Calendar, AlertTriangle } from "lucide-react";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,6 +10,17 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
+import { 
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { apiRequest } from "@/lib/queryClient";
 import * as XLSX from 'xlsx';
 import type { PfMst, PfOrderItems } from "@shared/schema";
@@ -39,17 +50,48 @@ export function POListView() {
   const [orderDateTo, setOrderDateTo] = useState("");
   const [expiryDateFrom, setExpiryDateFrom] = useState("");
   const [expiryDateTo, setExpiryDateTo] = useState("");
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [poToDelete, setPOToDelete] = useState<POWithDetails | null>(null);
   
   const { data: pos = [], isLoading, refetch } = useQuery<POWithDetails[]>({
-    queryKey: ["/api/pos"]
+    queryKey: ["/api/pos"],
+    staleTime: 0, // Data is immediately stale
+    gcTime: 0, // ✅ CORRECT - Garbage collection time
+    refetchOnWindowFocus: true,
+    refetchOnMount: true
+
   });
 
   // Debug logging for received data
   useEffect(() => {
+    console.log("🔍 DEBUG: Query data changed - received", pos?.length || 0, "POs");
     if (pos && pos.length > 0) {
-      console.log("🔍 DEBUG: Query data updated, received", pos.length, "POs");
       console.log("🔍 DEBUG: All PO numbers:", pos.map(p => p.po_number));
-      console.log("🔍 DEBUG: First few PO structures:", pos.slice(0, 3));
+      console.log("🔍 DEBUG: Platforms:", pos.map(p => p.platform?.pf_name));
+      console.log("🔍 DEBUG: Recent POs (top 3):", pos.slice(0, 3).map(p => ({
+        po_number: p.po_number,
+        platform: p.platform?.pf_name,
+        created: p.order_date,
+        status: p.status
+      })));
+      
+      // Look specifically for Zomato POs
+      const zomatoPOs = pos.filter(p => {
+        try {
+          const platformName = p.platform?.pf_name;
+          const poNumber = p.po_number;
+          return (
+            (platformName && typeof platformName === 'string' && platformName.toLowerCase().includes('zomato')) || 
+            (poNumber && poNumber.includes('ZHPGJ26'))
+          );
+        } catch (error) {
+          console.error('Error filtering Zomato POs:', error, { po: p });
+          return false;
+        }
+      });
+      console.log("🖕🏼 DEBUG: Found", zomatoPOs.length, "Zomato POs");
+    } else {
+      console.log("❌ DEBUG: No POs received from query");
     }
   }, [pos]);
 
@@ -71,20 +113,76 @@ export function POListView() {
   }, [refetch]);
 
   const deletePOMutation = useMutation({
-    mutationFn: (id: number) => apiRequest('DELETE', `/api/pos/${id}`),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/pos"] });
+    mutationFn: async (id: number) => {
+      console.log(`🔄 Frontend: Sending DELETE request for PO ID: ${id}`);
+      const response = await apiRequest('DELETE', `/api/pos/${id}`);
+      console.log(`✅ Frontend: DELETE request successful for PO ID: ${id}`);
+      return response;
+    },
+    onSuccess: async (_, deletedId) => {
+      console.log(`✅ Frontend: PO deletion confirmed successful for ID: ${deletedId}`);
+      
+      // Remove from cache only after confirmed deletion
+      queryClient.setQueryData(["/api/pos"], (oldData: POWithDetails[] | undefined) => {
+        if (!oldData) return [];
+        const filteredData = oldData.filter(p => p.id !== deletedId);
+        console.log(`🔄 Frontend: Removed PO ${deletedId} from cache, ${oldData.length} -> ${filteredData.length} items`);
+        return filteredData;
+      });
+      
+      // Invalidate queries to ensure fresh data
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["/api/pos"] }),
+        queryClient.invalidateQueries({ queryKey: ["/api/order-items"] }),
+      ]);
+      
+      console.log("🔄 Frontend: Cache invalidated after successful deletion");
+      
+      // Force a manual refetch as backup to ensure consistency
+      setTimeout(() => {
+        console.log("🔄 Frontend: Backup refetch initiated");
+        refetch();
+      }, 1000);
+      
       toast({
-        title: "Success",
-        description: "Purchase order deleted successfully"
+        title: "Purchase Order Deleted",
+        description: "The purchase order has been successfully deleted from the database.",
+        variant: "default"
       });
     },
-    onError: () => {
-      toast({
-        title: "Error",
-        description: "Failed to delete purchase order",
-        variant: "destructive"
-      });
+    onError: (error: any, failedId) => {
+      console.error(`❌ Frontend: PO deletion failed for ID ${failedId}:`, error);
+      
+      // Check if the error is "PO not found" - this means it was already deleted
+      const errorMessage = error?.message || 'Unknown error';
+      const isNotFoundError = errorMessage.includes('not found') || errorMessage.includes('404');
+      
+      if (isNotFoundError) {
+        console.log(`ℹ️ Frontend: PO ${failedId} not found in database - likely already deleted, removing from cache`);
+        
+        // Remove from cache since it doesn't exist in database
+        queryClient.setQueryData(["/api/pos"], (oldData: POWithDetails[] | undefined) => {
+          if (!oldData) return [];
+          const filteredData = oldData.filter(p => p.id !== failedId);
+          console.log(`🔄 Frontend: Removed non-existent PO ${failedId} from cache, ${oldData.length} -> ${filteredData.length} items`);
+          return filteredData;
+        });
+        
+        // Refresh the data to ensure consistency
+        refetch();
+        
+        toast({
+          title: "PO Already Deleted",
+          description: "This purchase order was already deleted. The list has been refreshed.",
+          variant: "default"
+        });
+      } else {
+        toast({
+          title: "Deletion Failed",
+          description: `Failed to delete purchase order: ${errorMessage}`,
+          variant: "destructive"
+        });
+      }
     }
   });
 
@@ -92,20 +190,49 @@ export function POListView() {
     setLocation(`/po-details/${po.id}`);
   };
 
-  const handleEdit = (po: POWithDetails) => {
+  const handleEdit = async (po: POWithDetails) => {
+    // Invalidate PO-specific queries to ensure fresh data
+    await queryClient.invalidateQueries({ 
+      queryKey: [`/api/pos/${po.id}`],
+      type: 'all'
+    });
+    
     // All POs from the unified /api/pos endpoint use the modern edit route
     setLocation(`/po-edit/${po.id}`);
   };
 
-  const handleDelete = (po: POWithDetails) => {
-    if (confirm(`Are you sure you want to delete PO ${po.po_number}?`)) {
-      deletePOMutation.mutate(po.id);
-    }
+  const handleDeleteClick = (po: POWithDetails) => {
+    setPOToDelete(po);
+    setDeleteDialogOpen(true);
   };
 
-  const handleRefresh = () => {
-    console.log("🔄 Manual refresh triggered, refetching POs...");
+  const handleConfirmDelete = () => {
+    if (!poToDelete) return;
+    
+    console.log(`🗑️ Frontend: Starting deletion for PO ${poToDelete.po_number} (ID: ${poToDelete.id})`);
+    
+    deletePOMutation.mutate(poToDelete.id);
+    setDeleteDialogOpen(false);
+    setPOToDelete(null);
+  };
+
+  const handleCancelDelete = () => {
+    setDeleteDialogOpen(false);
+    setPOToDelete(null);
+  };
+
+  const handleRefresh = async () => {
+    console.log("🔄 Manual refresh triggered, invalidating cache and refetching POs...");
+    
+    // Force invalidate the cache and refetch
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: ["/api/pos"] }),
+      queryClient.refetchQueries({ queryKey: ["/api/pos"] })
+    ]);
+    
+    // Also call the refetch function
     refetch();
+    
     toast({
       title: "Refreshed",
       description: "Purchase orders list has been refreshed"
@@ -207,13 +334,40 @@ export function POListView() {
       return false;
     }
     
-    const matchesSearch = searchTerm === "" || 
-      (po.po_number || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (po.platform?.pf_name || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (po.status || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
-      `${po.city || ""}, ${po.state || ""}`.toLowerCase().includes(searchTerm.toLowerCase());
+    const searchTermLower = searchTerm && typeof searchTerm === 'string' ? searchTerm.toLowerCase() : '';
+    let matchesSearch = searchTerm === "" || !searchTermLower;
     
-    const matchesStatus = statusFilter === "all" || (po.status || "").toLowerCase() === statusFilter.toLowerCase();
+    if (!matchesSearch && searchTermLower) {
+      try {
+        const poNumber = po.po_number || "";
+        const platformName = po.platform?.pf_name || "";
+        const status = po.status || "";
+        const location = `${po.city || ""}, ${po.state || ""}`;
+        
+        matchesSearch = (
+          (typeof poNumber === 'string' && poNumber.toLowerCase().includes(searchTermLower)) ||
+          (typeof platformName === 'string' && platformName.toLowerCase().includes(searchTermLower)) ||
+          (typeof status === 'string' && status.toLowerCase().includes(searchTermLower)) ||
+          (typeof location === 'string' && location.toLowerCase().includes(searchTermLower))
+        );
+      } catch (error) {
+        console.error('Error in search filter:', error, { po, searchTerm });
+        matchesSearch = false;
+      }
+    }
+    
+    const statusFilterLower = statusFilter && typeof statusFilter === 'string' ? statusFilter.toLowerCase() : '';
+    let matchesStatus = statusFilter === "all";
+    
+    if (!matchesStatus && statusFilterLower) {
+      try {
+        const status = po.status || "";
+        matchesStatus = typeof status === 'string' && status.toLowerCase() === statusFilterLower;
+      } catch (error) {
+        console.error('Error in status filter:', error, { po, statusFilter });
+        matchesStatus = false;
+      }
+    }
     const matchesPlatform = platformFilter === "all" || (po.platform?.id || "").toString() === platformFilter;
     
     // Date filters with safety checks
@@ -284,13 +438,20 @@ export function POListView() {
   }, [pos.length, filteredPOs.length, searchTerm, statusFilter, platformFilter, orderDateFrom, orderDateTo, expiryDateFrom, expiryDateTo]);
 
   const getStatusBadgeVariant = (status: string) => {
-    switch (status.toLowerCase()) {
-      case 'open': return 'default';
-      case 'closed': return 'secondary';
-      case 'cancelled': return 'destructive';
-      case 'expired': return 'destructive';
-      case 'duplicate': return 'outline';
-      default: return 'default';
+    if (!status || typeof status !== 'string') return 'default';
+    
+    try {
+      switch (status.toLowerCase()) {
+        case 'open': return 'default';
+        case 'closed': return 'secondary';
+        case 'cancelled': return 'destructive';
+        case 'expired': return 'destructive';
+        case 'duplicate': return 'outline';
+        default: return 'default';
+      }
+    } catch (error) {
+      console.error('Error in getStatusBadgeVariant:', error, { status });
+      return 'default';
     }
   };
 
@@ -610,7 +771,7 @@ export function POListView() {
                       <Button 
                         variant="outline" 
                         size="sm" 
-                        onClick={() => handleDelete(po)}
+                        onClick={() => handleDeleteClick(po)}
                         disabled={deletePOMutation.isPending}
                         className="text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200"
                       >
@@ -672,6 +833,35 @@ export function POListView() {
           })}
         </div>
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <div className="flex items-center space-x-2">
+              <AlertTriangle className="h-5 w-5 text-red-500" />
+              <AlertDialogTitle>Confirm Deletion</AlertDialogTitle>
+            </div>
+            <AlertDialogDescription>
+              Are you sure you want to delete purchase order <strong>{poToDelete?.po_number}</strong>?
+              <br />
+              <br />
+              This action cannot be undone. This will permanently delete the purchase order and all associated order items.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={handleCancelDelete}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmDelete}
+              className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
+            >
+              {deletePOMutation.isPending ? "Deleting..." : "Delete PO"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

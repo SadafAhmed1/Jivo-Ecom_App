@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useParams, useLocation } from "wouter";
 import { format } from "date-fns";
 import { ArrowLeft, Edit, Trash2, Download, Mail, Phone, Calendar, MapPin, Package, DollarSign, Clock, Building } from "lucide-react";
@@ -19,6 +19,7 @@ export default function PODetails() {
   const params = useParams();
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const poId = params.id;
 
   const { data: po, isLoading, error } = useQuery<POWithDetails>({
@@ -35,13 +36,25 @@ export default function PODetails() {
     
     if (confirm(`Are you sure you want to delete PO ${po.po_number}?`)) {
       try {
+        console.log("✅ Starting PO deletion from details page...");
         await apiRequest('DELETE', `/api/pos/${poId}`);
+        
+        // Invalidate all related queries
+        await Promise.all([
+          queryClient.invalidateQueries({ queryKey: ["/api/pos"] }),
+          queryClient.invalidateQueries({ queryKey: ["/api/order-items"] }),
+          queryClient.invalidateQueries({ queryKey: [`/api/pos/${poId}`] })
+        ]);
+        
+        console.log("🔄 Cache invalidated after deletion");
+        
         toast({
           title: "Success",
           description: "Purchase order deleted successfully"
         });
         setLocation("/platform-po");
       } catch (error) {
+        console.error("❌ PO deletion failed:", error);
         toast({
           title: "Error",
           description: "Failed to delete purchase order",

@@ -30,8 +30,23 @@ export function DistributorPOListView() {
 
   const deletePOMutation = useMutation({
     mutationFn: (id: number) => apiRequest('DELETE', `/api/distributor-pos/${id}`),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/distributor-pos"] });
+    onSuccess: async () => {
+      console.log("✅ Distributor PO deletion successful, refreshing cache...");
+      
+      // Invalidate multiple related queries to ensure complete refresh
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["/api/distributor-pos"] }),
+        queryClient.refetchQueries({ queryKey: ["/api/distributor-pos"] })
+      ]);
+      
+      console.log("🔄 Distributor PO cache invalidated and queries refetched");
+      
+      // Force a manual refetch as backup
+      setTimeout(() => {
+        console.log("🔄 Distributor PO backup refetch initiated");
+        refetch();
+      }, 500);
+      
       toast({
         title: "Success",
         description: "Distributor purchase order deleted successfully"
@@ -50,12 +65,26 @@ export function DistributorPOListView() {
     setLocation(`/distributor-po-details/${po.id}`);
   };
 
-  const handleEdit = (po: DistributorPOWithDetails) => {
+  const handleEdit = async (po: DistributorPOWithDetails) => {
+    // Invalidate PO-specific queries to ensure fresh data
+    await queryClient.invalidateQueries({ 
+      queryKey: [`/api/distributor-pos/${po.id}`],
+      type: 'all'
+    });
+    
     setLocation(`/distributor-po-edit/${po.id}`);
   };
 
   const handleDelete = (po: DistributorPOWithDetails) => {
     if (confirm(`Are you sure you want to delete PO ${po.po_number}?`)) {
+      console.log(`🗑️ Deleting Distributor PO ${po.po_number} (ID: ${po.id})`);
+      
+      // Optimistic UI update - immediately remove from cache
+      queryClient.setQueryData(["/api/distributor-pos"], (oldData: DistributorPOWithDetails[] | undefined) => {
+        if (!oldData) return [];
+        return oldData.filter(p => p.id !== po.id);
+      });
+      
       deletePOMutation.mutate(po.id);
     }
   };
@@ -121,12 +150,17 @@ export function DistributorPOListView() {
     }
   };
 
-  const filteredPOs = pos.filter(po =>
-    po.po_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    po.distributor.distributor_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (po.city && po.city.toLowerCase().includes(searchTerm.toLowerCase())) ||
-    (po.state && po.state.toLowerCase().includes(searchTerm.toLowerCase()))
-  );
+  const filteredPOs = pos.filter(po => {
+    // Safe search term handling
+    const searchTermLower = searchTerm && typeof searchTerm === 'string' ? searchTerm.toLowerCase() : '';
+    if (!searchTermLower) return true;
+    return (
+      (po.po_number && typeof po.po_number === 'string' && po.po_number.toLowerCase().includes(searchTermLower)) ||
+      (po.distributor && po.distributor.distributor_name && typeof po.distributor.distributor_name === 'string' && po.distributor.distributor_name.toLowerCase().includes(searchTermLower)) ||
+      (po.city && typeof po.city === 'string' && po.city.toLowerCase().includes(searchTermLower)) ||
+      (po.state && typeof po.state === 'string' && po.state.toLowerCase().includes(searchTermLower))
+    );
+  });
 
   if (isLoading) {
     return (

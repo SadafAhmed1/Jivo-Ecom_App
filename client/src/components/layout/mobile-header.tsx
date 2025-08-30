@@ -44,7 +44,7 @@ export function MobileHeader({ onMenuClick }: MobileHeaderProps) {
             <Shield className="w-5 h-5 text-white" />
           </div>
           <div className="hidden sm:block">
-            <h1 className="text-lg font-bold text-gray-900">POJivo E-Com</h1>
+            <h1 className="text-lg font-bold text-gray-900">Jivo E-Com</h1>
           </div>
         </div>
       </div>

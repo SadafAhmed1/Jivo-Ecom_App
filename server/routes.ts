@@ -57,6 +57,7 @@ import { parseFlipkartInventoryCSV } from "./flipkart-inventory-parser";
 import { parseZeptoInventory } from "./zepto-inventory-parser";
 import { db } from "./db";
 import { sql, eq } from "drizzle-orm";
+import { pfPo, poMaster } from "@shared/schema";
 import { 
   scAmJwDaily, scAmJwRange, scAmJmDaily, scAmJmRange,
   scZeptoJmDaily, scZeptoJmRange, 
@@ -181,6 +182,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(platforms);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch platforms" });
+    }
+  });
+
+  // Get dispatch locations from po_master table dispatch_from column
+  app.get("/api/dispatch-locations", async (_req, res) => {
+    try {
+      const locations = await storage.getUniqueDispatchLocations();
+      // Return unique dispatch locations from existing POs
+      const dispatchLocations = locations.map((location, index) => ({
+        id: index + 1,
+        name: location
+      }));
+      res.json(dispatchLocations);
+    } catch (error) {
+      console.error("Error fetching dispatch locations:", error);
+      res.status(500).json({ message: "Failed to fetch dispatch locations" });
     }
   });
 
@@ -388,6 +405,59 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // New cascading dropdown endpoints using master tables
+  app.get("/api/regions", async (_req, res) => {
+    try {
+      console.log("🌍 API: /api/regions called");
+      const regions = await storage.getAllRegions();
+      console.log(`🌍 API: Returning ${regions.length} regions`);
+      res.json(regions);
+    } catch (error) {
+      console.error("❌ API: Error fetching regions:", error);
+      res.status(500).json({ error: "Failed to fetch regions" });
+    }
+  });
+
+  app.get("/api/states/by-region/:regionId", async (req, res) => {
+    try {
+      console.log(`🏛️ API: /api/states/by-region/${req.params.regionId} called`);
+      const regionId = parseInt(req.params.regionId);
+      
+      if (isNaN(regionId)) {
+        console.log("❌ API: Invalid region ID provided");
+        return res.status(400).json({ error: "Invalid region ID" });
+      }
+      
+      console.log(`🏛️ API: Fetching states for region ID: ${regionId}`);
+      const states = await storage.getStatesByRegion(regionId);
+      console.log(`🏛️ API: Returning ${states.length} states for region ${regionId}`);
+      res.json(states);
+    } catch (error) {
+      console.error("❌ API: Error fetching states by region:", error);
+      res.status(500).json({ error: "Failed to fetch states by region" });
+    }
+  });
+
+  app.get("/api/districts/by-state/:stateId", async (req, res) => {
+    try {
+      console.log(`🏘️ API: /api/districts/by-state/${req.params.stateId} called`);
+      const stateId = parseInt(req.params.stateId);
+      
+      if (isNaN(stateId)) {
+        console.log("❌ API: Invalid state ID provided");
+        return res.status(400).json({ error: "Invalid state ID" });
+      }
+      
+      console.log(`🏘️ API: Fetching districts for state ID: ${stateId}`);
+      const districts = await storage.getDistrictsByStateIdFromMaster(stateId);
+      console.log(`🏘️ API: Returning ${districts.length} districts for state ${stateId}`);
+      res.json(districts);
+    } catch (error) {
+      console.error("❌ API: Error fetching districts by state:", error);
+      res.status(500).json({ error: "Failed to fetch districts by state" });
+    }
+  });
+
   // Status endpoints
   app.get("/api/statuses", async (_req, res) => {
     try {
@@ -410,10 +480,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Items endpoints
-  app.get("/api/items", async (_req, res) => {
+  app.get("/api/items", async (req, res) => {
     try {
-      const items = await storage.getAllItems();
-      res.json(items);
+      const { search, platform } = req.query;
+      
+      if (search && typeof search === 'string') {
+        // If search query provided, search items
+        const items = await storage.searchItems(search);
+        res.json(items);
+      } else {
+        // Otherwise return all items
+        const items = await storage.getAllItems();
+        res.json(items);
+      }
     } catch (error) {
       console.error("Error fetching items:", error);
       res.status(500).json({ error: "Failed to fetch items" });
@@ -432,6 +511,155 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error searching items:", error);
       res.status(500).json({ error: "Failed to search items" });
+    }
+  });
+
+  // SAP Items API routes
+  app.get("/api/sap-items-api", async (_req, res) => {
+    try {
+      // Get all items from the items table to show in SAP sync
+      const items = await storage.getAllItems();
+      
+      console.log(`📊 SAP Sync: Found ${items.length} items in database`);
+      
+      // Transform items to match the SapItem interface expected by frontend
+      const sapItems = items.map((item, index) => ({
+        id: index + 1, // Use index as id if not available
+        itemcode: item.itemcode || item.ItemCode || '',
+        itemname: item.itemname || item.ItemName || '',
+        type: item.u_type || item.type || '',
+        itemgroup: item.itmsgrpnam || item.itemgroup || '',
+        brand: item.u_brand || item.brand || '',
+        uom: item.invntryuom || item.uom || 'PCS',
+        last_synced: item.updated_at || item.created_at || new Date().toISOString(),
+        created_at: item.created_at || new Date().toISOString()
+      }));
+      
+      console.log(`✅ SAP Sync: Returning ${sapItems.length} formatted items`);
+      res.json(sapItems);
+    } catch (error) {
+      console.error("Error fetching SAP items:", error);
+      res.status(500).json({ error: "Failed to fetch SAP items" });
+    }
+  });
+
+  app.post("/api/sap-items-api/sync", async (_req, res) => {
+    try {
+      // Get all current items from the database
+      const items = await storage.getAllItems();
+      const count = items.length;
+      
+      console.log(`🔄 SAP Sync initiated: ${count} items found in database`);
+      
+      // If no items, return a message to indicate database needs population
+      if (count === 0) {
+        res.json({
+          success: true,
+          message: "No items found in database. Please import items first.",
+          count: 0
+        });
+      } else {
+        res.json({
+          success: true,
+          message: `Successfully synced ${count} items from database`,
+          count: count
+        });
+      }
+    } catch (error) {
+      console.error("Error syncing SAP items:", error);
+      res.status(500).json({ 
+        success: false,
+        message: error instanceof Error ? error.message : "Failed to sync SAP items",
+        count: 0
+      });
+    }
+  });
+
+  // Create new PF item
+  // Check for duplicate PF items
+  app.get("/api/pf-items/check-duplicate", async (req, res) => {
+    try {
+      const { pf_id, pf_itemcode, pf_itemname } = req.query;
+      
+      if (!pf_id) {
+        return res.status(400).json({ 
+          error: "Platform ID is required",
+          message: "Please provide pf_id" 
+        });
+      }
+      
+      const result = await storage.checkPFItemDuplicates({
+        pf_id: parseInt(pf_id as string),
+        pf_itemcode: pf_itemcode as string || '',
+        pf_itemname: pf_itemname as string || ''
+      });
+      
+      res.json(result);
+    } catch (error) {
+      console.error("Error checking PF item duplicates:", error);
+      res.status(500).json({ 
+        error: "Failed to check duplicates",
+        message: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+
+  app.post("/api/pf-items", async (req, res) => {
+    try {
+      const { pf_id, pf_itemcode, pf_itemname, sap_id } = req.body;
+      
+      // Validate required fields
+      if (!pf_id || !pf_itemcode || !pf_itemname || !sap_id) {
+        return res.status(400).json({ 
+          error: "All fields are required",
+          message: "Please provide pf_id, pf_itemcode, pf_itemname, and sap_id" 
+        });
+      }
+      
+      const newItem = await storage.createPFItem({
+        pf_id: parseInt(pf_id),
+        pf_itemcode, 
+        pf_itemname,
+        sap_id
+      });
+      
+      res.status(201).json(newItem);
+    } catch (error) {
+      console.error("Error creating PF item:", error);
+      res.status(500).json({ 
+        error: "Failed to create PF item",
+        message: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+
+  // Get PF items for search dropdown
+  app.get("/api/pf-items", async (req, res) => {
+    try {
+      const { search } = req.query;
+      
+      if (search && typeof search === 'string' && search.length >= 2) {
+        const pfItems = await storage.searchPFItems(search);
+        
+        // Return items in format expected by the dropdown
+        const formattedItems = pfItems.map(item => ({
+          ItemName: item.pf_itemname,
+          ItemCode: item.pf_itemcode,
+          pf_id: item.pf_id,
+          sap_id: item.sap_id,
+          actual_itemcode: item.actual_itemcode, // Include actual item code from items table
+          taxrate: item.taxrate || 0 // Include tax rate from items table
+        }));
+        
+        res.json(formattedItems);
+      } else {
+        // Return empty array for short queries
+        res.json([]);
+      }
+    } catch (error) {
+      console.error("Error fetching PF items:", error);
+      // Return empty array instead of error to prevent UI crashes
+      res.json([]);
     }
   });
 
@@ -595,6 +823,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Test route for POs without auth (development only)
+  app.get("/api/test/pos", async (_req, res) => {
+    try {
+      console.log("🧪 Test route: Testing getAllPos function...");
+      const pos = await storage.getAllPos();
+      console.log("🧪 Test route: getAllPos returned", pos.length, "POs");
+      res.json(pos);
+    } catch (error) {
+      console.error("🧪 Test route error:", error);
+      res.status(500).json({ message: "Failed to fetch POs", error: error instanceof Error ? error.message : String(error) });
+    }
+  });
+
   // PO routes
   app.get("/api/pos", async (_req, res) => {
     try {
@@ -608,12 +849,124 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/pos/:id", async (req, res) => {
     try {
       const id = parseInt(req.params.id);
+      
+      // First try to get from po_master table (new structure)
+      const poMaster = await storage.getPoMasterById(id);
+      if (poMaster) {
+        console.log("📋 Found PO in po_master table for ID:", id);
+        console.log("📊 Raw poMaster data:", {
+          id: poMaster.id,
+          vendor_po_number: poMaster.vendor_po_number,
+          platform_id: poMaster.platform_id,
+          distributor_id: poMaster.distributor_id,
+          state_id: poMaster.state_id,
+          district_id: poMaster.district_id,
+          region: poMaster.region,
+          area: poMaster.area,
+          po_date: poMaster.po_date,
+          status_id: poMaster.status_id
+        });
+        console.log("🏢 Platform info:", poMaster.platform);
+        console.log("🏪 Distributor info:", poMaster.distributor);
+        console.log("🗺️ State info:", poMaster.state);
+        console.log("🏘️ District info:", poMaster.district);
+        console.log("📊 PO Lines count:", poMaster.poLines?.length || 0);
+        console.log("📦 First few lines:", poMaster.poLines?.slice(0, 2));
+        
+        // Map the status IDs back to status names for the frontend
+        const statusMap: Record<number, string> = {
+          1: 'Open',
+          2: 'Closed',
+          3: 'Cancelled',
+          4: 'Expired'
+        };
+        
+        const lineStatusMap: Record<number, string> = {
+          1: 'PENDING',
+          2: 'INVOICED',
+          3: 'DISPATCHED',
+          4: 'DELIVERED',
+          5: 'STOCK_ISSUE',
+          6: 'PRICE_DIFF',
+          7: 'MOV_ISSUE',
+          8: 'CANCELLED',
+          9: 'EXPIRED'
+        };
+        
+        // Transform the data to match frontend expectations
+        const transformedPo = {
+          ...poMaster,
+          // Map additional fields that frontend expects (these override the spread fields)
+          po_number: poMaster.vendor_po_number,
+          company: "JIVO MART",
+          platform: poMaster.platform || { id: poMaster.platform_id },
+          order_date: poMaster.po_date,
+          serving_distributor: poMaster.distributor?.distributor_name || '',
+          dispatch_from: poMaster.dispatch_from || '',
+          region: poMaster.region || '',
+          area: poMaster.area || '',
+          state: poMaster.state?.statename || '',
+          city: poMaster.district?.district || '',
+          status: statusMap[poMaster.status_id] || 'Open',
+          orderItems: poMaster.poLines?.map((line: any) => ({
+            ...line,
+            item_name: line.item_name || line.remark?.split(' - ')[0] || 'Unknown Item',
+            platform_code: line.platform_code || line.platform_product_code_id,
+            sap_code: line.sap_id || line.platform_product_code_id,
+            quantity: parseInt(line.quantity || '0'),
+            basic_amount: parseFloat(line.basic_amount || '0'),
+            basic_rate: parseFloat(line.basic_amount || '0'),
+            tax_percent: (() => {
+              // Use original tax rate from items table (u_tax_rate column) if available
+              if (line.original_tax_rate && parseFloat(line.original_tax_rate) > 0) {
+                let taxRate = parseFloat(line.original_tax_rate);
+                // If the tax rate is stored as decimal (0.18), convert to percentage (18)
+                // If it's already a percentage (18), keep as is
+                if (taxRate < 1) {
+                  taxRate = taxRate * 100;
+                  console.log(`🔍 Converting decimal tax rate from u_tax_rate: ${line.original_tax_rate} → ${taxRate}% for item ${line.item_name}`);
+                } else {
+                  console.log(`🔍 Using tax rate from u_tax_rate: ${taxRate}% for item ${line.item_name}`);
+                }
+                return taxRate;
+              }
+              // Fallback: calculate from tax amount and basic amount (less reliable)
+              const taxAmount = parseFloat(line.tax || '0');
+              const basicAmount = parseFloat(line.basic_amount || '0');
+              if (basicAmount > 0 && taxAmount > 0) {
+                const calculatedRate = (taxAmount / basicAmount) * 100;
+                console.log(`⚠️ Calculating tax rate from amounts: ${calculatedRate.toFixed(2)}% for item ${line.item_name} (taxAmount: ${taxAmount}, basicAmount: ${basicAmount})`);
+                return calculatedRate;
+              }
+              console.log(`❌ No tax rate found for item ${line.item_name}, defaulting to 0%`);
+              return 0; // Default to 0% if we can't determine tax rate
+            })(),
+            gst_rate: line.tax || '0',
+            landing_amount: parseFloat(line.landing_amount || '0'),
+            landing_rate: line.landing_amount || '0',
+            total_amount: parseFloat(line.total_amount || '0'),
+            total_ltrs: parseFloat(line.total_liter || '0'),
+            status: lineStatusMap[line.status] || 'PENDING',
+            invoice_date: line.invoice_date,
+            invoice_litre: parseFloat(line.invoice_litre || '0'),
+            invoice_amount: parseFloat(line.invoice_amount || '0'),
+            invoice_qty: parseFloat(line.invoice_qty || '0')
+          })) || []
+        };
+        
+        console.log("✅ Returning PO from po_master table with", transformedPo.orderItems.length, "items");
+        console.log("📝 Response orderItems field exists:", !!transformedPo.orderItems);
+        return res.json(transformedPo);
+      }
+      
+      // Fall back to old structure if not found in new tables
       const po = await storage.getPoById(id);
       if (!po) {
         return res.status(404).json({ message: "PO not found" });
       }
       res.json(po);
     } catch (error) {
+      console.error("Error fetching PO:", error);
       res.status(500).json({ message: "Failed to fetch PO" });
     }
   });
@@ -685,8 +1038,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     console.log("Body keys:", Object.keys(req.body || {}));
     console.log("Body:", JSON.stringify(req.body, null, 2));
     
+
     try {
       const id = parseInt(req.params.id);
+      
+      // Extract user info for logging
+      const username = (req as any).user?.username || 'Unknown';
+      const ipAddress = req.ip || req.connection.remoteAddress || 'Unknown';
+      const userAgent = req.get('User-Agent') || 'Unknown';
+      const sessionId = req.sessionID || 'Unknown';
       
       // Check if this is the master/lines structure - use po_master and po_lines tables
       if (req.body.master && req.body.lines) {
@@ -694,12 +1054,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const { master, lines } = req.body;
         
         const updatedPo = await storage.updatePoInExistingTables(id, master, lines);
+        
+        // Log the PO update
+        await storage.logEdit({
+          username,
+          action: 'UPDATE',
+          tableName: 'po_master',
+          recordId: id,
+          fieldName: 'full_record',
+          oldValue: 'Previous PO data',
+          newValue: JSON.stringify(master),
+          ipAddress,
+          userAgent,
+          sessionId
+        });
+        
         res.json(updatedPo);
       } else {
         // Fall back to direct pf_po structure
         console.log("⚠️ Using direct pf_po structure for update");
         const validatedData = updatePoSchema.parse(req.body);
         const po = await storage.updatePo(id, validatedData.po, validatedData.items);
+        
+        // Log the PO update
+        await storage.logEdit({
+          username,
+          action: 'UPDATE',
+          tableName: 'pf_po',
+          recordId: id,
+          fieldName: 'full_record',
+          oldValue: 'Previous PO data',
+          newValue: JSON.stringify(validatedData.po),
+          ipAddress,
+          userAgent,
+          sessionId
+        });
+        
         res.json(po);
       }
     } catch (error) {
@@ -712,13 +1102,155 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Debug endpoint to check which table a PO exists in
+  app.get("/api/debug/pos/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      console.log(`🔍 DEBUG: Checking which tables contain PO ID: ${id}`);
+      
+      const results: any = {
+        id,
+        tables: [],
+        details: {}
+      };
+      
+      // Check pf_po table
+      try {
+        const pfPoResult = await db.select().from(pfPo).where(eq(pfPo.id, id));
+        if (pfPoResult.length > 0) {
+          results.tables.push('pf_po');
+          results.details.pf_po = pfPoResult[0];
+          console.log(`✅ DEBUG: Found PO ${id} in pf_po:`, pfPoResult[0].po_number);
+        }
+      } catch (e) {
+        console.log(`❌ DEBUG: Error checking pf_po:`, e);
+      }
+      
+      // Check po_master table
+      try {
+        const poMasterResult = await db.select().from(poMaster).where(eq(poMaster.id, id));
+        if (poMasterResult.length > 0) {
+          results.tables.push('po_master');
+          results.details.po_master = poMasterResult[0];
+          console.log(`✅ DEBUG: Found PO ${id} in po_master:`, poMasterResult[0].vendor_po_number);
+        }
+      } catch (e) {
+        console.log(`❌ DEBUG: Error checking po_master:`, e);
+      }
+      
+      console.log(`🔍 DEBUG: PO ${id} found in tables:`, results.tables);
+      res.json(results);
+    } catch (error) {
+      console.error(`❌ DEBUG: Error checking PO:`, error);
+      res.status(500).json({ error: 'Debug check failed' });
+    }
+  });
+
   app.delete("/api/pos/:id", async (req, res) => {
     try {
       const id = parseInt(req.params.id);
-      await storage.deletePo(id);
+      console.log(`🗑️ API: Starting PO deletion for ID: ${id}`);
+      
+      if (isNaN(id)) {
+        console.error(`❌ API: Invalid PO ID: ${req.params.id}`);
+        return res.status(400).json({ message: "Invalid PO ID" });
+      }
+
+      // Get user info for logging
+      const username = (req as any).user?.username || 'Unknown';
+      const ipAddress = req.ip || req.connection.remoteAddress || 'Unknown';
+      const userAgent = req.get('User-Agent') || 'Unknown';
+      const sessionId = req.sessionID || 'Unknown';
+      
+      console.log(`🔍 API: Delete request from user: ${username}, IP: ${ipAddress}`);
+      
+      // Try to delete from pf_po table first
+      let deleted = false;
+      let tableName = 'unknown';
+      
+      try {
+        console.log(`🔍 API: Attempting to delete from pf_po table for ID: ${id}`);
+        await storage.deletePo(id);
+        deleted = true;
+        tableName = 'pf_po';
+        console.log(`✅ API: Successfully deleted PO from pf_po table with ID: ${id}`);
+      } catch (pfPoError) {
+        console.log(`ℹ️ API: PO ${id} not found in pf_po table, trying po_master table...`);
+        
+        try {
+          console.log(`🔍 API: Attempting to delete from po_master table for ID: ${id}`);
+          await storage.deletePoMaster(id);
+          deleted = true;
+          tableName = 'po_master';
+          console.log(`✅ API: Successfully deleted PO from po_master table with ID: ${id}`);
+        } catch (poMasterError) {
+          console.log(`❌ API: PO ${id} not found in po_master table either`);
+          console.log(`🔍 API: Checking if PO ${id} exists in other PO tables...`);
+          
+          // Try other specific PO tables
+          const tableChecks = [
+            { name: 'flipkart_grocery_po_header', deleteMethod: 'deleteFlipkartGroceryPo' },
+            { name: 'zepto_po_header', deleteMethod: 'deleteZeptoPo' },
+            { name: 'city_mall_po_header', deleteMethod: 'deleteCityMallPo' },
+            { name: 'blinkit_po_header', deleteMethod: 'deleteBlinkitPo' },
+            { name: 'swiggy_po_header', deleteMethod: 'deleteSwiggyPo' },
+            { name: 'dealshare_po_header', deleteMethod: 'deleteDealsharePo' },
+            { name: 'distributor_po', deleteMethod: 'deleteDistributorPo' }
+          ];
+          
+          let foundInOtherTable = false;
+          for (const table of tableChecks) {
+            try {
+              console.log(`🔍 API: Trying to delete from ${table.name} using ${table.deleteMethod}...`);
+              await (storage as any)[table.deleteMethod](id);
+              deleted = true;
+              tableName = table.name;
+              foundInOtherTable = true;
+              console.log(`✅ API: Successfully deleted PO from ${table.name} with ID: ${id}`);
+              break;
+            } catch (tableError) {
+              console.log(`ℹ️ API: PO ${id} not found in ${table.name}`);
+            }
+          }
+          
+          if (!foundInOtherTable) {
+            console.error(`❌ API: PO ${id} not found in any table`);
+            throw new Error(`PO with ID ${id} not found in any table`);
+          }
+        }
+      }
+      
+      if (!deleted) {
+        throw new Error(`Failed to delete PO with ID ${id}`);
+      }
+      
+      // Log the deletion
+      try {
+        await storage.logEdit({
+          username,
+          action: 'DELETE',
+          tableName,
+          recordId: id,
+          fieldName: 'po_deletion',
+          oldValue: 'EXISTS',
+          newValue: 'DELETED',
+          ipAddress,
+          userAgent,
+          sessionId
+        });
+        console.log(`📝 API: Logged PO deletion for ID: ${id} from table: ${tableName}`);
+      } catch (logError) {
+        console.error(`⚠️ API: Failed to log PO deletion:`, logError);
+        // Don't fail the deletion if logging fails
+      }
+      
       res.status(204).send();
     } catch (error) {
-      res.status(500).json({ message: "Failed to delete PO" });
+      console.error(`❌ API: Error deleting PO with ID ${req.params.id}:`, error);
+      res.status(500).json({ 
+        message: "Failed to delete PO", 
+        error: error instanceof Error ? error.message : String(error) 
+      });
     }
   });
 
@@ -784,7 +1316,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!po) {
         return res.status(404).json({ message: "Flipkart grocery PO not found" });
       }
-      res.json(po);
+      
+      // Convert decimal fields from string to number for frontend compatibility
+      const formattedPO = {
+        ...po,
+        total_taxable_value: po.total_taxable_value ? parseFloat(po.total_taxable_value.toString()) : 0,
+        total_tax_amount: po.total_tax_amount ? parseFloat(po.total_tax_amount.toString()) : 0,
+        total_amount: po.total_amount ? parseFloat(po.total_amount.toString()) : 0,
+      };
+      
+      res.json(formattedPO);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch Flipkart grocery PO" });
     }
@@ -794,7 +1335,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const validatedData = createFlipkartGroceryPoSchema.parse(req.body);
       const po = await storage.createFlipkartGroceryPo(validatedData.header, validatedData.lines);
-      res.status(201).json(po);
+      
+      // Fetch the created lines to return complete data
+      const lines = await storage.getFlipkartGroceryPoLines(po.id);
+      
+      // Return the complete PO with lines
+      res.status(201).json({ 
+        ...po, 
+        lines: lines.map(line => ({
+          ...line,
+          supplier_mrp: line.supplier_mrp ? parseFloat(line.supplier_mrp.toString()) : 0,
+          supplier_price: line.supplier_price ? parseFloat(line.supplier_price.toString()) : 0,
+          taxable_value: line.taxable_value ? parseFloat(line.taxable_value.toString()) : 0,
+          igst_rate: line.igst_rate ? parseFloat(line.igst_rate.toString()) : 0,
+          igst_amount_per_unit: line.igst_amount_per_unit ? parseFloat(line.igst_amount_per_unit.toString()) : 0,
+          sgst_rate: line.sgst_rate ? parseFloat(line.sgst_rate.toString()) : 0,
+          sgst_amount_per_unit: line.sgst_amount_per_unit ? parseFloat(line.sgst_amount_per_unit.toString()) : 0,
+          cgst_rate: line.cgst_rate ? parseFloat(line.cgst_rate.toString()) : 0,
+          cgst_amount_per_unit: line.cgst_amount_per_unit ? parseFloat(line.cgst_amount_per_unit.toString()) : 0,
+          cess_rate: line.cess_rate ? parseFloat(line.cess_rate.toString()) : 0,
+          cess_amount_per_unit: line.cess_amount_per_unit ? parseFloat(line.cess_amount_per_unit.toString()) : 0,
+          tax_amount: line.tax_amount ? parseFloat(line.tax_amount.toString()) : 0,
+          total_amount: line.total_amount ? parseFloat(line.total_amount.toString()) : 0,
+          required_by_date: line.required_by_date ? new Date(line.required_by_date).toISOString().split('T')[0] : ""
+        }))
+      });
     } catch (error) {
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: "Invalid input", errors: error.errors });
@@ -831,9 +1396,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const id = parseInt(req.params.id);
       const lines = await storage.getFlipkartGroceryPoLines(id);
-      res.json(lines);
+      
+      // Convert decimal fields from string to number for frontend compatibility
+      const formattedLines = lines.map(line => ({
+        ...line,
+        supplier_mrp: line.supplier_mrp ? parseFloat(line.supplier_mrp.toString()) : 0,
+        supplier_price: line.supplier_price ? parseFloat(line.supplier_price.toString()) : 0,
+        taxable_value: line.taxable_value ? parseFloat(line.taxable_value.toString()) : 0,
+        igst_rate: line.igst_rate ? parseFloat(line.igst_rate.toString()) : 0,
+        igst_amount_per_unit: line.igst_amount_per_unit ? parseFloat(line.igst_amount_per_unit.toString()) : 0,
+        sgst_rate: line.sgst_rate ? parseFloat(line.sgst_rate.toString()) : 0,
+        sgst_amount_per_unit: line.sgst_amount_per_unit ? parseFloat(line.sgst_amount_per_unit.toString()) : 0,
+        cgst_rate: line.cgst_rate ? parseFloat(line.cgst_rate.toString()) : 0,
+        cgst_amount_per_unit: line.cgst_amount_per_unit ? parseFloat(line.cgst_amount_per_unit.toString()) : 0,
+        cess_rate: line.cess_rate ? parseFloat(line.cess_rate.toString()) : 0,
+        cess_amount_per_unit: line.cess_amount_per_unit ? parseFloat(line.cess_amount_per_unit.toString()) : 0,
+        tax_amount: line.tax_amount ? parseFloat(line.tax_amount.toString()) : 0,
+        total_amount: line.total_amount ? parseFloat(line.total_amount.toString()) : 0,
+        required_by_date: line.required_by_date ? new Date(line.required_by_date).toISOString().split('T')[0] : ""
+      }));
+      
+      res.json(formattedLines);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch Flipkart grocery PO lines" });
+    }
+  });
+
+  app.get("/api/flipkart-grocery-pos/lookup-by-po/:poNumber", async (req, res) => {
+    try {
+      const poNumber = decodeURIComponent(req.params.poNumber);
+      const po = await storage.getFlipkartGroceryPoByNumber(poNumber);
+      if (!po) {
+        return res.status(404).json({ message: "Flipkart grocery PO not found" });
+      }
+      res.json(po);
+    } catch (error) {
+      console.error("Error looking up Flipkart grocery PO by number:", error);
+      res.status(500).json({ message: "Failed to lookup Flipkart grocery PO" });
     }
   });
 
@@ -907,7 +1506,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const createdPo = await storage.createZeptoPo(header, lines);
-      res.status(201).json(createdPo);
+      
+      // Fetch the created lines to return complete data
+      const createdLines = await storage.getZeptoPoLines(createdPo.id);
+      
+      // Return the complete PO with lines
+      res.status(201).json({ 
+        ...createdPo, 
+        lines: createdLines 
+      });
     } catch (error) {
       console.error("Error creating Zepto PO:", error);
       res.status(500).json({ error: "Failed to create PO" });
@@ -992,7 +1599,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const createdPo = await storage.createCityMallPo(header, lines);
-      res.status(201).json(createdPo);
+      
+      // Fetch the created lines to return complete data
+      const createdLines = await storage.getCityMallPoLines(createdPo.id);
+      
+      // Return the complete PO with lines
+      res.status(201).json({ 
+        ...createdPo, 
+        lines: createdLines 
+      });
     } catch (error) {
       console.error("Error creating City Mall PO:", error);
       res.status(500).json({ error: "Failed to create PO" });
@@ -1087,7 +1702,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const createdPo = await storage.createBlinkitPo(header, lines);
-      res.status(201).json(createdPo);
+      
+      // Fetch the created lines to return complete data
+      const createdLines = await storage.getBlinkitPoLines(createdPo.id);
+      
+      // Return the complete PO with lines
+      res.status(201).json({ 
+        ...createdPo, 
+        lines: createdLines 
+      });
     } catch (error) {
       console.error("Error creating Blinkit PO:", error);
       res.status(500).json({ error: "Failed to create PO" });
@@ -1169,7 +1792,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const createdPo = await storage.createSwiggyPo(header, lines);
-      res.status(201).json(createdPo);
+      
+      // Fetch the created lines to return complete data
+      const createdLines = await storage.getSwiggyPoLines(createdPo.id);
+      
+      // Return the complete PO with lines
+      res.status(201).json({ 
+        ...createdPo, 
+        lines: createdLines 
+      });
     } catch (error) {
       console.error("Error creating Swiggy PO:", error);
       res.status(500).json({ error: "Failed to create PO" });
@@ -1632,8 +2263,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       let createdPo;
       try {
-        // Use unified po_master table for all platforms
-        createdPo = await storage.createPoInExistingTables(masterData, linesData);
+        // Use platform-specific methods to ensure data goes into both platform-specific AND consolidated tables
+        if (vendor === 'flipkart') {
+          createdPo = await storage.createFlipkartGroceryPo(cleanHeader, cleanLines);
+        } else if (vendor === 'zepto') {
+          console.log('📋 Creating Zepto PO:', cleanHeader.po_number);
+          createdPo = await storage.createZeptoPo(cleanHeader, cleanLines);
+        } else if (vendor === 'citymall') {
+          createdPo = await storage.createCityMallPo(cleanHeader, cleanLines);
+        } else if (vendor === 'blinkit') {
+          createdPo = await storage.createBlinkitPo(cleanHeader, cleanLines);
+        } else if (vendor === 'swiggy') {
+          createdPo = await storage.createSwiggyPo(cleanHeader, cleanLines);
+        } else if (vendor === 'bigbasket') {
+          createdPo = await storage.createBigbasketPo(cleanHeader, cleanLines);
+        } else if (vendor === 'zomato') {
+          createdPo = await storage.createZomatoPo(cleanHeader, cleanLines);
+        } else if (vendor === 'dealshare') {
+          createdPo = await storage.createDealsharePo(cleanHeader, cleanLines);
+        } else {
+          // Fallback to unified po_master table for platforms without specific methods
+          createdPo = await storage.createPoInExistingTables(masterData, linesData);
+        }
       } catch (error: any) {
         if (error.code === '23505') {
           return res.status(409).json({ 
@@ -1686,6 +2337,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error creating distributor:", error);
       res.status(500).json({ message: "Failed to create distributor" });
+    }
+  });
+
+  app.get("/api/distributors/lookup/:name", async (req, res) => {
+    try {
+      const name = decodeURIComponent(req.params.name);
+      const distributor = await storage.getDistributorByName(name);
+      if (!distributor) {
+        return res.status(404).json({ message: "Distributor not found" });
+      }
+      res.json(distributor);
+    } catch (error) {
+      console.error("Error looking up distributor:", error);
+      res.status(500).json({ message: "Failed to lookup distributor" });
     }
   });
 
@@ -1796,6 +2461,73 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Update distributor order item status
+  app.patch("/api/distributor-order-items/:id", async (req, res) => {
+    try {
+      const itemId = parseInt(req.params.id);
+      const { status } = req.body;
+      console.log(`🎯 PATCH /api/distributor-order-items/${itemId} - Status: ${status}`);
+
+      if (!status) {
+        console.log("❌ Status is required");
+        return res.status(400).json({ error: "Status is required" });
+      }
+
+      await storage.updateDistributorOrderItemStatus(itemId, status);
+      console.log(`✅ Successfully updated item ${itemId} status to ${status}`);
+      res.json({ success: true, message: "Status updated successfully" });
+    } catch (error) {
+      console.error("Error updating distributor order item status:", error);
+      res.status(500).json({ error: "Failed to update status" });
+    }
+  });
+
+  // Bulk approve distributor order items
+  app.patch("/api/distributor-order-items/bulk-approve", async (req, res) => {
+    try {
+      const { itemIds } = req.body;
+      
+      if (!Array.isArray(itemIds) || itemIds.length === 0) {
+        return res.status(400).json({ error: "itemIds array is required" });
+      }
+      
+      console.log(`📋 Bulk approving ${itemIds.length} distributor order items:`, itemIds);
+      
+      // Extract user info for logging
+      const username = (req as any).user?.username || 'Unknown';
+      const ipAddress = req.ip || req.connection.remoteAddress || 'Unknown';
+      const userAgent = req.get('User-Agent') || 'Unknown';
+      const sessionId = req.sessionID || 'Unknown';
+      
+      // Update all items to CONFIRMED status
+      let updatedCount = 0;
+      for (const itemId of itemIds) {
+        try {
+          await storage.updateDistributorOrderItemStatus(itemId, 'CONFIRMED');
+          updatedCount++;
+          
+          console.log(`✅ Approved item ${itemId} by ${username} from ${ipAddress}`);
+        } catch (itemError) {
+          console.error(`❌ Failed to approve item ${itemId}:`, itemError);
+        }
+      }
+      
+      console.log(`✅ Successfully approved ${updatedCount}/${itemIds.length} distributor order items`);
+      
+      res.json({ 
+        success: true, 
+        message: `Successfully approved ${updatedCount} of ${itemIds.length} items`,
+        updatedCount: updatedCount
+      });
+    } catch (error) {
+      console.error("❌ Bulk approval error:", error);
+      res.status(500).json({ 
+        error: "Failed to approve items", 
+        details: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+
   // Zomato PO routes
   app.get("/api/zomato-pos", async (_req, res) => {
     try {
@@ -1883,6 +2615,122 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error deleting Dealshare PO:", error);
       res.status(500).json({ error: "Failed to delete PO" });
+    }
+  });
+
+  // Attachment Routes for All Platforms
+  
+  // Generic attachment upload handler
+  const uploadAttachment = multer({
+    storage: multer.diskStorage({
+      destination: (req, file, cb) => {
+        const platform = req.params.platform || 'general';
+        const dir = `./uploads/${platform}`;
+        require('fs').mkdirSync(dir, { recursive: true });
+        cb(null, dir);
+      },
+      filename: (req, file, cb) => {
+        const uniqueSuffix = Date.now() + '-' + crypto.randomBytes(6).toString('hex');
+        cb(null, uniqueSuffix + '-' + file.originalname);
+      }
+    }),
+    limits: { fileSize: 10 * 1024 * 1024 } // 10MB limit
+  });
+
+  // Upload attachment for any platform
+  app.post("/api/:platform/pos/:poId/attachments", uploadAttachment.single('file'), async (req, res) => {
+    try {
+      const { platform, poId } = req.params;
+      const { description } = req.body;
+      const userId = req.body.userId || 1; // Get from auth context in production
+      
+      if (!req.file) {
+        return res.status(400).json({ error: "No file uploaded" });
+      }
+
+      const attachment = await storage.addAttachment(platform, parseInt(poId), {
+        fileName: req.file.originalname,
+        filePath: req.file.path,
+        fileType: req.file.mimetype,
+        fileSize: req.file.size,
+        uploadedBy: userId,
+        description
+      });
+
+      res.json(attachment);
+    } catch (error) {
+      console.error(`Error uploading attachment for ${req.params.platform}:`, error);
+      res.status(500).json({ error: "Failed to upload attachment" });
+    }
+  });
+
+  // Get attachments for a PO
+  app.get("/api/:platform/pos/:poId/attachments", async (req, res) => {
+    try {
+      const { platform, poId } = req.params;
+      const attachments = await storage.getAttachments(platform, parseInt(poId));
+      res.json(attachments);
+    } catch (error) {
+      console.error(`Error fetching attachments for ${req.params.platform}:`, error);
+      res.status(500).json({ error: "Failed to fetch attachments" });
+    }
+  });
+
+  // Delete attachment
+  app.delete("/api/:platform/attachments/:id", async (req, res) => {
+    try {
+      const { platform, id } = req.params;
+      await storage.deleteAttachment(platform, parseInt(id));
+      res.status(204).send();
+    } catch (error) {
+      console.error(`Error deleting attachment for ${req.params.platform}:`, error);
+      res.status(500).json({ error: "Failed to delete attachment" });
+    }
+  });
+
+  // Add comment to PO
+  app.post("/api/:platform/pos/:poId/comments", async (req, res) => {
+    try {
+      const { platform, poId } = req.params;
+      const { comment, userId } = req.body;
+      
+      if (!comment) {
+        return res.status(400).json({ error: "Comment is required" });
+      }
+
+      const newComment = await storage.addComment(platform, parseInt(poId), {
+        comment,
+        createdBy: userId || 1 // Get from auth context in production
+      });
+
+      res.json(newComment);
+    } catch (error) {
+      console.error(`Error adding comment for ${req.params.platform}:`, error);
+      res.status(500).json({ error: "Failed to add comment" });
+    }
+  });
+
+  // Get comments for a PO
+  app.get("/api/:platform/pos/:poId/comments", async (req, res) => {
+    try {
+      const { platform, poId } = req.params;
+      const comments = await storage.getComments(platform, parseInt(poId));
+      res.json(comments);
+    } catch (error) {
+      console.error(`Error fetching comments for ${req.params.platform}:`, error);
+      res.status(500).json({ error: "Failed to fetch comments" });
+    }
+  });
+
+  // Delete comment
+  app.delete("/api/:platform/comments/:id", async (req, res) => {
+    try {
+      const { platform, id } = req.params;
+      await storage.deleteComment(platform, parseInt(id));
+      res.status(204).send();
+    } catch (error) {
+      console.error(`Error deleting comment for ${req.params.platform}:`, error);
+      res.status(500).json({ error: "Failed to delete comment" });
     }
   });
 
@@ -3332,9 +4180,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
             req.file.buffer.toString('utf8'),
             businessUnit,
             periodType,
-            reportDate,
-            periodStart,
-            periodEnd
+            reportDate.toISOString(),
+            periodStart ? periodStart.toISOString() : undefined,
+            periodEnd ? periodEnd.toISOString() : undefined
           );
         } else if (platform === "blinkit") {
           parsedData = await parseBlinkitInventoryCsv(
@@ -3363,8 +4211,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             businessUnit,
             periodType,
             reportDate,
-            periodStart,
-            periodEnd
+            periodStart || undefined,
+            periodEnd || undefined
           );
           console.log("Swiggy parsing completed, data:", parsedData ? 'Success' : 'Failed');
         } else if (platform === "flipkart") {
@@ -3788,6 +4636,193 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Auto-populate endpoint for parameterized queries
+  app.post('/api/auto-populate', async (req, res) => {
+    try {
+      const { uploadType, identifier, platform } = req.body;
+
+      if (!uploadType || !identifier) {
+        return res.status(400).json({ error: 'uploadType and identifier are required' });
+      }
+
+      let results: any[] = [];
+      let source = '';
+
+      // Clean and validate identifier
+      const cleanIdentifier = identifier.toString().trim();
+      if (!cleanIdentifier) {
+        return res.status(400).json({ error: 'Invalid identifier' });
+      }
+
+      try {
+        switch (uploadType) {
+          case 'secondary-sales': {
+            // Try different secondary sales tables
+            const platforms = ['AM', 'Zepto', 'Blinkit', 'Swiggy', 'JioMart', 'BigBasket', 'Flipkart'];
+            const timeframes = ['Daily', 'Range'];
+
+            for (const plat of platforms) {
+              if (platform && platform !== plat) continue;
+              
+              for (const timeframe of timeframes) {
+                try {
+                  const tableName = `SC_${plat}_JM_${timeframe}`;
+                  const result = await db.execute(sql.raw(`
+                    SELECT * FROM "${tableName}" 
+                    WHERE order_id = '${cleanIdentifier}' 
+                    OR sku = '${cleanIdentifier}' 
+                    OR item_name ILIKE '%${cleanIdentifier}%'
+                    LIMIT 5
+                  `));
+                  
+                  if (result.rows.length > 0) {
+                    results = result.rows;
+                    source = tableName;
+                    break;
+                  }
+                } catch (error) {
+                  // Table might not exist, continue
+                  continue;
+                }
+              }
+              if (results.length > 0) break;
+            }
+
+            // Also try generic secondary_sales_header and secondary_sales_items
+            if (results.length === 0) {
+              try {
+                const result = await db.execute(sql.raw(`
+                  SELECT h.*, i.* FROM secondary_sales_header h
+                  LEFT JOIN secondary_sales_items i ON h.id = i.header_id
+                  WHERE h.order_id = '${cleanIdentifier}' 
+                  OR i.sku = '${cleanIdentifier}' 
+                  OR i.item_name ILIKE '%${cleanIdentifier}%'
+                  LIMIT 5
+                `));
+                
+                if (result.rows.length > 0) {
+                  results = result.rows;
+                  source = 'secondary_sales_header';
+                }
+              } catch (error) {
+                console.warn('Failed to query secondary sales tables:', error);
+              }
+            }
+            break;
+          }
+
+          case 'inventory': {
+            // Try different inventory tables
+            const platforms = ['FlipKart', 'JioMart', 'Blinkit'];
+            const timeframes = ['Daily', 'Range'];
+
+            for (const plat of platforms) {
+              if (platform && platform !== plat) continue;
+              
+              for (const timeframe of timeframes) {
+                try {
+                  const tableName = `INV_${plat}_JM_${timeframe}`;
+                  const result = await db.execute(sql.raw(`
+                    SELECT * FROM "${tableName}" 
+                    WHERE sku = '${cleanIdentifier}' 
+                    OR product_name ILIKE '%${cleanIdentifier}%' 
+                    OR listing_id = '${cleanIdentifier}'
+                    LIMIT 5
+                  `));
+                  
+                  if (result.rows.length > 0) {
+                    results = result.rows;
+                    source = tableName;
+                    break;
+                  }
+                } catch (error) {
+                  continue;
+                }
+              }
+              if (results.length > 0) break;
+            }
+            break;
+          }
+
+          case 'po': {
+            // Try poMaster and poLines first
+            try {
+              const result = await db.execute(sql.raw(`
+                SELECT m.*, l.* FROM po_master m
+                LEFT JOIN po_lines l ON m.id = l.po_id
+                WHERE m.vendor_po_number = '${cleanIdentifier}' 
+                OR m.series = '${cleanIdentifier}' 
+                OR l.item_code = '${cleanIdentifier}'
+                LIMIT 5
+              `));
+              
+              if (result.rows.length > 0) {
+                results = result.rows;
+                source = 'po_master';
+              }
+            } catch (error) {
+              console.warn('Failed to query po_master:', error);
+            }
+
+            // Try pf_po and pf_order_items if no results
+            if (results.length === 0) {
+              try {
+                const result = await db.execute(sql.raw(`
+                  SELECT p.*, o.* FROM pf_po p
+                  LEFT JOIN pf_order_items o ON p.id = o.po_id
+                  WHERE p.vendor_po_number = '${cleanIdentifier}' 
+                  OR p.po_series = '${cleanIdentifier}' 
+                  OR o.platform_code = '${cleanIdentifier}' 
+                  OR o.sap_code = '${cleanIdentifier}'
+                  LIMIT 5
+                `));
+                
+                if (result.rows.length > 0) {
+                  results = result.rows;
+                  source = 'pf_po';
+                }
+              } catch (error) {
+                console.warn('Failed to query pf_po:', error);
+              }
+            }
+            break;
+          }
+
+          default:
+            return res.status(400).json({ error: 'Invalid upload type' });
+        }
+
+        if (results.length > 0) {
+          res.json({
+            found: true,
+            data: results[0], // Return first match
+            source,
+            message: `Found ${results.length} record(s) in ${source}`,
+            count: results.length
+          });
+        } else {
+          res.json({
+            found: false,
+            source: uploadType,
+            message: `No matching records found for "${cleanIdentifier}"`,
+            count: 0
+          });
+        }
+
+      } catch (queryError) {
+        console.error('Query error:', queryError);
+        res.status(500).json({ 
+          error: 'Database query failed',
+          details: queryError instanceof Error ? queryError.message : 'Unknown error'
+        });
+      }
+
+    } catch (error) {
+      console.error('Auto-populate error:', error);
+      res.status(500).json({ error: 'Failed to auto-populate data' });
+    }
+  });
+
   // Claude Code API endpoints
   app.post('/api/claude-code/query', async (req, res) => {
     try {
@@ -3871,6 +4906,120 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/hana/items", getHanaItemsTest);
   app.post("/api/hana/search", searchHanaItemsTest);
   app.get("/api/hana/raw-procedure", executeRawProcedure);
+
+  // RBAC Routes - User Management and Permissions
+  app.get("/api/roles", async (req, res) => {
+    try {
+      const roles = await storage.getAllRoles();
+      res.json(roles);
+    } catch (error) {
+      console.error("Error fetching roles:", error);
+      res.status(500).json({ error: "Failed to fetch roles" });
+    }
+  });
+
+  app.get("/api/permissions", async (req, res) => {
+    try {
+      const permissions = await storage.getAllPermissions();
+      res.json(permissions);
+    } catch (error) {
+      console.error("Error fetching permissions:", error);
+      res.status(500).json({ error: "Failed to fetch permissions" });
+    }
+  });
+
+  app.get("/api/users", async (req, res) => {
+    try {
+      const users = await storage.getAllUsers();
+      res.json(users);
+    } catch (error) {
+      console.error("Error fetching users:", error);
+      res.status(500).json({ error: "Failed to fetch users" });
+    }
+  });
+
+  app.get("/api/users/:id", async (req, res) => {
+    try {
+      const userId = parseInt(req.params.id);
+      const user = await storage.getUserWithRole(userId);
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+      res.json(user);
+    } catch (error) {
+      console.error("Error fetching user:", error);
+      res.status(500).json({ error: "Failed to fetch user" });
+    }
+  });
+
+  app.post("/api/users", async (req, res) => {
+    try {
+      const userData = req.body;
+      const newUser = await storage.createUser(userData);
+      res.status(201).json(newUser);
+    } catch (error) {
+      console.error("Error creating user:", error);
+      res.status(500).json({ error: "Failed to create user" });
+    }
+  });
+
+  app.put("/api/users/:id/role", async (req, res) => {
+    try {
+      const userId = parseInt(req.params.id);
+      const { roleId } = req.body;
+      const updatedUser = await storage.assignRoleToUser(userId, roleId);
+      res.json(updatedUser);
+    } catch (error) {
+      console.error("Error updating user role:", error);
+      res.status(500).json({ error: "Failed to update user role" });
+    }
+  });
+
+  app.get("/api/users/:id/permissions", async (req, res) => {
+    try {
+      const userId = parseInt(req.params.id);
+      const permissions = await storage.getUserPermissions(userId);
+      res.json(permissions);
+    } catch (error) {
+      console.error("Error fetching user permissions:", error);
+      res.status(500).json({ error: "Failed to fetch user permissions" });
+    }
+  });
+
+  app.get("/api/roles/:id/permissions", async (req, res) => {
+    try {
+      const roleId = parseInt(req.params.id);
+      const rolePermissions = await storage.getRolePermissions(roleId);
+      res.json(rolePermissions);
+    } catch (error) {
+      console.error("Error fetching role permissions:", error);
+      res.status(500).json({ error: "Failed to fetch role permissions" });
+    }
+  });
+
+  app.post("/api/roles/:roleId/permissions/:permissionId", async (req, res) => {
+    try {
+      const roleId = parseInt(req.params.roleId);
+      const permissionId = parseInt(req.params.permissionId);
+      const rolePermission = await storage.assignPermissionToRole(roleId, permissionId);
+      res.status(201).json(rolePermission);
+    } catch (error) {
+      console.error("Error assigning permission to role:", error);
+      res.status(500).json({ error: "Failed to assign permission to role" });
+    }
+  });
+
+  app.delete("/api/roles/:roleId/permissions/:permissionId", async (req, res) => {
+    try {
+      const roleId = parseInt(req.params.roleId);
+      const permissionId = parseInt(req.params.permissionId);
+      await storage.removePermissionFromRole(roleId, permissionId);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error removing permission from role:", error);
+      res.status(500).json({ error: "Failed to remove permission from role" });
+    }
+  });
 
   const httpServer = createServer(app);
   

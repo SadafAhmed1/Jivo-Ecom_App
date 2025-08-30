@@ -5,7 +5,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { z } from "zod";
 import { 
   Plus, Check, CalendarDays, Package, MapPin, Building2, User, FileText, 
-  Warehouse, Truck, Save, AlertCircle, CheckCircle2, Clock, Info, X,
+  Truck, Save, AlertCircle, CheckCircle2, Clock, Info, X,
   ChevronRight, ChevronDown, Upload, Loader2, Search, Hash, ShoppingCart
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -45,7 +45,6 @@ const poFormSchema = z.object({
   area: z.string().optional(),
   serving_distributor: z.string().optional(),
   dispatch_from: z.string().optional(),
-  warehouse: z.string().optional(),
   attachment: z.string().optional()
 });
 
@@ -169,7 +168,6 @@ export function PlatformPOFormImproved() {
       area: "",
       serving_distributor: "",
       dispatch_from: "",
-      warehouse: "",
       attachment: ""
     }
   });
@@ -738,7 +736,7 @@ export function PlatformPOFormImproved() {
                     </div>
                     <div>
                       <CardTitle>Logistics & Distribution</CardTitle>
-                      <CardDescription>Warehouse and distributor information</CardDescription>
+                      <CardDescription>Distributor information</CardDescription>
                     </div>
                   </div>
                   {expandedSections.logistics ? <ChevronDown className="h-5 w-5" /> : <ChevronRight className="h-5 w-5" />}
@@ -805,7 +803,7 @@ export function PlatformPOFormImproved() {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel className="flex items-center gap-2">
-                          <Warehouse className="h-4 w-4" />
+                          <Truck className="h-4 w-4" />
                           Dispatch From
                         </FormLabel>
                         <Select onValueChange={field.onChange} value={field.value}>
@@ -830,27 +828,6 @@ export function PlatformPOFormImproved() {
                     )}
                   />
 
-                  <FormField
-                    control={form.control}
-                    name="warehouse"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="flex items-center gap-2">
-                          <Warehouse className="h-4 w-4" />
-                          Warehouse
-                        </FormLabel>
-                        <FormControl>
-                          <Input 
-                            {...field} 
-                            placeholder="Enter warehouse details"
-                            className="hover:border-purple-400 transition-colors"
-                          />
-                        </FormControl>
-                        <FormDescription className="text-xs">Optional: Specific warehouse information</FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
 
                   <FormField
                     control={form.control}

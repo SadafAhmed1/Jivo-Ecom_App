@@ -11,6 +11,7 @@ import type { PfItemMst, SapItemMst, PfMst, InsertPfOrderItems } from "@shared/s
 interface LineItem extends InsertPfOrderItems {
   tempId: string;
   platform_code?: string;
+  tax_percent?: number;  // Add tax_percent field for consistent tax rate handling
 }
 
 interface LineItemRowProps {
@@ -118,16 +119,17 @@ export function LineItemRow({ item, platformId, onUpdate, onRemove }: LineItemRo
     };
   }, []);
 
-  // Calculate landing rate when basic rate or GST rate changes
+  // Calculate landing rate when basic rate or tax rate changes
   useEffect(() => {
     const basicRate = parseFloat(item.basic_rate || "0");
-    const gstRate = parseFloat(item.gst_rate || "0");
-    const landingRate = basicRate + (basicRate * gstRate / 100);
+    // Use tax_percent if available, fallback to gst_rate for backward compatibility
+    const taxRate = item.tax_percent !== undefined ? item.tax_percent : parseFloat(item.gst_rate || "0");
+    const landingRate = basicRate + (basicRate * taxRate / 100);
     
-    if (landingRate !== parseFloat(item.landing_rate || "0")) {
+    if (Math.abs(landingRate - parseFloat(item.landing_rate || "0")) > 0.01) {
       onUpdate({ landing_rate: landingRate.toFixed(2) });
     }
-  }, [item.basic_rate, item.gst_rate, item.landing_rate, onUpdate]);
+  }, [item.basic_rate, item.tax_percent, item.gst_rate]);
 
   const handleItemSelect = async (itemName: string) => {
     // Fetch full item details when an item is selected
@@ -142,12 +144,24 @@ export function LineItemRow({ item, platformId, onUpdate, onRemove }: LineItemRo
           const selectedItem = itemDetails[0];
           
           // Update all fields with fetched data
+          // Handle tax rate - prioritize U_Tax_Rate from database
+          let taxRateValue = "0";
+          if (selectedItem.U_Tax_Rate) {
+            taxRateValue = selectedItem.U_Tax_Rate.toString();
+          } else if (selectedItem.TaxRate) {
+            taxRateValue = selectedItem.TaxRate.toString();
+          }
+          
+          const parsedTaxRate = parseFloat(taxRateValue);
+          console.log('📦 Item selected - Tax rate:', parsedTaxRate, '% (from:', selectedItem.U_Tax_Rate ? 'U_Tax_Rate' : 'TaxRate', ')');
+          
           onUpdate({
             item_name: itemName,
             sap_code: selectedItem.ItemCode || "",
             category: selectedItem.ItmsGrpNam || selectedItem.ItemGroup || "",
             subcategory: selectedItem.U_Sub_Group || selectedItem.SubGroup || "",
-            gst_rate: selectedItem.U_Tax_Rate || selectedItem.TaxRate?.toString() || "0",
+            gst_rate: taxRateValue,  // Keep for backward compatibility
+            tax_percent: parsedTaxRate,  // Add for consistency with modern-po-form
             // Don't update basic_rate - let user enter it
             // basic_rate: selectedItem.BasicRate?.toString() || "0",
           });
@@ -379,7 +393,7 @@ export function LineItemRow({ item, platformId, onUpdate, onRemove }: LineItemRo
           <Input
             type="number"
             step="0.01"
-            value={item.gst_rate || ""}
+            value={item.tax_percent || item.gst_rate || ""}
             readOnly
             placeholder="0"
             className="w-full text-sm border-2 border-slate-200 bg-slate-50 h-12 rounded-lg cursor-not-allowed"

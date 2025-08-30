@@ -29,6 +29,7 @@ export default function ZeptoPoUpload() {
     mutationFn: async (file: File) => {
       const formData = new FormData();
       formData.append('file', file);
+      formData.append('platform', 'zepto');
       
       const response = await fetch('/api/po/preview', {
         method: 'POST',
@@ -324,21 +325,21 @@ export default function ZeptoPoUpload() {
                     <Table>
                       <TableHeader>
                         <TableRow>
-                          <TableHead>Item Code</TableHead>
+                          <TableHead>SKU</TableHead>
                           <TableHead>Description</TableHead>
-                          <TableHead>Quantity</TableHead>
-                          <TableHead>Unit Price</TableHead>
-                          <TableHead>Total</TableHead>
+                          <TableHead>PO Quantity</TableHead>
+                          <TableHead>Cost Price</TableHead>
+                          <TableHead>Total Value</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
                         {parsedData.lines.map((line, index) => (
                           <TableRow key={index}>
-                            <TableCell className="font-medium">{line.item_code || "N/A"}</TableCell>
-                            <TableCell>{line.item_name || line.product_description || "N/A"}</TableCell>
-                            <TableCell>{line.quantity || "N/A"}</TableCell>
-                            <TableCell>₹{line.unit_price || line.basic_cost_price || "N/A"}</TableCell>
-                            <TableCell>₹{line.total_amount || line.line_total || "N/A"}</TableCell>
+                            <TableCell className="font-medium">{line.sku || "N/A"}</TableCell>
+                            <TableCell>{line.sku || "N/A"}</TableCell>
+                            <TableCell>{line.po_qty || "N/A"}</TableCell>
+                            <TableCell>₹{line.cost_price || "N/A"}</TableCell>
+                            <TableCell>₹{line.total_value || "N/A"}</TableCell>
                           </TableRow>
                         ))}
                       </TableBody>
