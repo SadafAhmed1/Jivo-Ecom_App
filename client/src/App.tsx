@@ -209,7 +209,7 @@ function AppRouter() {
   );
 }
 
-const basePath = import.meta.env.PROD ? "/Jivo-Ecom-Ops" : "";
+const basePath = import.meta.env.PROD ? "/Jivo-Ecom_App" : "";
 
 function App() {
   return (
