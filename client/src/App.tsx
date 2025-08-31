@@ -212,6 +212,11 @@ function AppRouter() {
 const basePath = import.meta.env.PROD ? "/Jivo-Ecom_App" : "";
 
 function App() {
+  console.log("🚀 App component mounting...");
+  console.log("🔧 Environment:", import.meta.env.MODE);
+  console.log("🔧 Base path:", basePath);
+  console.log("🔧 Is production:", import.meta.env.PROD);
+  
   return (
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
